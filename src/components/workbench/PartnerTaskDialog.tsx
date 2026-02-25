@@ -3,7 +3,6 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter,
@@ -24,6 +23,7 @@ export default function PartnerTaskDialog({ open, onOpenChange, caseModuleId, de
   const [title, setTitle] = useState("");
   const [country, setCountry] = useState(defaultCountry);
   const [deadline, setDeadline] = useState("");
+  const [partnerEmail, setPartnerEmail] = useState("");
   const [questions, setQuestions] = useState<string[]>([""]);
   const [submitting, setSubmitting] = useState(false);
 
@@ -38,26 +38,59 @@ export default function PartnerTaskDialog({ open, onOpenChange, caseModuleId, de
     }
     setSubmitting(true);
 
-    const { error } = await supabase.from("partner_tasks").insert({
+    // Resolve partner user id from email if provided
+    let partnerUserId: string | null = null;
+    if (partnerEmail.trim()) {
+      const { data: partnerProfile } = await supabase
+        .from("profiles")
+        .select("user_id")
+        .eq("email", partnerEmail.trim())
+        .single();
+      if (partnerProfile) {
+        partnerUserId = partnerProfile.user_id;
+      } else {
+        toast({ title: "Partner not found", description: `No user found with email: ${partnerEmail}`, variant: "destructive" });
+        setSubmitting(false);
+        return;
+      }
+    }
+
+    const filteredQuestions = questions.filter((q) => q.trim());
+
+    const { data: taskData, error } = await supabase.from("partner_tasks").insert({
       case_module_id: caseModuleId,
       title: title.trim(),
       country: country.trim(),
       deadline: deadline || null,
-      questions: questions.filter((q) => q.trim()),
+      questions: filteredQuestions,
       status: "sent",
       created_by: user?.id,
-    });
+      partner_user_id: partnerUserId,
+    } as any).select("id").single();
 
     if (error) {
       toast({ title: "Error", description: error.message, variant: "destructive" });
-    } else {
-      toast({ title: "Task sent", description: "In-country input request has been created." });
-      setTitle("");
-      setCountry(defaultCountry);
-      setDeadline("");
-      setQuestions([""]);
-      onOpenChange(false);
+      setSubmitting(false);
+      return;
     }
+
+    // Create checklist items from questions
+    if (taskData && filteredQuestions.length > 0) {
+      const items = filteredQuestions.map((q, i) => ({
+        task_id: (taskData as any).id,
+        sort_order: i,
+        label: q,
+      }));
+      await supabase.from("partner_task_items" as any).insert(items);
+    }
+
+    toast({ title: "Task sent", description: "In-country input request has been created." });
+    setTitle("");
+    setCountry(defaultCountry);
+    setDeadline("");
+    setPartnerEmail("");
+    setQuestions([""]);
+    onOpenChange(false);
     setSubmitting(false);
   };
 
@@ -88,9 +121,19 @@ export default function PartnerTaskDialog({ open, onOpenChange, caseModuleId, de
               <Input type="date" value={deadline} onChange={(e) => setDeadline(e.target.value)} />
             </div>
           </div>
+          <div className="space-y-1.5">
+            <Label>Assign to Partner (email)</Label>
+            <Input
+              type="email"
+              value={partnerEmail}
+              onChange={(e) => setPartnerEmail(e.target.value)}
+              placeholder="partner@example.com (optional)"
+            />
+            <p className="text-[10px] text-muted-foreground">Leave blank to assign later.</p>
+          </div>
           <div className="space-y-2">
             <div className="flex items-center justify-between">
-              <Label>Questions Checklist</Label>
+              <Label>Checklist Items</Label>
               <Button size="sm" variant="ghost" onClick={addQuestion} className="h-6 px-2 text-xs">
                 <Plus size={11} className="mr-1" /> Add
               </Button>
@@ -100,7 +143,7 @@ export default function PartnerTaskDialog({ open, onOpenChange, caseModuleId, de
                 <Input
                   value={q}
                   onChange={(e) => updateQuestion(i, e.target.value)}
-                  placeholder={`Question ${i + 1}`}
+                  placeholder={`Item ${i + 1}`}
                   className="text-sm"
                 />
                 {questions.length > 1 && (

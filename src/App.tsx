@@ -6,6 +6,7 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import AppLayout from "@/components/AppLayout";
+import PartnerLayout from "@/components/PartnerLayout";
 import AuthPage from "@/pages/AuthPage";
 import DashboardPage from "@/pages/DashboardPage";
 import EntitiesPage from "@/pages/EntitiesPage";
@@ -23,12 +24,14 @@ import SupportPage from "@/pages/SupportPage";
 import StubPage from "@/pages/StubPage";
 import LiaLibraryPage from "@/pages/LiaLibraryPage";
 import AutoApprovalSettingsPage from "@/pages/AutoApprovalSettingsPage";
+import PartnerTaskListPage from "@/pages/partner/PartnerTaskListPage";
+import PartnerTaskDetailPage from "@/pages/partner/PartnerTaskDetailPage";
 import NotFound from "@/pages/NotFound";
 
 const queryClient = new QueryClient();
 
 function AppRoutes() {
-  const { user, loading, isInternal } = useAuth();
+  const { user, loading, isInternal, isPartner } = useAuth();
 
   if (loading) {
     return (
@@ -38,11 +41,21 @@ function AppRoutes() {
     );
   }
 
+  // Determine default landing page based on role
+  const defaultRoute = isPartner ? "/partner/tasks" : "/dashboard";
+
   return (
     <Routes>
-      <Route path="/auth" element={user ? <Navigate to="/dashboard" replace /> : <AuthPage />} />
-      <Route path="/" element={user ? <Navigate to="/dashboard" replace /> : <Navigate to="/auth" replace />} />
+      <Route path="/auth" element={user ? <Navigate to={defaultRoute} replace /> : <AuthPage />} />
+      <Route path="/" element={user ? <Navigate to={defaultRoute} replace /> : <Navigate to="/auth" replace />} />
       
+      {/* Partner portal — isolated layout */}
+      <Route element={<ProtectedRoute><PartnerLayout /></ProtectedRoute>}>
+        <Route path="/partner/tasks" element={<PartnerTaskListPage />} />
+        <Route path="/partner/tasks/:taskId" element={<PartnerTaskDetailPage />} />
+      </Route>
+
+      {/* Main app layout (clients + internal) */}
       <Route element={<ProtectedRoute><AppLayout /></ProtectedRoute>}>
         <Route path="/dashboard" element={<DashboardPage />} />
         <Route path="/entities" element={<EntitiesPage />} />
@@ -58,6 +71,7 @@ function AppRoutes() {
         <Route path="/cases" element={<CaseQueuePage />} />
         <Route path="/cases/:id" element={<CaseDetailPage />} />
         <Route path="/cases/:caseId/modules/:moduleId" element={<ModuleWorkbenchPage />} />
+        <Route path="/partner/tasks/:taskId" element={<PartnerTaskDetailPage />} />
         <Route path="/support" element={<SupportPage />} />
         <Route path="/users" element={<StubPage title="Users & Roles" description="Manage team members and role assignments" />} />
         <Route path="/clients" element={<StubPage title="Clients" description="Manage client organisations" />} />

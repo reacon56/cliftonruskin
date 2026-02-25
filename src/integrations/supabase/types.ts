@@ -976,6 +976,119 @@ export type Database = {
           },
         ]
       }
+      partner_task_clarifications: {
+        Row: {
+          created_at: string
+          id: string
+          item_id: string | null
+          message: string
+          sender_role: string
+          sender_user_id: string | null
+          task_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          item_id?: string | null
+          message: string
+          sender_role?: string
+          sender_user_id?: string | null
+          task_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          item_id?: string | null
+          message?: string
+          sender_role?: string
+          sender_user_id?: string | null
+          task_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "partner_task_clarifications_item_id_fkey"
+            columns: ["item_id"]
+            isOneToOne: false
+            referencedRelation: "partner_task_items"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "partner_task_clarifications_task_id_fkey"
+            columns: ["task_id"]
+            isOneToOne: false
+            referencedRelation: "partner_tasks"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      partner_task_items: {
+        Row: {
+          completed_at: string | null
+          completed_by: string | null
+          created_at: string
+          description: string | null
+          file_name: string | null
+          file_url: string | null
+          geo_label: string | null
+          geo_lat: number | null
+          geo_lng: number | null
+          id: string
+          is_client_shareable: boolean
+          is_completed: boolean
+          label: string
+          notes: string | null
+          sort_order: number
+          task_id: string
+          updated_at: string
+        }
+        Insert: {
+          completed_at?: string | null
+          completed_by?: string | null
+          created_at?: string
+          description?: string | null
+          file_name?: string | null
+          file_url?: string | null
+          geo_label?: string | null
+          geo_lat?: number | null
+          geo_lng?: number | null
+          id?: string
+          is_client_shareable?: boolean
+          is_completed?: boolean
+          label: string
+          notes?: string | null
+          sort_order?: number
+          task_id: string
+          updated_at?: string
+        }
+        Update: {
+          completed_at?: string | null
+          completed_by?: string | null
+          created_at?: string
+          description?: string | null
+          file_name?: string | null
+          file_url?: string | null
+          geo_label?: string | null
+          geo_lat?: number | null
+          geo_lng?: number | null
+          id?: string
+          is_client_shareable?: boolean
+          is_completed?: boolean
+          label?: string
+          notes?: string | null
+          sort_order?: number
+          task_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "partner_task_items_task_id_fkey"
+            columns: ["task_id"]
+            isOneToOne: false
+            referencedRelation: "partner_tasks"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       partner_tasks: {
         Row: {
           case_module_id: string
@@ -984,6 +1097,8 @@ export type Database = {
           created_by: string | null
           deadline: string | null
           id: string
+          method_statement: string | null
+          partner_user_id: string | null
           questions: Json
           response_notes: string | null
           status: string
@@ -997,6 +1112,8 @@ export type Database = {
           created_by?: string | null
           deadline?: string | null
           id?: string
+          method_statement?: string | null
+          partner_user_id?: string | null
           questions?: Json
           response_notes?: string | null
           status?: string
@@ -1010,6 +1127,8 @@ export type Database = {
           created_by?: string | null
           deadline?: string | null
           id?: string
+          method_statement?: string | null
+          partner_user_id?: string | null
           questions?: Json
           response_notes?: string | null
           status?: string
@@ -1301,6 +1420,7 @@ export type Database = {
         | "client_auditor"
         | "fvc_analyst"
         | "fvc_ops_admin"
+        | "partner"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -1434,6 +1554,7 @@ export const Constants = {
         "client_auditor",
         "fvc_analyst",
         "fvc_ops_admin",
+        "partner",
       ],
     },
   },
