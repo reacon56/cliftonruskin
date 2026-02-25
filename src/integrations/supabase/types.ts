@@ -713,6 +713,56 @@ export type Database = {
           },
         ]
       }
+      partner_tasks: {
+        Row: {
+          case_module_id: string
+          country: string
+          created_at: string
+          created_by: string | null
+          deadline: string | null
+          id: string
+          questions: Json
+          response_notes: string | null
+          status: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          case_module_id: string
+          country: string
+          created_at?: string
+          created_by?: string | null
+          deadline?: string | null
+          id?: string
+          questions?: Json
+          response_notes?: string | null
+          status?: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          case_module_id?: string
+          country?: string
+          created_at?: string
+          created_by?: string | null
+          deadline?: string | null
+          id?: string
+          questions?: Json
+          response_notes?: string | null
+          status?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "partner_tasks_case_module_id_fkey"
+            columns: ["case_module_id"]
+            isOneToOne: false
+            referencedRelation: "case_modules"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       policies: {
         Row: {
           created_at: string

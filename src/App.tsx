@@ -17,6 +17,7 @@ import MonitoringPage from "@/pages/MonitoringPage";
 import PoliciesPage from "@/pages/PoliciesPage";
 import AuditLogPage from "@/pages/AuditLogPage";
 import CaseDetailPage from "@/pages/CaseDetailPage";
+import ModuleWorkbenchPage from "@/pages/ModuleWorkbenchPage";
 import CaseQueuePage from "@/pages/CaseQueuePage";
 import SupportPage from "@/pages/SupportPage";
 import StubPage from "@/pages/StubPage";
@@ -52,6 +53,7 @@ function AppRoutes() {
         <Route path="/audit-log" element={<AuditLogPage />} />
         <Route path="/cases" element={<CaseQueuePage />} />
         <Route path="/cases/:id" element={<CaseDetailPage />} />
+        <Route path="/cases/:caseId/modules/:moduleId" element={<ModuleWorkbenchPage />} />
         <Route path="/support" element={<SupportPage />} />
         <Route path="/users" element={<StubPage title="Users & Roles" description="Manage team members and role assignments" />} />
         <Route path="/clients" element={<StubPage title="Clients" description="Manage client organisations" />} />
