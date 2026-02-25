@@ -253,6 +253,14 @@ export type Database = {
           created_at: string
           criticality: string
           entity_type: string
+          head_office_address_line1: string | null
+          head_office_address_line2: string | null
+          head_office_city: string | null
+          head_office_country: string | null
+          head_office_postcode: string | null
+          head_office_region: string | null
+          hq_lat: number | null
+          hq_lng: number | null
           id: string
           internal_contacts: Json | null
           last_review_date: string | null
@@ -261,6 +269,17 @@ export type Database = {
           onboarded_date: string | null
           org_id: string
           owner_user_id: string | null
+          poc_email: string | null
+          poc_name: string | null
+          poc_phone: string | null
+          registered_address_line1: string | null
+          registered_address_line2: string | null
+          registered_city: string | null
+          registered_country: string | null
+          registered_lat: number | null
+          registered_lng: number | null
+          registered_postcode: string | null
+          registered_region: string | null
           registration_number: string | null
           risk_tier: string
           service_provided: string | null
@@ -274,6 +293,14 @@ export type Database = {
           created_at?: string
           criticality?: string
           entity_type?: string
+          head_office_address_line1?: string | null
+          head_office_address_line2?: string | null
+          head_office_city?: string | null
+          head_office_country?: string | null
+          head_office_postcode?: string | null
+          head_office_region?: string | null
+          hq_lat?: number | null
+          hq_lng?: number | null
           id?: string
           internal_contacts?: Json | null
           last_review_date?: string | null
@@ -282,6 +309,17 @@ export type Database = {
           onboarded_date?: string | null
           org_id: string
           owner_user_id?: string | null
+          poc_email?: string | null
+          poc_name?: string | null
+          poc_phone?: string | null
+          registered_address_line1?: string | null
+          registered_address_line2?: string | null
+          registered_city?: string | null
+          registered_country?: string | null
+          registered_lat?: number | null
+          registered_lng?: number | null
+          registered_postcode?: string | null
+          registered_region?: string | null
           registration_number?: string | null
           risk_tier?: string
           service_provided?: string | null
@@ -295,6 +333,14 @@ export type Database = {
           created_at?: string
           criticality?: string
           entity_type?: string
+          head_office_address_line1?: string | null
+          head_office_address_line2?: string | null
+          head_office_city?: string | null
+          head_office_country?: string | null
+          head_office_postcode?: string | null
+          head_office_region?: string | null
+          hq_lat?: number | null
+          hq_lng?: number | null
           id?: string
           internal_contacts?: Json | null
           last_review_date?: string | null
@@ -303,6 +349,17 @@ export type Database = {
           onboarded_date?: string | null
           org_id?: string
           owner_user_id?: string | null
+          poc_email?: string | null
+          poc_name?: string | null
+          poc_phone?: string | null
+          registered_address_line1?: string | null
+          registered_address_line2?: string | null
+          registered_city?: string | null
+          registered_country?: string | null
+          registered_lat?: number | null
+          registered_lng?: number | null
+          registered_postcode?: string | null
+          registered_region?: string | null
           registration_number?: string | null
           risk_tier?: string
           service_provided?: string | null
