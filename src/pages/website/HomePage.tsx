@@ -96,20 +96,30 @@ export default function HomePage() {
       </section>
 
       {/* ═══════════════════ TRUST STRIP ═══════════════════ */}
-      <section className="bg-[#1a1a2e] py-6">
-        <p className="text-center text-xs uppercase tracking-[0.15em] text-white/40 font-medium">
-          Trusted by teams who answer to boards, regulators, and shareholders
-        </p>
+      <section className="bg-[#1a1a2e] py-8 border-t border-white/5">
+        <div className="flex items-center justify-center gap-4">
+          <div className="h-px w-16 bg-gradient-to-r from-transparent to-[#c9a962]/20" />
+          <p className="text-center text-[11px] uppercase tracking-[0.2em] text-white/35 font-medium">
+            Trusted by teams who answer to boards, regulators, and shareholders
+          </p>
+          <div className="h-px w-16 bg-gradient-to-l from-transparent to-[#c9a962]/20" />
+        </div>
       </section>
 
       {/* ═══════════════════ 4 PILLARS ═══════════════════ */}
-      <section className="bg-[#f6f0e6] py-24">
+      <section className="bg-[#f6f0e6] py-28">
         <div className="mx-auto max-w-7xl px-6">
-          <p className="text-[#c9a962] text-xs font-semibold uppercase tracking-[0.2em] mb-3">Our Standard</p>
-          <h2 className="font-display text-3xl sm:text-4xl font-semibold text-[#1a1a2e] tracking-tight">
-            The Clifton Ruskin Standard
-          </h2>
-          <GoldRule className="mt-4 mb-12" />
+          <div className="text-center mb-16">
+            <p className="text-[#c9a962] text-xs font-semibold uppercase tracking-[0.2em] mb-3">Our Standard</p>
+            <h2 className="font-display text-3xl sm:text-4xl font-semibold text-[#1a1a2e] tracking-tight">
+              The Clifton Ruskin Standard
+            </h2>
+            <div className="mx-auto mt-5 flex items-center gap-3 justify-center">
+              <div className="h-px w-12 bg-[#c9a962]/25" />
+              <div className="w-1.5 h-1.5 rotate-45 border border-[#c9a962]/30" />
+              <div className="h-px w-12 bg-[#c9a962]/25" />
+            </div>
+          </div>
 
           <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-8">
             {[
@@ -118,12 +128,12 @@ export default function HomePage() {
               { icon: Globe, title: "Global Reach", desc: "In-country networks across 50+ jurisdictions, coordinated from London." },
               { icon: Lock, title: "Confidential by Default", desc: "Information barriers and need-to-know principles from first contact." },
             ].map(({ icon: Icon, title, desc }) => (
-              <div key={title} className="group p-6 rounded-xl border border-[#c9a962]/10 bg-white/60 hover:bg-white transition-all duration-500 hover:shadow-lg">
-                <div className="h-10 w-10 rounded-lg bg-[#1a1a2e] flex items-center justify-center mb-4 group-hover:bg-[#c9a962] transition-colors duration-500">
+              <div key={title} className="group p-7 rounded-xl border border-[#c9a962]/10 bg-white/60 hover:bg-white transition-all duration-500 hover:shadow-[0_8px_30px_-12px_rgba(201,169,98,0.15)]">
+                <div className="h-11 w-11 rounded-lg bg-[#1a1a2e] flex items-center justify-center mb-5 group-hover:bg-[#c9a962] transition-colors duration-500 shadow-sm">
                   <Icon className="h-5 w-5 text-[#c9a962] group-hover:text-[#1a1a2e] transition-colors duration-500" />
                 </div>
-                <h3 className="font-display text-lg font-semibold text-[#1a1a2e] mb-2">{title}</h3>
-                <p className="text-sm text-[#1a1a2e]/60 leading-relaxed">{desc}</p>
+                <h3 className="font-display text-lg font-semibold text-[#1a1a2e] mb-2 tracking-tight">{title}</h3>
+                <p className="text-[13px] text-[#1a1a2e]/55 leading-relaxed">{desc}</p>
               </div>
             ))}
           </div>
@@ -131,13 +141,24 @@ export default function HomePage() {
       </section>
 
       {/* ═══════════════════ PRODUCTS ═══════════════════ */}
-      <section className="bg-[#1a1a2e] py-24">
-        <div className="mx-auto max-w-7xl px-6">
-          <p className="text-[#c9a962] text-xs font-semibold uppercase tracking-[0.2em] mb-3">Products</p>
-          <h2 className="font-display text-3xl sm:text-4xl font-semibold text-white tracking-tight">
-            Three levels of assurance
-          </h2>
-          <GoldRule className="mt-4 mb-12" />
+      <section className="bg-[#1a1a2e] py-28 relative overflow-hidden">
+        {/* Subtle texture */}
+        <div className="absolute inset-0 opacity-[0.02]" style={{
+          backgroundImage: `radial-gradient(circle at 1px 1px, white 1px, transparent 0)`,
+          backgroundSize: "40px 40px",
+        }} />
+        <div className="mx-auto max-w-7xl px-6 relative">
+          <div className="text-center mb-16">
+            <p className="text-[#c9a962] text-xs font-semibold uppercase tracking-[0.2em] mb-3">Products</p>
+            <h2 className="font-display text-3xl sm:text-4xl font-semibold text-white tracking-tight">
+              Three levels of assurance
+            </h2>
+            <div className="mx-auto mt-5 flex items-center gap-3 justify-center">
+              <div className="h-px w-12 bg-[#c9a962]/25" />
+              <div className="w-1.5 h-1.5 rotate-45 border border-[#c9a962]/30" />
+              <div className="h-px w-12 bg-[#c9a962]/25" />
+            </div>
+          </div>
 
           <div className="grid md:grid-cols-3 gap-6">
             {[
@@ -160,14 +181,14 @@ export default function HomePage() {
                 tag: "Ongoing",
               },
             ].map(({ icon: Icon, title, desc, tag }) => (
-              <div key={title} className="group relative rounded-xl border border-white/10 bg-white/5 p-8 hover:border-[#c9a962]/30 transition-all duration-500">
-                <span className="text-[10px] font-semibold uppercase tracking-[0.15em] text-[#c9a962]">{tag}</span>
-                <div className="mt-4 h-10 w-10 rounded-lg bg-[#c9a962]/10 flex items-center justify-center mb-4">
+              <div key={title} className="group relative rounded-xl border border-white/[0.07] bg-white/[0.03] p-8 hover:border-[#c9a962]/25 hover:bg-white/[0.06] transition-all duration-500 hover:shadow-[0_8px_30px_-12px_rgba(201,169,98,0.1)]">
+                <span className="text-[10px] font-semibold uppercase tracking-[0.15em] text-[#c9a962]/70">{tag}</span>
+                <div className="mt-5 h-11 w-11 rounded-lg bg-[#c9a962]/[0.08] flex items-center justify-center mb-5 group-hover:bg-[#c9a962]/15 transition-colors duration-500">
                   <Icon className="h-5 w-5 text-[#c9a962]" />
                 </div>
-                <h3 className="font-display text-xl font-semibold text-white mb-3">{title}</h3>
-                <p className="text-sm text-white/50 leading-relaxed">{desc}</p>
-                <Link to="/services" className="mt-6 inline-flex items-center gap-1.5 text-sm text-[#c9a962] font-medium hover:gap-2.5 transition-all duration-300">
+                <h3 className="font-display text-xl font-semibold text-white mb-3 tracking-tight">{title}</h3>
+                <p className="text-[13px] text-white/45 leading-relaxed mb-6">{desc}</p>
+                <Link to="/services" className="inline-flex items-center gap-1.5 text-[13px] text-[#c9a962] font-medium hover:gap-2.5 transition-all duration-300">
                   Learn more <ArrowRight className="h-3.5 w-3.5" />
                 </Link>
               </div>
@@ -177,13 +198,19 @@ export default function HomePage() {
       </section>
 
       {/* ═══════════════════ HOW IT WORKS ═══════════════════ */}
-      <section className="bg-[#f6f0e6] py-24">
+      <section className="bg-[#f6f0e6] py-28">
         <div className="mx-auto max-w-7xl px-6">
-          <p className="text-[#c9a962] text-xs font-semibold uppercase tracking-[0.2em] mb-3">Process</p>
-          <h2 className="font-display text-3xl sm:text-4xl font-semibold text-[#1a1a2e] tracking-tight">
-            How it works
-          </h2>
-          <GoldRule className="mt-4 mb-12" />
+          <div className="text-center mb-16">
+            <p className="text-[#c9a962] text-xs font-semibold uppercase tracking-[0.2em] mb-3">Process</p>
+            <h2 className="font-display text-3xl sm:text-4xl font-semibold text-[#1a1a2e] tracking-tight">
+              How it works
+            </h2>
+            <div className="mx-auto mt-5 flex items-center gap-3 justify-center">
+              <div className="h-px w-12 bg-[#c9a962]/25" />
+              <div className="w-1.5 h-1.5 rotate-45 border border-[#c9a962]/30" />
+              <div className="h-px w-12 bg-[#c9a962]/25" />
+            </div>
+          </div>
 
           <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-0">
             {[
@@ -194,11 +221,11 @@ export default function HomePage() {
             ].map(({ step, label, desc }, i) => (
               <div key={step} className="relative flex flex-col items-center text-center p-8">
                 {i < 3 && (
-                  <div className="hidden lg:block absolute top-12 right-0 w-full h-px bg-gradient-to-r from-[#c9a962]/30 to-[#c9a962]/30 translate-x-1/2" />
+                  <div className="hidden lg:block absolute top-14 right-0 w-full h-px bg-gradient-to-r from-[#c9a962]/20 via-[#c9a962]/30 to-[#c9a962]/20 translate-x-1/2" />
                 )}
-                <span className="font-display text-3xl font-bold text-[#c9a962]/30 mb-2">{step}</span>
-                <h3 className="font-display text-lg font-semibold text-[#1a1a2e] mb-2">{label}</h3>
-                <p className="text-sm text-[#1a1a2e]/50 leading-relaxed">{desc}</p>
+                <span className="font-display text-4xl font-bold text-[#c9a962]/20 mb-3 tracking-tight">{step}</span>
+                <h3 className="font-display text-lg font-semibold text-[#1a1a2e] mb-2 tracking-tight">{label}</h3>
+                <p className="text-[13px] text-[#1a1a2e]/50 leading-relaxed">{desc}</p>
               </div>
             ))}
           </div>
@@ -206,7 +233,7 @@ export default function HomePage() {
       </section>
 
       {/* ═══════════════════ PORTAL PREVIEW ═══════════════════ */}
-      <section className="bg-white py-24">
+      <section className="bg-white py-28">
         <div className="mx-auto max-w-7xl px-6">
           <div className="grid lg:grid-cols-2 gap-16 items-center">
             <div>
@@ -214,8 +241,11 @@ export default function HomePage() {
               <h2 className="font-display text-3xl sm:text-4xl font-semibold text-[#1a1a2e] tracking-tight">
                 Your assurance, always accessible
               </h2>
-              <GoldRule className="mt-4 mb-8" />
-              <ul className="space-y-4">
+              <div className="mt-5 mb-10 flex items-center gap-3">
+                <div className="h-px w-12 bg-[#c9a962]/25" />
+                <div className="w-1.5 h-1.5 rotate-45 border border-[#c9a962]/30" />
+              </div>
+              <ul className="space-y-5">
                 {[
                   { icon: Lock, text: "Secure delivery — encrypted, role-gated access" },
                   { icon: Eye, text: "Case status & milestones — real-time visibility" },
@@ -224,31 +254,31 @@ export default function HomePage() {
                   { icon: Download, text: "Exportable board pack — PDF bundle ready for governance" },
                 ].map(({ icon: Icon, text }) => (
                   <li key={text} className="flex items-start gap-3">
-                    <div className="mt-0.5 h-6 w-6 rounded-md bg-[#1a1a2e] flex items-center justify-center shrink-0">
+                    <div className="mt-0.5 h-7 w-7 rounded-md bg-[#1a1a2e] flex items-center justify-center shrink-0 shadow-sm">
                       <Icon className="h-3.5 w-3.5 text-[#c9a962]" />
                     </div>
-                    <span className="text-sm text-[#1a1a2e]/70 leading-relaxed">{text}</span>
+                    <span className="text-[13px] text-[#1a1a2e]/65 leading-relaxed">{text}</span>
                   </li>
                 ))}
               </ul>
             </div>
             {/* Mock portal UI */}
-            <div className="rounded-xl border border-[#c9a962]/15 bg-[#f6f0e6] p-8 shadow-xl">
+            <div className="rounded-xl border border-[#c9a962]/12 bg-gradient-to-b from-[#f6f0e6] to-[#f2ece0] p-8 shadow-[0_20px_60px_-20px_rgba(26,26,46,0.15)]">
               <div className="flex items-center gap-2 mb-6">
-                <div className="h-3 w-3 rounded-full bg-[#c9a962]/40" />
-                <div className="h-3 w-3 rounded-full bg-[#c9a962]/20" />
-                <div className="h-3 w-3 rounded-full bg-[#c9a962]/10" />
-                <span className="ml-3 text-xs text-[#1a1a2e]/30 font-medium">portal.cliftonruskin.com</span>
+                <div className="h-2.5 w-2.5 rounded-full bg-[#c9a962]/40" />
+                <div className="h-2.5 w-2.5 rounded-full bg-[#c9a962]/25" />
+                <div className="h-2.5 w-2.5 rounded-full bg-[#c9a962]/10" />
+                <span className="ml-3 text-[11px] text-[#1a1a2e]/25 font-medium tracking-wide">portal.cliftonruskin.com</span>
               </div>
               <div className="space-y-3">
                 {["Novartis AG — Assurance Note", "Kier Group plc — Dossier", "Apex Holdings Ltd — Refresh Note"].map((item, i) => (
-                  <div key={item} className="flex items-center justify-between rounded-lg bg-white p-4 border border-[#c9a962]/10">
+                  <div key={item} className="flex items-center justify-between rounded-lg bg-white p-4 border border-[#1a1a2e]/[0.04] shadow-sm">
                     <div>
-                      <p className="text-sm font-medium text-[#1a1a2e]">{item}</p>
-                      <p className="text-xs text-[#1a1a2e]/40 mt-0.5">{["Delivered", "In progress", "Scheduled"][i]}</p>
+                      <p className="text-[13px] font-medium text-[#1a1a2e] tracking-tight">{item}</p>
+                      <p className="text-[11px] text-[#1a1a2e]/35 mt-0.5">{["Delivered", "In progress", "Scheduled"][i]}</p>
                     </div>
-                    <span className={`text-[10px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded-full ${
-                      i === 0 ? "bg-green-100 text-green-700" : i === 1 ? "bg-amber-100 text-amber-700" : "bg-blue-100 text-blue-700"
+                    <span className={`text-[10px] font-semibold uppercase tracking-wider px-2.5 py-1 rounded-full ${
+                      i === 0 ? "bg-emerald-50 text-emerald-700 border border-emerald-200/50" : i === 1 ? "bg-amber-50 text-amber-700 border border-amber-200/50" : "bg-sky-50 text-sky-700 border border-sky-200/50"
                     }`}>
                       {["Complete", "Active", "Pending"][i]}
                     </span>
@@ -261,20 +291,31 @@ export default function HomePage() {
       </section>
 
       {/* ═══════════════════ FINAL CTA ═══════════════════ */}
-      <section className="bg-[#1a1a2e] py-20">
-        <div className="mx-auto max-w-3xl px-6 text-center">
-          <GoldRule className="mx-auto mb-8" />
-          <h2 className="font-display text-3xl sm:text-4xl font-semibold text-white tracking-tight mb-4">
+      <section className="bg-[#1a1a2e] py-24 relative overflow-hidden">
+        <div className="absolute inset-0 opacity-[0.02]" style={{
+          backgroundImage: `radial-gradient(circle at 1px 1px, white 1px, transparent 0)`,
+          backgroundSize: "40px 40px",
+        }} />
+        <div className="mx-auto max-w-3xl px-6 text-center relative">
+          <div className="mx-auto mb-8 flex items-center gap-3 justify-center">
+            <div className="h-px w-12 bg-[#c9a962]/25" />
+            <div className="w-1.5 h-1.5 rotate-45 border border-[#c9a962]/30" />
+            <div className="h-px w-12 bg-[#c9a962]/25" />
+          </div>
+          <h2 className="font-display text-3xl sm:text-4xl font-semibold text-white tracking-tight mb-5">
             A confidential conversation.
           </h2>
-          <p className="text-white/50 text-sm mb-8 max-w-lg mx-auto leading-relaxed">
+          <p className="text-white/45 text-[13px] mb-10 max-w-lg mx-auto leading-relaxed">
             Whether you're assessing a new supplier, preparing for a transaction, or strengthening your third-party governance — we're ready to listen.
           </p>
           <Link to="/contact">
-            <Button size="lg" className="bg-[#c9a962] hover:bg-[#c9a962]/90 text-[#1a1a2e] font-semibold rounded-full px-8">
+            <Button size="lg" className="bg-[#c9a962] hover:bg-[#c9a962]/90 text-[#1a1a2e] font-semibold rounded-full px-10 shadow-[0_4px_20px_-4px_rgba(201,169,98,0.3)] hover:shadow-[0_4px_24px_-4px_rgba(201,169,98,0.45)] transition-all duration-500">
               Get in Touch
             </Button>
           </Link>
+          <p className="mt-6 text-[11px] text-white/25 tracking-wide italic">
+            All enquiries treated in strict confidence.
+          </p>
         </div>
       </section>
     </div>
