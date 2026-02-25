@@ -8,6 +8,7 @@ import EntityWorldMap from "@/components/EntityWorldMap";
 import ReviewTimeline from "@/components/ReviewTimeline";
 import ActionsRequired from "@/components/dashboard/ActionsRequired";
 import ActionsDrawer from "@/components/dashboard/ActionsDrawer";
+import WhatChangedCard from "@/components/dashboard/WhatChangedCard";
 import { MessageSquare, Shield } from "lucide-react";
 
 interface DashboardStats {
@@ -42,6 +43,7 @@ export default function DashboardPage() {
   const [highAlertItems, setHighAlertItems] = useState<any[]>([]);
   const [dueSoonEntities, setDueSoonEntities] = useState<any[]>([]);
   const [pendingCases, setPendingCases] = useState<any[]>([]);
+  const [changeStats, setChangeStats] = useState({ total: 0, adverseMedia: 0, ownership: 0, litigation: 0 });
 
   useEffect(() => {
     if (!profile?.org_id) return;
@@ -61,6 +63,7 @@ export default function DashboardPage() {
       alertsRes, recentEntRes, recentCasesRes, allEntRes,
       pendingApprovalsRes, awaitingClientRes, highAlertsRes,
       overdueEntRes, awaitingCasesRes, dueSoonEntRes, pendingCasesRes,
+      changeLogsRes, monitoringTypesRes,
     ] = await Promise.all([
       supabase.from("entities").select("id", { count: "exact", head: true }).eq("org_id", orgId),
       supabase.from("entities").select("id", { count: "exact", head: true }).eq("org_id", orgId).lte("next_review_date", in30).gte("next_review_date", todayStr),
@@ -83,6 +86,10 @@ export default function DashboardPage() {
       supabase.from("cases").select("id, product_type, entities(name)").eq("org_id", orgId).eq("status", "awaiting_client").limit(10),
       supabase.from("entities").select("id, name, next_review_date").eq("org_id", orgId).lte("next_review_date", in30).gte("next_review_date", todayStr).order("next_review_date", { ascending: true }).limit(10),
       supabase.from("cases").select("id, product_type, entities(name)").eq("org_id", orgId).eq("status", "submitted").limit(10),
+      // Change logs last 30 days
+      supabase.from("change_logs").select("id, summary, what_changed").gte("created_at", new Date(now.getTime() - 30 * 86400000).toISOString()),
+      // Monitoring events by type last 30 days
+      supabase.from("monitoring_events").select("id, event_type").gte("detected_at", new Date(now.getTime() - 30 * 86400000).toISOString()),
     ]);
 
     const totalEntities = entitiesRes.count ?? 0;
@@ -110,6 +117,19 @@ export default function DashboardPage() {
     setHighAlertItems(alertsRes.data?.filter((a) => a.severity === "high") ?? []);
     setDueSoonEntities(dueSoonEntRes.data ?? []);
     setPendingCases(pendingCasesRes.data ?? []);
+
+    // Compute change stats
+    const changeLogs = changeLogsRes.data ?? [];
+    const monTypes = monitoringTypesRes.data ?? [];
+    const adverseMedia = monTypes.filter((m: any) => ["adverse_media", "negative_news", "media"].includes(m.event_type)).length;
+    const ownership = monTypes.filter((m: any) => ["ownership_change", "director_change", "psc_change", "corporate_change"].includes(m.event_type)).length;
+    const litigation = monTypes.filter((m: any) => ["litigation", "regulatory", "sanctions", "enforcement"].includes(m.event_type)).length;
+    setChangeStats({
+      total: changeLogs.length,
+      adverseMedia,
+      ownership,
+      litigation,
+    });
   };
 
   const kpis = [
@@ -284,7 +304,15 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      <div className="grid lg:grid-cols-2 gap-6 fvc-stagger">
+      <div className="grid lg:grid-cols-3 gap-6 mb-10 fvc-stagger">
+        {/* What Changed card */}
+        <WhatChangedCard
+          totalChanges={changeStats.total}
+          adverseMedia={changeStats.adverseMedia}
+          ownershipChanges={changeStats.ownership}
+          litigationSignals={changeStats.litigation}
+        />
+
         {/* Recent entities */}
         <div className="fvc-card">
           <div className="flex items-center justify-between mb-5">
