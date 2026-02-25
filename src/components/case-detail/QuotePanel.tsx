@@ -13,6 +13,7 @@ interface Props {
   caseId: string;
   caseStatus: string;
   onStatusChange: () => void;
+  entityName?: string;
 }
 
 interface LineItem {
@@ -29,7 +30,7 @@ interface Quote {
   created_at: string;
 }
 
-export default function QuotePanel({ caseId, caseStatus, onStatusChange }: Props) {
+export default function QuotePanel({ caseId, caseStatus, onStatusChange, entityName }: Props) {
   const { user, profile, hasRole, isInternal, canQuote } = useAuth();
   const { toast } = useToast();
   const [quote, setQuote] = useState<Quote | null>(null);
@@ -124,6 +125,11 @@ export default function QuotePanel({ caseId, caseStatus, onStatusChange }: Props
       },
     });
 
+    // Fire-and-forget notification to client admins
+    supabase.functions.invoke("notify-quote-ready", {
+      body: { case_id: caseId, total_price: totalPrice, entity_name: entityName },
+    }).catch(console.error);
+
     toast({ title: "Quote sent", description: "Case moved to Quoted — awaiting client approval." });
     setEditing(false);
     setSubmitting(false);
@@ -145,6 +151,16 @@ export default function QuotePanel({ caseId, caseStatus, onStatusChange }: Props
       object_id: caseId,
       metadata: { quote_id: quote.id, total_price: quote.total_price, via: "quote_approval", from_status: "quoted", to_status: "approved" },
     });
+
+    // Fire-and-forget notification to FVC internal staff
+    supabase.functions.invoke("notify-quote-approved", {
+      body: {
+        case_id: caseId,
+        total_price: quote.total_price,
+        entity_name: entityName,
+        approved_by_name: profile.full_name,
+      },
+    }).catch(console.error);
 
     toast({ title: "Quote approved", description: "Case approved — ready for assignment." });
     onStatusChange();
