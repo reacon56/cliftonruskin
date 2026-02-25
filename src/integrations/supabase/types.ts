@@ -996,6 +996,7 @@ export type Database = {
       }
       monitoring_events: {
         Row: {
+          case_id: string | null
           detected_at: string
           entity_id: string
           event_type: string
@@ -1006,6 +1007,7 @@ export type Database = {
           status: string
         }
         Insert: {
+          case_id?: string | null
           detected_at?: string
           entity_id: string
           event_type: string
@@ -1016,6 +1018,7 @@ export type Database = {
           status?: string
         }
         Update: {
+          case_id?: string | null
           detected_at?: string
           entity_id?: string
           event_type?: string
@@ -1026,6 +1029,13 @@ export type Database = {
           status?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "monitoring_events_case_id_fkey"
+            columns: ["case_id"]
+            isOneToOne: false
+            referencedRelation: "cases"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "monitoring_events_entity_id_fkey"
             columns: ["entity_id"]

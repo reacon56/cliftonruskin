@@ -1,11 +1,11 @@
 import { useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import { Zap } from "lucide-react";
+import EventReviewButton from "@/components/monitoring/EventReviewButton";
 
 interface Props {
   entity: any;
@@ -23,7 +23,6 @@ const STATUS_OPTIONS = [
 export default function MonitoringTab({ entity, events, canTriage, onRefresh }: Props) {
   const navigate = useNavigate();
   const { toast } = useToast();
-  const [triageComment, setTriageComment] = useState<Record<string, string>>({});
   const [updating, setUpdating] = useState<string | null>(null);
 
   const handleStatusChange = async (eventId: string, newStatus: string) => {
@@ -76,7 +75,22 @@ export default function MonitoringTab({ entity, events, canTriage, onRefresh }: 
               </div>
             </div>
 
-            {canTriage && ev.status !== "actioned" && (
+            {/* Case linked indicator */}
+            {ev.case_id && (
+              <div className="flex items-center gap-2 mt-2 pt-2 border-t border-border/60">
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="text-xs gap-1.5 border-accent/30 text-accent"
+                  onClick={() => navigate(`/cases/${ev.case_id}`)}
+                >
+                  Case opened →
+                </Button>
+              </div>
+            )}
+
+            {/* Triage actions */}
+            {canTriage && !ev.case_id && ev.status !== "actioned" && (
               <div className="flex items-center gap-2 mt-3 pt-3 border-t border-border/60">
                 {STATUS_OPTIONS.filter((o) => o.value !== ev.status).map((opt) => (
                   <Button
@@ -90,6 +104,11 @@ export default function MonitoringTab({ entity, events, canTriage, onRefresh }: 
                     {opt.label}
                   </Button>
                 ))}
+                <EventReviewButton
+                  event={{ ...ev, entities: { name: entity.name, org_id: entity.org_id, risk_tier: entity.risk_tier } }}
+                  entityRiskTier={entity.risk_tier}
+                  onCaseCreated={onRefresh}
+                />
                 <Button
                   size="sm"
                   variant="outline"
