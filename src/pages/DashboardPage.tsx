@@ -1,9 +1,11 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
-import { Building2, AlertTriangle, FileCheck, Activity, Clock, TrendingUp } from "lucide-react";
+import { Building2, AlertTriangle, FileCheck, Activity, Clock, TrendingUp, MapPin, CalendarClock } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { useNavigate } from "react-router-dom";
+import EntityWorldMap from "@/components/EntityWorldMap";
+import ReviewTimeline from "@/components/ReviewTimeline";
 
 interface DashboardStats {
   totalEntities: number;
@@ -21,6 +23,7 @@ export default function DashboardPage() {
     totalEntities: 0, dueSoon: 0, overdue: 0, activeCases: 0, completedThisMonth: 0, highAlerts: 0,
   });
   const [recentEntities, setRecentEntities] = useState<any[]>([]);
+  const [allEntities, setAllEntities] = useState<any[]>([]);
   const [recentCases, setRecentCases] = useState<any[]>([]);
   const [alerts, setAlerts] = useState<any[]>([]);
 
@@ -35,7 +38,7 @@ export default function DashboardPage() {
     const in30 = new Date(now.getTime() + 30 * 86400000).toISOString().split("T")[0];
     const monthStart = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
 
-    const [entitiesRes, dueSoonRes, overdueRes, casesRes, completedRes, alertsRes, recentEntRes, recentCasesRes] =
+    const [entitiesRes, dueSoonRes, overdueRes, casesRes, completedRes, alertsRes, recentEntRes, recentCasesRes, allEntRes] =
       await Promise.all([
         supabase.from("entities").select("id", { count: "exact", head: true }).eq("org_id", orgId),
         supabase.from("entities").select("id", { count: "exact", head: true }).eq("org_id", orgId).lte("next_review_date", in30).gte("next_review_date", now.toISOString().split("T")[0]),
@@ -45,6 +48,7 @@ export default function DashboardPage() {
         supabase.from("monitoring_events").select("*").eq("status", "new").order("detected_at", { ascending: false }).limit(5),
         supabase.from("entities").select("*").eq("org_id", orgId).order("created_at", { ascending: false }).limit(5),
         supabase.from("cases").select("*, entities(name)").eq("org_id", orgId).order("created_at", { ascending: false }).limit(5),
+        supabase.from("entities").select("id, name, country, risk_tier, next_review_date").eq("org_id", orgId),
       ]);
 
     setStats({
@@ -56,6 +60,7 @@ export default function DashboardPage() {
       highAlerts: alertsRes.data?.filter((a) => a.severity === "high").length ?? 0,
     });
     setRecentEntities(recentEntRes.data ?? []);
+    setAllEntities(allEntRes.data ?? []);
     setRecentCases(recentCasesRes.data ?? []);
     setAlerts(alertsRes.data ?? []);
   };
@@ -114,6 +119,26 @@ export default function DashboardPage() {
             </div>
           </div>
         ))}
+      </div>
+
+      {/* Map & Review Timeline */}
+      <div className="grid lg:grid-cols-2 gap-6 mb-10 fvc-stagger">
+        <div className="fvc-card">
+          <div className="flex items-center gap-2 mb-4">
+            <MapPin size={16} className="text-accent" />
+            <h2 className="fvc-heading-3 text-foreground">Entity Locations</h2>
+          </div>
+          <p className="text-[11px] text-muted-foreground mb-4">Head office locations of registered entities</p>
+          <EntityWorldMap entities={allEntities} />
+        </div>
+        <div className="fvc-card">
+          <div className="flex items-center gap-2 mb-4">
+            <CalendarClock size={16} className="text-accent" />
+            <h2 className="fvc-heading-3 text-foreground">Review Schedule</h2>
+          </div>
+          <p className="text-[11px] text-muted-foreground mb-4">Upcoming and overdue entity reviews</p>
+          <ReviewTimeline entities={allEntities} />
+        </div>
       </div>
 
       <div className="grid lg:grid-cols-2 gap-6 fvc-stagger">
