@@ -4,8 +4,10 @@ import {
   LayoutDashboard, Building2, FileCheck, FolderOpen, Activity,
   Shield, Users, ClipboardList, HeadphonesIcon, ListTodo,
   Settings, FileText, LogOut, ChevronLeft, ChevronRight, Moon, Sun,
+  ArrowLeftRight,
 } from "lucide-react";
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { useTheme } from "@/hooks/use-theme";
 
@@ -18,8 +20,10 @@ interface NavItem {
 export default function AppSidebar() {
   const { hasRole, isClient, isInternal, signOut, profile } = useAuth();
   const { theme, toggleTheme } = useTheme();
-  const location = useLocation();
+  const navigate = useNavigate();
   const [collapsed, setCollapsed] = useState(false);
+  const hasBothRoles = isClient && isInternal;
+  const [viewAs, setViewAs] = useState<"client" | "internal">(isInternal ? "internal" : "client");
 
   const clientNav: NavItem[] = [
     { label: "Dashboard", path: "/dashboard", icon: <LayoutDashboard size={18} /> },
@@ -48,7 +52,14 @@ export default function AppSidebar() {
     { label: "Audit Log", path: "/audit-log", icon: <ClipboardList size={18} /> },
   ];
 
-  const navItems = isInternal ? internalNav : clientNav;
+  const activeView = hasBothRoles ? viewAs : (isInternal ? "internal" : "client");
+  const navItems = activeView === "internal" ? internalNav : clientNav;
+
+  const toggleView = () => {
+    const next = viewAs === "internal" ? "client" : "internal";
+    setViewAs(next);
+    navigate(next === "internal" ? "/cases" : "/dashboard");
+  };
 
   return (
     <aside
@@ -108,8 +119,23 @@ export default function AppSidebar() {
 
       {/* Theme Toggle & User / Sign Out */}
       <div className="border-t border-sidebar-border p-3 space-y-2">
+        {hasBothRoles && (
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={toggleView}
+            className="w-full justify-start gap-2 text-sidebar-primary hover:text-sidebar-foreground hover:bg-sidebar-accent/40 transition-colors duration-200 border border-sidebar-border/50"
+            title={collapsed ? `Switch to ${activeView === "internal" ? "Client" : "Analyst"}` : undefined}
+          >
+            <ArrowLeftRight size={15} />
+            {!collapsed && (
+              <span className="text-[13px]">
+                {activeView === "internal" ? "Switch to Client" : "Switch to Analyst"}
+              </span>
+            )}
+          </Button>
+        )}
         <Button
-          variant="ghost"
           size="sm"
           onClick={toggleTheme}
           className="w-full justify-start gap-2 text-sidebar-foreground/40 hover:text-sidebar-foreground hover:bg-sidebar-accent/40 transition-colors duration-200"
