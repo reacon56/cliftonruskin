@@ -23,12 +23,32 @@ export default function HomePage() {
         </div>
 
         <div className="mx-auto max-w-7xl px-6 py-28 text-center">
-          <p className="text-[#c9a962] text-xs font-semibold uppercase tracking-[0.25em] mb-6 animate-fade-in">
+          <p className="text-[#c9a962] text-xs font-semibold uppercase tracking-[0.25em] mb-8 animate-fade-in">
             Discreet. Thorough. Decisive.
           </p>
-          <h1 className="font-display text-4xl sm:text-5xl md:text-6xl lg:text-[4.25rem] font-semibold text-white leading-[1.1] tracking-tight animate-fade-in" style={{ animationDelay: "100ms" }}>
-            Reassuringly thorough.<br />Decisively useful.
-          </h1>
+
+          {/* Prominent logo + name */}
+          <div className="mb-8 animate-fade-in" style={{ animationDelay: "80ms" }}>
+            <img
+              src="/images/clifton-ruskin-logo.png"
+              alt="Clifton Ruskin"
+              className="mx-auto mb-5 w-24 h-24 rounded-full shadow-[0_0_24px_hsl(38_55%_52%/0.15)]"
+            />
+            <h1 className="font-display text-[2.75rem] sm:text-[3.5rem] md:text-[4rem] font-semibold text-white tracking-[0.04em] leading-none">
+              Clifton Ruskin
+            </h1>
+            {/* Gold decorative rule */}
+            <div className="mx-auto mt-5 flex items-center gap-3 justify-center">
+              <div className="h-px w-8 bg-gradient-to-r from-transparent to-[#c9a962]/60" />
+              <span className="text-[10px] uppercase tracking-[0.2em] text-[#c9a962]/60 font-medium">Est. London 2026</span>
+              <div className="h-px w-8 bg-gradient-to-l from-transparent to-[#c9a962]/60" />
+            </div>
+          </div>
+
+          {/* Tagline in quotes, refined */}
+          <p className="font-display text-xl sm:text-2xl md:text-[1.7rem] italic text-white/60 leading-snug tracking-tight animate-fade-in" style={{ animationDelay: "150ms" }}>
+            "Reassuringly thorough. Decisively useful."
+          </p>
           <p className="mt-6 max-w-2xl mx-auto text-lg text-white/70 leading-relaxed animate-fade-in" style={{ animationDelay: "200ms" }}>
             Analyst-led due diligence and third-party assurance on companies, owners, and suppliers — written for boards, counsel, and procurement teams.
           </p>
