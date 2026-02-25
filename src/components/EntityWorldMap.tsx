@@ -107,8 +107,8 @@ export default function EntityWorldMap({ entities }: Props) {
       scrollWheelZoom: true,
     });
 
-    // Dark tile layer
-    L.tileLayer("https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png", {
+    // Bright tile layer — Positron (light)
+    L.tileLayer("https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png", {
       maxZoom: 18,
     }).addTo(map);
 
@@ -153,12 +153,12 @@ export default function EntityWorldMap({ entities }: Props) {
       const color = tierMarkerColor(entity.risk_tier);
 
       L.circleMarker([lat, lng], {
-        radius: 6,
+        radius: 7,
         fillColor: color,
-        fillOpacity: 0.8,
-        color: color,
-        weight: 1,
-        opacity: 0.4,
+        fillOpacity: 0.9,
+        color: "#ffffff",
+        weight: 1.5,
+        opacity: 1,
       })
         .bindTooltip(
           `<div style="font-family:'DM Sans',sans-serif;font-size:12px;"><strong>${entity.name}</strong><br/><span style="opacity:0.7">${entity.country} · Tier ${entity.risk_tier}</span></div>`,
@@ -172,7 +172,7 @@ export default function EntityWorldMap({ entities }: Props) {
     <div
       ref={mapRef}
       className="w-full h-[360px] rounded-lg overflow-hidden border border-border"
-      style={{ background: "hsl(220 30% 8%)" }}
+      style={{ background: "hsl(0 0% 96%)" }}
     />
   );
 }
