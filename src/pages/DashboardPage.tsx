@@ -13,6 +13,7 @@ import ActiveCasesCard from "@/components/dashboard/ActiveCasesCard";
 import RiskCoverageView from "@/components/dashboard/RiskCoverageView";
 import SavedViewsDropdown from "@/components/dashboard/SavedViewsDropdown";
 import { MessageSquare, Shield } from "lucide-react";
+import PlanUtilisationCard from "@/components/dashboard/PlanUtilisationCard";
 
 interface DashboardStats {
   totalEntities: number;
@@ -416,6 +417,9 @@ export default function DashboardPage() {
             </div>
           )}
         </div>
+
+        {/* Plan & Utilisation */}
+        <PlanUtilisationCard entityCount={stats.totalEntities} />
       </div>
 
       {/* Actions Drawer */}

@@ -360,6 +360,47 @@ export type Database = {
           },
         ]
       }
+      organisation_plan: {
+        Row: {
+          created_at: string
+          entity_limit: number
+          id: string
+          included_notes_per_year: number
+          included_notes_used_ytd: number
+          org_id: string
+          plan_name: string
+          renewal_date: string | null
+        }
+        Insert: {
+          created_at?: string
+          entity_limit?: number
+          id?: string
+          included_notes_per_year?: number
+          included_notes_used_ytd?: number
+          org_id: string
+          plan_name?: string
+          renewal_date?: string | null
+        }
+        Update: {
+          created_at?: string
+          entity_limit?: number
+          id?: string
+          included_notes_per_year?: number
+          included_notes_used_ytd?: number
+          org_id?: string
+          plan_name?: string
+          renewal_date?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "organisation_plan_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: true
+            referencedRelation: "organisations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       organisations: {
         Row: {
           approval_price_threshold: number | null
