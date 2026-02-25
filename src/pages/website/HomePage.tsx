@@ -115,19 +115,19 @@ export default function HomePage() {
               {
                 icon: FileText,
                 title: "Assurance Note",
-                desc: "Concise KYB/third-party summary with ranked risks and a clear recommendation. Ideal for onboarding decisions.",
+                desc: "A concise, decision-grade summary with ranked risks, clear recommendations, and next steps.",
                 tag: "Standard",
               },
               {
                 icon: BookOpen,
                 title: "Assurance Dossier",
-                desc: "Comprehensive investigation report with full evidence pack, source grading, and executive summary. For high-stakes mandates.",
+                desc: "A comprehensive investigation with corroborated findings, ownership clarity, and an audit-ready evidence pack.",
                 tag: "Enhanced",
               },
               {
                 icon: RefreshCw,
                 title: "Refresh Note",
-                desc: "Update an existing assessment with material-change focus. Keeps your assurance current without repeating baseline work.",
+                desc: "A focused update that highlights material change, new findings, and what (if anything) to do next.",
                 tag: "Ongoing",
               },
             ].map(({ icon: Icon, title, desc, tag }) => (
