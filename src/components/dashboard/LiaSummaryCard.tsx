@@ -28,7 +28,7 @@ export default function LiaSummaryCard() {
       supabase.from("cases").select("id", { count: "exact", head: true })
         .eq("org_id", orgId)
         .eq("dp_review_required", true)
-        .not("status", "in", '("complete","cancelled")'),
+        .not("status", "in", '("delivered","closed","cancelled")'),
     ]).then(([liRes, liaFinalRes, liaTotalRes, dpRes]) => {
       setStats({
         liCount: (liRes as any).count ?? 0,

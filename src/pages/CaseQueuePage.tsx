@@ -56,11 +56,16 @@ export default function CaseQueuePage() {
           <SelectTrigger className="w-44"><SelectValue /></SelectTrigger>
           <SelectContent>
             <SelectItem value="all">All statuses</SelectItem>
+            <SelectItem value="scheduled">Scheduled</SelectItem>
+            <SelectItem value="quoted">Quoted</SelectItem>
             <SelectItem value="submitted">Submitted</SelectItem>
             <SelectItem value="approved">Approved</SelectItem>
+            <SelectItem value="assigned">Assigned</SelectItem>
             <SelectItem value="in_progress">In Progress</SelectItem>
             <SelectItem value="awaiting_client">Awaiting Client</SelectItem>
-            <SelectItem value="complete">Complete</SelectItem>
+            <SelectItem value="qc">QC</SelectItem>
+            <SelectItem value="delivered">Delivered</SelectItem>
+            <SelectItem value="closed">Closed</SelectItem>
           </SelectContent>
         </Select>
       </div>

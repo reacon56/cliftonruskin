@@ -1,7 +1,7 @@
 import { useMemo } from "react";
 import {
   Send, CheckCircle2, Play, Clock, FileText, MessageSquare,
-  AlertTriangle, XCircle, Package,
+  AlertTriangle, XCircle, Package, DollarSign, UserCheck, ShieldCheck,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 
@@ -26,12 +26,18 @@ interface Props {
 }
 
 const STATUS_META: Record<string, { label: string; icon: React.ElementType; color: string }> = {
-  CASE_SUBMITTED:   { label: "Case submitted",        icon: Send,          color: "text-accent" },
+  CASE_SCHEDULED:   { label: "Case scheduled",         icon: Clock,         color: "text-muted-foreground" },
+  CASE_QUOTED:      { label: "Quote issued",           icon: Send,          color: "text-primary" },
+  CASE_SUBMITTED:   { label: "Case submitted",         icon: Send,          color: "text-accent" },
   CASE_APPROVED:    { label: "Case approved",          icon: CheckCircle2,  color: "text-success" },
   CASE_REJECTED:    { label: "Case rejected",          icon: XCircle,       color: "text-destructive" },
+  CASE_ASSIGNED:    { label: "Analyst assigned",       icon: CheckCircle2,  color: "text-primary" },
   CASE_WORK_STARTED:{ label: "Work started",           icon: Play,          color: "text-primary" },
-  CASE_COMPLETED:   { label: "Case completed",         icon: FileText,      color: "text-success" },
   CASE_AWAITING:    { label: "Awaiting client input",  icon: Clock,         color: "text-warning" },
+  CASE_QC:          { label: "Submitted to QC",        icon: FileText,      color: "text-accent" },
+  CASE_DELIVERED:   { label: "Case delivered",         icon: FileText,      color: "text-success" },
+  CASE_CLOSED:      { label: "Case closed",            icon: Package,       color: "text-muted-foreground" },
+  CASE_COMPLETED:   { label: "Case completed",         icon: FileText,      color: "text-success" },
 };
 
 export default function CaseActivityTimeline({

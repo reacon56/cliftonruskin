@@ -55,6 +55,53 @@ export type Database = {
           },
         ]
       }
+      auto_approval_rules: {
+        Row: {
+          always_require_dossier: boolean
+          always_require_dp_high: boolean
+          always_require_partner_spend: boolean
+          always_require_rush: boolean
+          always_require_tier_a: boolean
+          auto_approve_refresh_up_to: number | null
+          created_at: string
+          id: string
+          org_id: string
+          updated_at: string
+        }
+        Insert: {
+          always_require_dossier?: boolean
+          always_require_dp_high?: boolean
+          always_require_partner_spend?: boolean
+          always_require_rush?: boolean
+          always_require_tier_a?: boolean
+          auto_approve_refresh_up_to?: number | null
+          created_at?: string
+          id?: string
+          org_id: string
+          updated_at?: string
+        }
+        Update: {
+          always_require_dossier?: boolean
+          always_require_dp_high?: boolean
+          always_require_partner_spend?: boolean
+          always_require_rush?: boolean
+          always_require_tier_a?: boolean
+          auto_approve_refresh_up_to?: number | null
+          created_at?: string
+          id?: string
+          org_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "auto_approval_rules_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: true
+            referencedRelation: "organisations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       case_messages: {
         Row: {
           attachments: Json | null
@@ -1083,6 +1130,50 @@ export type Database = {
             columns: ["org_id"]
             isOneToOne: false
             referencedRelation: "organisations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      quotes: {
+        Row: {
+          case_id: string
+          created_at: string
+          created_by: string | null
+          id: string
+          line_items: Json
+          scope_notes: string | null
+          status: string
+          total_price: number
+          updated_at: string
+        }
+        Insert: {
+          case_id: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          line_items?: Json
+          scope_notes?: string | null
+          status?: string
+          total_price?: number
+          updated_at?: string
+        }
+        Update: {
+          case_id?: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          line_items?: Json
+          scope_notes?: string | null
+          status?: string
+          total_price?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "quotes_case_id_fkey"
+            columns: ["case_id"]
+            isOneToOne: false
+            referencedRelation: "cases"
             referencedColumns: ["id"]
           },
         ]

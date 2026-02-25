@@ -15,13 +15,18 @@ interface Props {
   cases: CaseItem[];
 }
 
-const STAGES = ["submitted", "in_progress", "awaiting_client", "complete"] as const;
+const STAGES = ["scheduled", "quoted", "submitted", "approved", "assigned", "in_progress", "awaiting_client", "qc", "delivered", "closed"] as const;
 const STAGE_LABELS: Record<string, string> = {
-  draft: "Draft",
+  scheduled: "Scheduled",
+  quoted: "Quoted",
   submitted: "Submitted",
+  approved: "Approved",
+  assigned: "Assigned",
   in_progress: "In Progress",
   awaiting_client: "Awaiting Client",
-  complete: "Complete",
+  qc: "QC",
+  delivered: "Delivered",
+  closed: "Closed",
   cancelled: "Cancelled",
 };
 
@@ -87,8 +92,9 @@ function StageIndicator({ status }: { status: string }) {
 function BlockerTag({ status }: { status: string }) {
   const blockers: Record<string, { label: string; color: string }> = {
     awaiting_client: { label: "Awaiting client info", color: "bg-warning/10 text-warning" },
-    submitted: { label: "Pending approval", color: "bg-info/10 text-info" },
-    draft: { label: "Draft", color: "bg-muted text-muted-foreground" },
+    submitted: { label: "Pending approval", color: "bg-primary/10 text-primary" },
+    quoted: { label: "Quote pending", color: "bg-accent/10 text-accent" },
+    scheduled: { label: "Scheduled", color: "bg-muted text-muted-foreground" },
   };
 
   const blocker = blockers[status];
