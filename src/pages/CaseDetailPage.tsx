@@ -227,7 +227,7 @@ export default function CaseDetailPage() {
         </Badge>
       </div>
 
-      {/* Banner: Scheduled — FV&C needs to generate quote */}
+      {/* Banner: Scheduled — CR needs to generate quote */}
       {currentStatus === "scheduled" && canQuote && (
         <div className="flex items-center gap-3 p-4 rounded-lg border border-primary/30 bg-primary/5 mb-6 animate-fade-in">
           <DollarSign size={18} className="text-primary shrink-0" />

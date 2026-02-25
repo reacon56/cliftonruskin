@@ -1,5 +1,5 @@
 /**
- * FV&C Internal Role Definitions
+ * Clifton Ruskin Internal Role Definitions
  * 
  * Premium role names and their permissions for the internal team.
  */
@@ -74,7 +74,7 @@ export function canAdjustDueDates(roles: string[]): boolean {
   );
 }
 
-/** Returns the primary display label for a user's FV&C role */
+/** Returns the primary display label for a user's CR role */
 export function getPrimaryRoleLabel(roles: string[]): string {
   const priority: string[] = [
     "fvc_ops_admin",

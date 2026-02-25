@@ -86,8 +86,8 @@ export default function LiaExportView({ lia, entityName, orgName: orgNameProp }:
       </style>
     </head><body>${printRef.current.innerHTML}
       <div class="footer">
-        <div class="left"><strong style="color:#d4a843">FV&C</strong> &nbsp;Far View & Chase Ltd · Confidential</div>
-        <div class="right">Generated from the FV&C Assurance Portal<br/>This document is not legal advice. Liability is excluded to the fullest extent permitted by law.</div>
+        <div class="left"><strong style="color:#d4a843">CR</strong> &nbsp;Clifton Ruskin Ltd · Confidential</div>
+        <div class="right">Generated from the Clifton Ruskin Assurance Portal<br/>This document is not legal advice. Liability is excluded to the fullest extent permitted by law.</div>
       </div>
     </body></html>`);
     printWindow.document.close();
@@ -215,7 +215,7 @@ export default function LiaExportView({ lia, entityName, orgName: orgNameProp }:
         <div className="disclaimer" style={{ marginTop: 18, padding: "10px 12px", border: "1px solid #e5e7eb", borderRadius: 6, fontSize: "8.5px", color: "#6b7280", fontStyle: "italic", lineHeight: 1.5 }}>
           This summary is provided for governance and audit purposes only and does not constitute legal advice.
           Clients remain responsible for confirming their lawful basis and ongoing compliance obligations under applicable data protection legislation.
-          Far View &amp; Chase Ltd accepts no liability for decisions made in reliance on this document.
+          Clifton Ruskin Ltd accepts no liability for decisions made in reliance on this document.
         </div>
       </div>
     </div>

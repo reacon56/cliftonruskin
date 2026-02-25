@@ -85,7 +85,7 @@ export default function CaseActivityTimeline({
         id: m.id,
         type: "message",
         timestamp: m.created_at,
-        title: isMe ? "You sent a message" : "FV&C team sent a message",
+        title: isMe ? "You sent a message" : "CR team sent a message",
         description: m.message,
         icon: MessageSquare,
         color: isMe ? "text-accent" : "text-muted-foreground",

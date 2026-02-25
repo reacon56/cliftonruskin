@@ -93,7 +93,7 @@ export default function CommissionPage() {
     const selectedEntity = entities.find((e: any) => e.id === form.entity_id);
     const dpApprovalRequired = dpRisk.requiresApproval;
 
-    // Commission creates a Scheduled case — FV&C will then generate a Quote
+    // Commission creates a Scheduled case — CR will then generate a Quote
     const { data: insertedCase, error } = await supabase.from("cases").insert({
       org_id: profile.org_id,
       entity_id: form.entity_id,
@@ -212,7 +212,7 @@ export default function CommissionPage() {
 
     toast({
       title: "✓ Case scheduled",
-      description: `${form.product_type} for ${selectedEntity?.name ?? "entity"} has been scheduled. FV&C will generate a formal quote.`,
+      description: `${form.product_type} for ${selectedEntity?.name ?? "entity"} has been scheduled. Clifton Ruskin will generate a formal quote.`,
     });
 
     if (insertedCase?.id) {

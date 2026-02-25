@@ -117,7 +117,7 @@ export default function DataProtectionSummary({ caseData, isInternal, dpReview }
                 )}
               </div>
             ) : (
-              <p className="text-xs text-muted-foreground">Pending FV&amp;C review</p>
+              <p className="text-xs text-muted-foreground">Pending CR review</p>
             )}
           </div>
         )}

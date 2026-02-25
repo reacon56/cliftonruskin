@@ -387,7 +387,7 @@ export default function MiniLiaForm({ form, onChange, readOnly }: Props) {
       <div className="flex items-start gap-3 p-3 rounded-lg border border-border bg-muted/30 mt-2">
         <Info size={13} className="text-muted-foreground shrink-0 mt-0.5" />
         <p className="text-[10px] text-muted-foreground leading-relaxed">
-          Far View &amp; Chase provides structured governance tooling. Clients remain responsible for confirming their lawful basis and compliance obligations.
+          Clifton Ruskin provides structured governance tooling. Clients remain responsible for confirming their lawful basis and compliance obligations.
         </p>
       </div>
     </div>

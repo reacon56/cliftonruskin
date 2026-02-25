@@ -68,15 +68,13 @@ export default function AuthPage() {
         }} />
         
         <div className="max-w-md px-8 relative z-10 animate-fade-in text-center">
-          {/* Monogram */}
-          <div
-            className="mx-auto mb-6 w-20 h-20 rounded-full border-2 border-accent/50 flex items-center justify-center relative animate-scale-in transition-shadow duration-700 hover:shadow-[0_0_28px_hsl(38_55%_52%/0.3),0_0_8px_hsl(38_55%_52%/0.15)]"
+          {/* Logo */}
+          <img
+            src="/images/clifton-ruskin-logo.png"
+            alt="Clifton Ruskin"
+            className="mx-auto mb-6 w-20 h-20 rounded-full animate-scale-in transition-shadow duration-700 hover:shadow-[0_0_28px_hsl(38_55%_52%/0.3),0_0_8px_hsl(38_55%_52%/0.15)]"
             style={{ boxShadow: '0 0 24px hsl(38 55% 52% / 0.1)', animationDuration: '0.8s', animationTimingFunction: 'cubic-bezier(0.16, 1, 0.3, 1)' }}
-          >
-            <span className="font-display text-lg font-semibold text-accent tracking-[0.08em]" style={{ lineHeight: 1 }}>
-              FV<span className="text-accent/50 mx-[2px]">&</span>C
-            </span>
-          </div>
+          />
 
           {/* Decorative rule */}
           <div className="mx-auto mb-6 flex items-center gap-3 justify-center">
@@ -86,10 +84,10 @@ export default function AuthPage() {
           </div>
 
           <h1 className="font-display text-[2.75rem] font-semibold text-white tracking-tight leading-[1.1]" style={{ letterSpacing: '0.04em' }}>
-            Far View
+            Clifton
           </h1>
           <p className="font-display text-[2.75rem] font-semibold text-white tracking-tight leading-[1.1] mt-1" style={{ letterSpacing: '0.04em' }}>
-            &amp; Chase
+            Ruskin
           </p>
 
           {/* Decorative rule */}
@@ -121,7 +119,7 @@ export default function AuthPage() {
         <div className="w-full max-w-sm animate-fade-in">
           <div className="lg:hidden mb-10">
             <h1 className="font-display text-2xl font-semibold text-foreground tracking-tight">
-              Far View &amp; Chase
+              Clifton Ruskin
             </h1>
             <div className="fvc-gold-rule mt-2" />
           </div>

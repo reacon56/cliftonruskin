@@ -91,7 +91,7 @@ export default function OrgSettingsPage() {
               Allow pre-approval start
             </Label>
             <p className="text-xs text-muted-foreground">
-              When enabled, FV&C analysts can begin work on a case before client approval is granted.
+              When enabled, Clifton Ruskin analysts can begin work on a case before client approval is granted.
             </p>
           </div>
           <Switch

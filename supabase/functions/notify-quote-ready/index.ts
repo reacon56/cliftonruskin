@@ -99,7 +99,7 @@ serve(async (req) => {
     let sent = 0;
     for (const admin of recipients) {
       const { error } = await resend.emails.send({
-        from: "FV&C Platform <onboarding@resend.dev>",
+        from: "Clifton Ruskin <onboarding@resend.dev>",
         to: [admin.email],
         subject: `Quote ready for approval – ${entity_name || "New Case"}`,
         html: `
@@ -126,7 +126,7 @@ serve(async (req) => {
               Please log in to the platform to review and approve or reject this quote.
             </p>
             <p style="color: #999; font-size: 12px; margin-top: 32px;">
-              This is an automated notification from the FV&C platform.
+              This is an automated notification from the Clifton Ruskin platform.
             </p>
           </div>
         `,
