@@ -191,6 +191,48 @@ export default function CommissionPage() {
       });
     }
 
+    // Create Mini-LIA record if legitimate interests basis used
+    if (dpForm.requires_personal_data && dpForm.lawful_basis === "legitimate_interests" && insertedCase?.id) {
+      const liaForm = dpForm.lia_form;
+      const { data: liaData } = await supabase.from("lia_assessments" as any).insert({
+        org_id: profile.org_id,
+        case_id: insertedCase.id,
+        created_by_user_id: user.id,
+        status: liaForm.outcome ? "final" : "draft",
+        purpose: liaForm.purpose || dpForm.processing_purpose,
+        legitimate_interest: liaForm.legitimate_interest,
+        necessity: liaForm.necessity,
+        data_subjects: liaForm.data_subjects,
+        data_categories: liaForm.data_categories.length > 0 ? liaForm.data_categories : dpForm.data_categories,
+        sources: liaForm.sources,
+        special_category_requested: liaForm.data_categories.includes("special_category"),
+        criminal_offence_requested: liaForm.data_categories.includes("criminal_offence"),
+        safeguards: liaForm.safeguards,
+        balancing_test_factors: {
+          reasonable_expectations: liaForm.balancing_reasonable_expectations,
+          likely_impact: liaForm.balancing_likely_impact,
+          nature_of_processing: liaForm.balancing_nature_of_processing,
+          mitigations: liaForm.balancing_mitigations,
+          notes: liaForm.balancing_notes,
+        },
+        outcome: liaForm.outcome || null,
+        conditions: liaForm.conditions || null,
+        retention_months: liaForm.retention_months ?? dpForm.retention_months,
+        updated_at: new Date().toISOString(),
+      } as any).select("id").single();
+
+      if (liaData) {
+        await supabase.from("audit_events").insert({
+          user_id: user.id,
+          org_id: profile.org_id,
+          action_type: liaForm.outcome ? "LIA_FINALISED" : "LIA_CREATED",
+          object_type: "lia_assessment",
+          object_id: (liaData as any).id,
+          metadata: { case_id: insertedCase.id, purpose: liaForm.purpose },
+        });
+      }
+    }
+
     // Write audit event for submission
     await supabase.from("audit_events").insert({
       user_id: user.id,

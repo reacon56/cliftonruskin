@@ -589,6 +589,151 @@ export type Database = {
           },
         ]
       }
+      lia_assessments: {
+        Row: {
+          approved_at: string | null
+          approved_by_user_id: string | null
+          balancing_test_factors: Json | null
+          case_id: string | null
+          conditions: string | null
+          created_at: string
+          created_by_user_id: string
+          criminal_offence_requested: boolean
+          data_categories: Json | null
+          data_subjects: Json | null
+          id: string
+          legitimate_interest: string | null
+          necessity: string | null
+          org_id: string
+          outcome: string | null
+          purpose: string | null
+          retention_months: number | null
+          review_date: string | null
+          safeguards: string | null
+          sources: Json | null
+          special_category_requested: boolean
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          approved_at?: string | null
+          approved_by_user_id?: string | null
+          balancing_test_factors?: Json | null
+          case_id?: string | null
+          conditions?: string | null
+          created_at?: string
+          created_by_user_id: string
+          criminal_offence_requested?: boolean
+          data_categories?: Json | null
+          data_subjects?: Json | null
+          id?: string
+          legitimate_interest?: string | null
+          necessity?: string | null
+          org_id: string
+          outcome?: string | null
+          purpose?: string | null
+          retention_months?: number | null
+          review_date?: string | null
+          safeguards?: string | null
+          sources?: Json | null
+          special_category_requested?: boolean
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          approved_at?: string | null
+          approved_by_user_id?: string | null
+          balancing_test_factors?: Json | null
+          case_id?: string | null
+          conditions?: string | null
+          created_at?: string
+          created_by_user_id?: string
+          criminal_offence_requested?: boolean
+          data_categories?: Json | null
+          data_subjects?: Json | null
+          id?: string
+          legitimate_interest?: string | null
+          necessity?: string | null
+          org_id?: string
+          outcome?: string | null
+          purpose?: string | null
+          retention_months?: number | null
+          review_date?: string | null
+          safeguards?: string | null
+          sources?: Json | null
+          special_category_requested?: boolean
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "lia_assessments_case_id_fkey"
+            columns: ["case_id"]
+            isOneToOne: false
+            referencedRelation: "cases"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "lia_assessments_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organisations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      lia_exports: {
+        Row: {
+          case_id: string | null
+          created_at: string
+          deliverable_id: string | null
+          file_url: string | null
+          id: string
+          lia_id: string
+          version: number
+        }
+        Insert: {
+          case_id?: string | null
+          created_at?: string
+          deliverable_id?: string | null
+          file_url?: string | null
+          id?: string
+          lia_id: string
+          version?: number
+        }
+        Update: {
+          case_id?: string | null
+          created_at?: string
+          deliverable_id?: string | null
+          file_url?: string | null
+          id?: string
+          lia_id?: string
+          version?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "lia_exports_case_id_fkey"
+            columns: ["case_id"]
+            isOneToOne: false
+            referencedRelation: "cases"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "lia_exports_deliverable_id_fkey"
+            columns: ["deliverable_id"]
+            isOneToOne: false
+            referencedRelation: "deliverables"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "lia_exports_lia_id_fkey"
+            columns: ["lia_id"]
+            isOneToOne: false
+            referencedRelation: "lia_assessments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       module_outputs: {
         Row: {
           case_module_id: string

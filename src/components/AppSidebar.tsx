@@ -4,7 +4,7 @@ import {
   LayoutDashboard, Building2, FileCheck, FolderOpen, Activity,
   Shield, Users, ClipboardList, HeadphonesIcon, ListTodo,
   Settings, FileText, LogOut, ChevronLeft, ChevronRight, Moon, Sun,
-  ArrowLeftRight, CheckCircle2,
+  ArrowLeftRight, CheckCircle2, Scale,
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
@@ -44,6 +44,7 @@ export default function AppSidebar() {
     { label: "Deliverables", path: "/deliverables", icon: <FolderOpen size={18} /> },
     { label: "Monitoring", path: "/monitoring", icon: <Activity size={18} /> },
     { label: "Policies", path: "/policies", icon: <Shield size={18} /> },
+    { label: "Mini-LIA Library", path: "/lia-library", icon: <Scale size={18} /> },
   ];
 
   if (hasRole("client_admin")) {
