@@ -9,7 +9,8 @@ import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
-import { ChevronRight, Check } from "lucide-react";
+import { ChevronRight, Check, AlertTriangle } from "lucide-react";
+import { requiresApproval } from "@/lib/approval-utils";
 
 const STEPS = ["Select Entity", "Product", "Priority", "Scope Notes", "Estimate", "Review & Submit"];
 
@@ -42,10 +43,26 @@ export default function CommissionPage() {
 
   const estimate = PRICING[form.product_type]?.[form.priority] ?? 0;
 
+  const [approvalInfo, setApprovalInfo] = useState<{ required: boolean; reasons: string[] } | null>(null);
+
+  // Check approval requirement whenever relevant form fields change
+  useEffect(() => {
+    if (!profile?.org_id || !form.entity_id) return;
+    const selectedEntity = entities.find((e: any) => e.id === form.entity_id);
+    if (!selectedEntity) return;
+
+    requiresApproval({
+      orgId: profile.org_id,
+      entityRiskTier: selectedEntity.risk_tier,
+      productType: form.product_type,
+      priority: form.priority,
+      priceEstimate: estimate,
+    }).then(setApprovalInfo);
+  }, [profile?.org_id, form.entity_id, form.product_type, form.priority, estimate, entities]);
+
   const handleSubmit = async () => {
     if (!profile?.org_id || !user) return;
 
-    // Check if entity is high-risk for approval gate messaging
     const selectedEntity = entities.find((e: any) => e.id === form.entity_id);
 
     const { data: insertedCase, error } = await supabase.from("cases").insert({
@@ -65,15 +82,34 @@ export default function CommissionPage() {
       return;
     }
 
-    // Rich confirmation toast
-    toast({
-      title: "✓ Commission submitted",
-      description: `${form.product_type} for ${selectedEntity?.name ?? "entity"} has been submitted. ${
-        form.priority === "rush" ? "Rush processing — 5 business day SLA." : "Standard processing — 10 business day SLA."
-      } You'll receive updates as the case progresses.`,
+    // Write audit event for submission
+    await supabase.from("audit_events").insert({
+      user_id: user.id,
+      org_id: profile.org_id,
+      action_type: "CASE_SUBMITTED",
+      object_type: "case",
+      object_id: insertedCase?.id,
+      metadata: {
+        product_type: form.product_type,
+        priority: form.priority,
+        entity_name: selectedEntity?.name,
+        price_estimate: estimate,
+        approval_required: approvalInfo?.required ?? false,
+        approval_reasons: approvalInfo?.reasons ?? [],
+      },
     });
 
-    // Navigate to the case detail so user can track it
+    const needsApproval = approvalInfo?.required;
+
+    toast({
+      title: needsApproval ? "⏳ Submitted for approval" : "✓ Commission submitted",
+      description: needsApproval
+        ? `${form.product_type} for ${selectedEntity?.name ?? "entity"} requires admin approval before processing begins.`
+        : `${form.product_type} for ${selectedEntity?.name ?? "entity"} has been submitted. ${
+            form.priority === "rush" ? "Rush — 5 day SLA." : "Standard — 10 day SLA."
+          }`,
+    });
+
     if (insertedCase?.id) {
       navigate(`/cases/${insertedCase.id}`);
     } else {
@@ -238,6 +274,24 @@ export default function CommissionPage() {
               <div className="pt-2">
                 <span className="text-muted-foreground block mb-1.5 text-[11px] uppercase tracking-wider font-medium">Scope notes</span>
                 <p className="text-foreground leading-relaxed">{form.scope_notes}</p>
+              </div>
+            )}
+
+            {/* Approval gate notice */}
+            {approvalInfo?.required && (
+              <div className="flex items-start gap-3 p-4 rounded-lg border border-warning/30 bg-warning/5 mt-4">
+                <AlertTriangle size={16} className="text-warning shrink-0 mt-0.5" />
+                <div>
+                  <div className="text-sm font-medium text-foreground mb-1">Approval required</div>
+                  <ul className="text-xs text-muted-foreground space-y-0.5">
+                    {approvalInfo.reasons.map((r, i) => (
+                      <li key={i}>• {r}</li>
+                    ))}
+                  </ul>
+                  <p className="text-xs text-muted-foreground mt-2">
+                    This commission will be sent to your organisation's admin for review before processing begins.
+                  </p>
+                </div>
               </div>
             )}
           </div>

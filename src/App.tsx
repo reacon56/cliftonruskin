@@ -11,6 +11,7 @@ import DashboardPage from "@/pages/DashboardPage";
 import EntitiesPage from "@/pages/EntitiesPage";
 import EntityDetailPage from "@/pages/EntityDetailPage";
 import CommissionPage from "@/pages/CommissionPage";
+import ApprovalsPage from "@/pages/ApprovalsPage";
 import DeliverablesPage from "@/pages/DeliverablesPage";
 import MonitoringPage from "@/pages/MonitoringPage";
 import PoliciesPage from "@/pages/PoliciesPage";
@@ -44,6 +45,7 @@ function AppRoutes() {
         <Route path="/entities" element={<EntitiesPage />} />
         <Route path="/entities/:id" element={<EntityDetailPage />} />
         <Route path="/commission" element={<CommissionPage />} />
+        <Route path="/approvals" element={<ApprovalsPage />} />
         <Route path="/deliverables" element={<DeliverablesPage />} />
         <Route path="/monitoring" element={<MonitoringPage />} />
         <Route path="/policies" element={<PoliciesPage />} />

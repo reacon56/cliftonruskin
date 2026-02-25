@@ -362,6 +362,7 @@ export type Database = {
       }
       organisations: {
         Row: {
+          approval_price_threshold: number | null
           created_at: string
           id: string
           industry: string | null
@@ -369,6 +370,7 @@ export type Database = {
           risk_policy_default_id: string | null
         }
         Insert: {
+          approval_price_threshold?: number | null
           created_at?: string
           id?: string
           industry?: string | null
@@ -376,6 +378,7 @@ export type Database = {
           risk_policy_default_id?: string | null
         }
         Update: {
+          approval_price_threshold?: number | null
           created_at?: string
           id?: string
           industry?: string | null
