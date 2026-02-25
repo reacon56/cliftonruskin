@@ -88,7 +88,7 @@ export default function AuthPage() {
           <h1 className="font-display text-[2.75rem] font-semibold text-primary-foreground tracking-tight leading-[1.1]" style={{ letterSpacing: '0.04em' }}>
             Far View
           </h1>
-          <p className="font-display text-[2rem] font-normal text-primary-foreground/70 tracking-widest leading-none mt-1" style={{ letterSpacing: '0.18em' }}>
+          <p className="font-display text-[2rem] font-semibold text-primary-foreground tracking-widest leading-none mt-1" style={{ letterSpacing: '0.18em' }}>
             &amp; Chase
           </p>
 
@@ -107,7 +107,7 @@ export default function AuthPage() {
           </p>
 
           {/* Established mark */}
-          <p className="mt-8 text-[10px] text-primary-foreground/20 tracking-[0.25em] uppercase">
+          <p className="mt-8 text-[11px] text-primary-foreground/40 tracking-[0.25em] uppercase">
             Est. London
           </p>
         </div>
