@@ -7,10 +7,13 @@ import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
 import { Activity } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import SavedViewsDropdown, { type FilterState } from "@/components/SavedViewsDropdown";
+import EventReviewButton from "@/components/monitoring/EventReviewButton";
 
 export default function MonitoringPage() {
   const { profile, isInternal } = useAuth();
+  const navigate = useNavigate();
   const [events, setEvents] = useState<any[]>([]);
   const [filterSeverity, setFilterSeverity] = useState("all");
   const [filterEventStatus, setFilterEventStatus] = useState("all");
@@ -20,7 +23,7 @@ export default function MonitoringPage() {
   }, [profile?.org_id]);
 
   const loadEvents = async () => {
-    let query = supabase.from("monitoring_events").select("*, entities(name, org_id)").order("detected_at", { ascending: false });
+    let query = supabase.from("monitoring_events").select("*, entities(name, org_id, risk_tier)").order("detected_at", { ascending: false });
     const { data } = await query;
     
     if (!isInternal && profile?.org_id) {
@@ -114,15 +117,33 @@ export default function MonitoringPage() {
                     </a>
                   )}
                 </div>
-                <div className="flex gap-2">
-                  {e.status === "new" && (
+                <div className="flex items-center gap-2">
+                  {e.case_id ? (
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="text-xs gap-1.5 border-accent/30 text-accent"
+                      onClick={() => navigate(`/cases/${e.case_id}`)}
+                    >
+                      Case opened →
+                    </Button>
+                  ) : (
                     <>
-                      <Button size="sm" variant="outline" onClick={() => updateStatus(e.id, "noted")}>Note</Button>
-                      <Button size="sm" variant="outline" onClick={() => updateStatus(e.id, "actioned")}>Action</Button>
+                      {e.status === "new" && (
+                        <>
+                          <Button size="sm" variant="outline" onClick={() => updateStatus(e.id, "noted")}>Note</Button>
+                          <Button size="sm" variant="outline" onClick={() => updateStatus(e.id, "actioned")}>Action</Button>
+                        </>
+                      )}
+                      {e.status !== "new" && !e.case_id && (
+                        <Badge className="fvc-status-badge bg-muted text-muted-foreground capitalize">{e.status}</Badge>
+                      )}
+                      <EventReviewButton
+                        event={e}
+                        entityRiskTier={e.entities?.risk_tier}
+                        onCaseCreated={loadEvents}
+                      />
                     </>
-                  )}
-                  {e.status !== "new" && (
-                    <Badge className="fvc-status-badge bg-muted text-muted-foreground capitalize">{e.status}</Badge>
                   )}
                 </div>
               </div>
