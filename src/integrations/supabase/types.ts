@@ -601,6 +601,51 @@ export type Database = {
           },
         ]
       }
+      review_reminders: {
+        Row: {
+          entity_id: string
+          id: string
+          org_id: string
+          recipient_email: string | null
+          reminder_type: string
+          sent_at: string
+          sent_date: string
+        }
+        Insert: {
+          entity_id: string
+          id?: string
+          org_id: string
+          recipient_email?: string | null
+          reminder_type: string
+          sent_at?: string
+          sent_date?: string
+        }
+        Update: {
+          entity_id?: string
+          id?: string
+          org_id?: string
+          recipient_email?: string | null
+          reminder_type?: string
+          sent_at?: string
+          sent_date?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "review_reminders_entity_id_fkey"
+            columns: ["entity_id"]
+            isOneToOne: false
+            referencedRelation: "entities"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "review_reminders_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organisations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       saved_views: {
         Row: {
           created_at: string
