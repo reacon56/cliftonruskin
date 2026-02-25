@@ -22,28 +22,47 @@ export default function HomePage() {
           <div className="absolute inset-0 bg-gradient-to-b from-[#1a1a2e]/50 via-[#1a1a2e]/40 to-[#1a1a2e]/75" />
         </div>
 
-        <div className="mx-auto max-w-7xl px-6 py-32 text-center">
+        <div className="mx-auto max-w-7xl px-6 py-28 text-center">
           <p className="text-[#c9a962] text-xs font-semibold uppercase tracking-[0.25em] mb-6 animate-fade-in">
             Discreet. Thorough. Decisive.
           </p>
-          <h1 className="font-display text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-semibold text-white leading-[1.1] tracking-tight animate-fade-in" style={{ animationDelay: "100ms" }}>
-            Assurance you can<br />stand behind.
+          <h1 className="font-display text-4xl sm:text-5xl md:text-6xl lg:text-[4.25rem] font-semibold text-white leading-[1.1] tracking-tight animate-fade-in" style={{ animationDelay: "100ms" }}>
+            Reassuringly thorough.<br />Decisively useful.
           </h1>
           <p className="mt-6 max-w-2xl mx-auto text-lg text-white/70 leading-relaxed animate-fade-in" style={{ animationDelay: "200ms" }}>
-            Analyst-led diligence for investors, boards, and procurement teams — proportionate, practical, and defensible.
+            Analyst-led due diligence and third-party assurance on companies, owners, and suppliers — written for boards, counsel, and procurement teams.
           </p>
+
+          {/* Bullets */}
+          <ul className="mt-8 max-w-xl mx-auto space-y-3 text-left animate-fade-in" style={{ animationDelay: "250ms" }}>
+            {[
+              "Decision-grade conclusions — ranked risks, clear recommendations, practical mitigations",
+              "Evidence discipline — sourced, dated, and audit-ready by design",
+              "Monitoring that matters — refresh cycles and material-change alerts (not noise)",
+            ].map((b) => (
+              <li key={b} className="flex items-start gap-3">
+                <span className="mt-2 h-1.5 w-1.5 rounded-full bg-[#c9a962] shrink-0" />
+                <span className="text-sm text-white/60 leading-relaxed">{b}</span>
+              </li>
+            ))}
+          </ul>
+
           <div className="mt-10 flex flex-wrap justify-center gap-4 animate-fade-in" style={{ animationDelay: "300ms" }}>
             <Link to="/contact">
               <Button size="lg" className="bg-[#c9a962] hover:bg-[#c9a962]/90 text-[#1a1a2e] font-semibold rounded-full px-8">
-                Request a Call
+                Request a Consultation
               </Button>
             </Link>
-            <Link to="/about">
+            <Link to="/services">
               <Button variant="outline" size="lg" className="border-white/60 bg-white/10 text-white backdrop-blur-sm hover:bg-white/20 rounded-full px-8">
-                Our Standards
+                View Services
               </Button>
             </Link>
           </div>
+
+          <p className="mt-5 text-xs text-white/35 tracking-wide animate-fade-in" style={{ animationDelay: "350ms" }}>
+            Confidential by default&ensp;•&ensp;UK standards, global coverage
+          </p>
         </div>
       </section>
 
