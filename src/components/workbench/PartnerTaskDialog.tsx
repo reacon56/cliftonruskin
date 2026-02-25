@@ -15,17 +15,26 @@ interface Props {
   onOpenChange: (open: boolean) => void;
   caseModuleId: string;
   defaultCountry: string;
+  entityId?: string;
 }
 
-export default function PartnerTaskDialog({ open, onOpenChange, caseModuleId, defaultCountry }: Props) {
+export default function PartnerTaskDialog({ open, onOpenChange, caseModuleId, defaultCountry, entityId }: Props) {
   const { user } = useAuth();
   const { toast } = useToast();
   const [title, setTitle] = useState("");
   const [country, setCountry] = useState(defaultCountry);
   const [deadline, setDeadline] = useState("");
   const [partnerEmail, setPartnerEmail] = useState("");
+  const [selectedPartnerId, setSelectedPartnerId] = useState("");
+  const [partners, setPartners] = useState<any[]>([]);
   const [questions, setQuestions] = useState<string[]>([""]);
   const [submitting, setSubmitting] = useState(false);
+
+  // Load available partners (internal users only)
+  useState(() => {
+    supabase.from("partners" as any).select("id, name, country").eq("active", true)
+      .then(({ data }: any) => setPartners(data ?? []));
+  });
 
   const addQuestion = () => setQuestions((prev) => [...prev, ""]);
   const updateQuestion = (idx: number, val: string) => setQuestions((prev) => prev.map((q, i) => i === idx ? val : q));
@@ -66,6 +75,8 @@ export default function PartnerTaskDialog({ open, onOpenChange, caseModuleId, de
       status: "sent",
       created_by: user?.id,
       partner_user_id: partnerUserId,
+      partner_id: selectedPartnerId || null,
+      entity_id: entityId || null,
     } as any).select("id").single();
 
     if (error) {
@@ -89,6 +100,7 @@ export default function PartnerTaskDialog({ open, onOpenChange, caseModuleId, de
     setCountry(defaultCountry);
     setDeadline("");
     setPartnerEmail("");
+    setSelectedPartnerId("");
     setQuestions([""]);
     onOpenChange(false);
     setSubmitting(false);
@@ -122,7 +134,20 @@ export default function PartnerTaskDialog({ open, onOpenChange, caseModuleId, de
             </div>
           </div>
           <div className="space-y-1.5">
-            <Label>Assign to Partner (email)</Label>
+            <Label>Partner Organisation</Label>
+            <select
+              value={selectedPartnerId}
+              onChange={(e) => setSelectedPartnerId(e.target.value)}
+              className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+            >
+              <option value="">Select partner…</option>
+              {partners.map((p: any) => (
+                <option key={p.id} value={p.id}>{p.name} ({p.country})</option>
+              ))}
+            </select>
+          </div>
+          <div className="space-y-1.5">
+            <Label>Assign to Partner User (email)</Label>
             <Input
               type="email"
               value={partnerEmail}

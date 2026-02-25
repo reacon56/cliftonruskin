@@ -18,9 +18,11 @@ export default function PartnerTaskListPage() {
 
   useEffect(() => {
     if (!user) return;
+    // Partners see only tasks assigned to them — RLS enforces this server-side
+    // Select minimal context: no org name, no client info
     supabase
       .from("partner_tasks" as any)
-      .select("*")
+      .select("id, title, country, deadline, status, created_at")
       .eq("partner_user_id", user.id)
       .order("created_at", { ascending: false })
       .then(({ data }: any) => {
