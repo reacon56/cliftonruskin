@@ -60,7 +60,7 @@ export default function AuthPage() {
           className="absolute inset-0 w-full h-full object-cover"
         />
         {/* Navy overlay with transparency */}
-        <div className="absolute inset-0" style={{ background: "hsl(220 40% 10% / 0.75)" }} />
+        <div className="absolute inset-0" style={{ background: "hsl(220 40% 10% / 0.55)" }} />
         {/* Subtle texture overlay */}
         <div className="absolute inset-0 opacity-[0.03]" style={{
           backgroundImage: `radial-gradient(circle at 1px 1px, hsl(40 25% 97%) 1px, transparent 0)`,
