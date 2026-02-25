@@ -107,8 +107,11 @@ export default function AuthPage() {
           </p>
 
           {/* Established mark */}
-          <p className="mt-8 text-[11px] text-primary-foreground/40 tracking-[0.25em] uppercase">
-            Est. London
+          <p className="mt-8 text-[11px] text-white/50 tracking-[0.25em] uppercase">
+            Est. London 2026
+          </p>
+          <p className="mt-2 text-[11px] text-white/30 italic leading-relaxed max-w-[240px] mx-auto">
+            Founded on decades of investigative and advisory experience.
           </p>
         </div>
       </div>
