@@ -13,7 +13,7 @@ import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
-import { Plus, Shield } from "lucide-react";
+import { Plus, Shield, Sparkles, Globe } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 
 export default function PoliciesPage() {
@@ -24,12 +24,36 @@ export default function PoliciesPage() {
   const [rules, setRules] = useState<any[]>([]);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [form, setForm] = useState({ name: "", description: "" });
+  const [orgSettings, setOrgSettings] = useState({ auto_suggest_benchmark: true, auto_suggest_posture: true });
 
   const isAdmin = hasRole("client_admin");
 
   useEffect(() => {
-    if (profile?.org_id) loadPolicies();
+    if (profile?.org_id) {
+      loadPolicies();
+      loadOrgSettings();
+    }
   }, [profile?.org_id]);
+
+  const loadOrgSettings = async () => {
+    const { data } = await supabase
+      .from("organisations")
+      .select("auto_suggest_benchmark, auto_suggest_posture")
+      .eq("id", profile!.org_id!)
+      .single();
+    if (data) {
+      setOrgSettings({
+        auto_suggest_benchmark: (data as any).auto_suggest_benchmark ?? true,
+        auto_suggest_posture: (data as any).auto_suggest_posture ?? true,
+      });
+    }
+  };
+
+  const updateOrgSetting = async (key: string, value: boolean) => {
+    setOrgSettings((prev) => ({ ...prev, [key]: value }));
+    await supabase.from("organisations").update({ [key]: value } as any).eq("id", profile!.org_id!);
+    toast({ title: "Setting updated" });
+  };
 
   const loadPolicies = async () => {
     const { data } = await supabase
@@ -151,6 +175,50 @@ export default function PoliciesPage() {
                 )}
               </div>
             )}
+          </div>
+        </div>
+      )}
+
+      {/* Enhancement Suggestions Settings */}
+      {isAdmin && (
+        <div className="mt-10">
+          <h2 className="fvc-heading-2 text-foreground mb-2">Enhancement Suggestions</h2>
+          <div className="fvc-gold-rule mt-2 mb-4" />
+          <p className="text-sm text-muted-foreground mb-6">
+            Configure intelligent suggestions shown when onboarding entities or commissioning checks.
+          </p>
+          <div className="fvc-card space-y-5 max-w-xl">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <Globe size={16} className="text-accent" />
+                <div>
+                  <div className="text-sm font-medium text-foreground">Auto-suggest Benchmark on onboarding</div>
+                  <div className="text-[11px] text-muted-foreground">
+                    Suggest Jurisdiction & Sector Benchmark when entity operates in a non-home jurisdiction, is Tier A, or has high data access
+                  </div>
+                </div>
+              </div>
+              <Switch
+                checked={orgSettings.auto_suggest_benchmark}
+                onCheckedChange={(v) => updateOrgSetting("auto_suggest_benchmark", v)}
+              />
+            </div>
+            <div className="border-t border-border" />
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <Sparkles size={16} className="text-accent" />
+                <div>
+                  <div className="text-sm font-medium text-foreground">Auto-suggest Posture Note for Tier A</div>
+                  <div className="text-[11px] text-muted-foreground">
+                    Suggest Commercial Posture Note when onboarding or commissioning for Tier A entities
+                  </div>
+                </div>
+              </div>
+              <Switch
+                checked={orgSettings.auto_suggest_posture}
+                onCheckedChange={(v) => updateOrgSetting("auto_suggest_posture", v)}
+              />
+            </div>
           </div>
         </div>
       )}
