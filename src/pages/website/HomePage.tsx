@@ -43,7 +43,7 @@ export default function HomePage() {
               <span className="text-[10px] uppercase tracking-[0.2em] text-[#c9a962]/60 font-medium">Est. London 2026</span>
               <div className="h-px w-8 bg-gradient-to-l from-transparent to-[#c9a962]/60" />
             </div>
-            <p className="mt-2 text-[11px] text-white/30 italic leading-relaxed">
+            <p className="mt-2 text-[12px] text-white/45 italic leading-relaxed">
               Founded on decades of investigative and advisory experience.
             </p>
           </div>
