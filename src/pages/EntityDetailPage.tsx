@@ -16,6 +16,8 @@ import ReviewCycleTab from "@/components/entity-detail/ReviewCycleTab";
 import MonitoringTab from "@/components/entity-detail/MonitoringTab";
 import DeliverablesTab from "@/components/entity-detail/DeliverablesTab";
 import ActivityTab from "@/components/entity-detail/ActivityTab";
+import CommercialPostureTab from "@/components/entity-detail/CommercialPostureTab";
+import JurisdictionBenchmarkTab from "@/components/entity-detail/JurisdictionBenchmarkTab";
 
 export default function EntityDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -152,6 +154,8 @@ export default function EntityDetailPage() {
           <TabsTrigger value="profile">Profile</TabsTrigger>
           <TabsTrigger value="review">Review Cycle</TabsTrigger>
           <TabsTrigger value="monitoring">Monitoring ({monitoringEvents.length})</TabsTrigger>
+          <TabsTrigger value="posture" className="gap-1">Commercial Posture</TabsTrigger>
+          <TabsTrigger value="benchmark" className="gap-1">Jurisdiction Benchmark</TabsTrigger>
           <TabsTrigger value="deliverables">Deliverables ({deliverables.length + changeLogs.length})</TabsTrigger>
           <TabsTrigger value="activity">Activity</TabsTrigger>
         </TabsList>
@@ -177,6 +181,14 @@ export default function EntityDetailPage() {
 
         <TabsContent value="monitoring" className="mt-6">
           <MonitoringTab entity={entity} events={monitoringEvents} canTriage={canTriage} onRefresh={loadAll} />
+        </TabsContent>
+
+        <TabsContent value="posture" className="mt-6">
+          <CommercialPostureTab entity={entity} cases={cases} />
+        </TabsContent>
+
+        <TabsContent value="benchmark" className="mt-6">
+          <JurisdictionBenchmarkTab entity={entity} cases={cases} />
         </TabsContent>
 
         <TabsContent value="deliverables" className="mt-6">

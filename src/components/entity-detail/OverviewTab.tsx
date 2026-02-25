@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { AlertTriangle, FileText, Clock, Sparkles } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import EntityLocationSection from "./EntityLocationSection";
+import AssuranceEnhancementsPanel from "./AssuranceEnhancementsPanel";
 
 interface Props {
   entity: any;
@@ -154,6 +155,9 @@ export default function OverviewTab({ entity, cases, changeLogs, monitoringEvent
           </div>
         </div>
       )}
+
+      {/* Assurance Enhancements */}
+      <AssuranceEnhancementsPanel cases={cases} />
 
       {/* Location Section */}
       <EntityLocationSection entity={entity} />
