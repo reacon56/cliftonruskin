@@ -67,16 +67,43 @@ export default function AuthPage() {
           backgroundSize: "32px 32px",
         }} />
         
-        <div className="max-w-md px-8 relative z-10 animate-fade-in">
-          <h1 className="font-display text-[2.75rem] font-semibold text-primary-foreground tracking-tight leading-[1.1]">
-            Far View &amp; Chase
+        <div className="max-w-md px-8 relative z-10 animate-fade-in text-center">
+          {/* Monogram */}
+          <div className="mx-auto mb-6 w-16 h-16 rounded-full border border-accent/40 flex items-center justify-center">
+            <span className="font-display text-2xl font-semibold text-accent tracking-tight">FV</span>
+          </div>
+
+          {/* Decorative rule */}
+          <div className="mx-auto mb-6 flex items-center gap-3 justify-center">
+            <div className="h-px w-12 bg-accent/30" />
+            <div className="w-1.5 h-1.5 rotate-45 border border-accent/40" />
+            <div className="h-px w-12 bg-accent/30" />
+          </div>
+
+          <h1 className="font-display text-[2.75rem] font-semibold text-primary-foreground tracking-tight leading-[1.1]" style={{ letterSpacing: '0.04em' }}>
+            Far View
           </h1>
-          <div className="mt-4 h-px w-20 bg-accent/80" />
-          <p className="mt-6 font-display text-xl text-primary-foreground/70 leading-relaxed italic">
+          <p className="font-display text-[2rem] font-normal text-primary-foreground/70 tracking-widest leading-none mt-1" style={{ letterSpacing: '0.18em' }}>
+            &amp; Chase
+          </p>
+
+          {/* Decorative rule */}
+          <div className="mx-auto mt-6 flex items-center gap-3 justify-center">
+            <div className="h-px w-12 bg-accent/30" />
+            <div className="w-1.5 h-1.5 rotate-45 border border-accent/40" />
+            <div className="h-px w-12 bg-accent/30" />
+          </div>
+
+          <p className="mt-6 font-display text-sm text-primary-foreground/50 tracking-[0.2em] uppercase">
             Assurance Portal
           </p>
-          <p className="mt-5 text-[13px] text-primary-foreground/40 leading-relaxed max-w-[280px]">
-            Manage third-party due diligence with clarity, confidence, and discretion.
+          <p className="mt-5 text-[12px] text-primary-foreground/30 leading-relaxed max-w-[260px] mx-auto italic">
+            Third-party due diligence conducted with clarity, confidence, and discretion.
+          </p>
+
+          {/* Established mark */}
+          <p className="mt-8 text-[10px] text-primary-foreground/20 tracking-[0.25em] uppercase">
+            Est. London
           </p>
         </div>
       </div>
