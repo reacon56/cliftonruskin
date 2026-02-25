@@ -153,12 +153,12 @@ export default function AppSidebar() {
             size="sm"
             onClick={toggleView}
             className="w-full justify-start gap-2 text-sidebar-primary hover:text-sidebar-foreground hover:bg-sidebar-accent/40 transition-colors duration-200 border border-sidebar-border/50"
-            title={collapsed ? `Switch to ${activeView === "internal" ? "Client" : "Analyst"}` : undefined}
+            title={collapsed ? `Switch to ${activeView === "internal" ? "Client" : "FV&C"}` : undefined}
           >
             <ArrowLeftRight size={15} />
             {!collapsed && (
               <span className="text-[13px]">
-                {activeView === "internal" ? "Switch to Client" : "Switch to Analyst"}
+                {activeView === "internal" ? "Switch to Client" : "Switch to FV&C"}
               </span>
             )}
           </Button>
