@@ -4,7 +4,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Search, Building2, List, Map, Globe, MapPin, ExternalLink, User } from "lucide-react";
+import { Plus, Search, Building2, List, Map, Globe, MapPin, ExternalLink, User, Sparkles, ArrowRight, CheckCircle2 } from "lucide-react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger,
@@ -32,6 +32,7 @@ export default function EntitiesPage() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [viewMode, setViewMode] = useState<"list" | "map">("list");
   const [highlightEntityId, setHighlightEntityId] = useState<string | null>(null);
+  const [postSaveEntity, setPostSaveEntity] = useState<{ id: string; name: string } | null>(null);
 
   const canSeePoc = hasRole("client_admin") || hasRole("client_requester") || hasRole("fvc_analyst") || hasRole("fvc_ops_admin");
 
@@ -121,6 +122,7 @@ export default function EntitiesPage() {
     } else {
       toast({ title: "Entity added" });
       setDialogOpen(false);
+      const savedName = form.name;
       setForm({
         name: "", entity_type: "supplier", country: "", website: "",
         registration_number: "", risk_tier: "B",
@@ -136,6 +138,8 @@ export default function EntitiesPage() {
         supabase.functions.invoke("geocode", { body: { entity_id: inserted.id } })
           .then(() => loadEntities())
           .catch(() => {});
+        // Show post-save commission prompt
+        setPostSaveEntity({ id: inserted.id, name: savedName });
       }
       loadEntities();
     }
@@ -512,6 +516,40 @@ export default function EntitiesPage() {
           )}
         </>
       )}
+
+      {/* Post-save commission prompt */}
+      <Dialog open={!!postSaveEntity} onOpenChange={(o) => !o && setPostSaveEntity(null)}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="font-display text-xl flex items-center gap-2">
+              <CheckCircle2 size={20} className="text-success" /> Entity Created
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 mt-2">
+            <p className="text-sm text-muted-foreground">
+              <strong className="text-foreground">{postSaveEntity?.name}</strong> has been added to your register. Would you like to commission a check now?
+            </p>
+            <p className="text-xs text-muted-foreground">
+              The commission wizard includes optional EDD+ enhancements such as Commercial Posture Notes and Jurisdiction Benchmarks.
+            </p>
+            <div className="flex gap-2">
+              <Button
+                className="flex-1"
+                onClick={() => {
+                  const entityId = postSaveEntity?.id;
+                  setPostSaveEntity(null);
+                  navigate(`/commission?entity=${entityId}`);
+                }}
+              >
+                <ArrowRight size={14} className="mr-1" /> Commission Now
+              </Button>
+              <Button variant="outline" className="flex-1" onClick={() => setPostSaveEntity(null)}>
+                Later
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

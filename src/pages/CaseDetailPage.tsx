@@ -5,7 +5,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { ArrowLeft, CheckCircle2, Clock, FileText, Play, Send, AlertTriangle } from "lucide-react";
+import { ArrowLeft, CheckCircle2, Clock, FileText, Play, Send, AlertTriangle, Sparkles } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import AssuranceNoteReport from "@/components/AssuranceNoteReport";
 import CaseActivityTimeline from "@/components/CaseActivityTimeline";
@@ -23,22 +23,36 @@ export default function CaseDetailPage() {
   const [showReport, setShowReport] = useState(false);
   const [simulating, setSimulating] = useState(false);
   const [auditEvents, setAuditEvents] = useState<any[]>([]);
+  const [caseModules, setCaseModules] = useState<any[]>([]);
+  const [simulatingModule, setSimulatingModule] = useState<string | null>(null);
 
   useEffect(() => {
     if (id) loadCase();
   }, [id]);
 
   const loadCase = async () => {
-    const [caseRes, msgsRes, delsRes, auditRes] = await Promise.all([
+    const [caseRes, msgsRes, delsRes, auditRes, modulesRes] = await Promise.all([
       supabase.from("cases").select("*").eq("id", id!).single(),
       supabase.from("case_messages").select("*").eq("case_id", id!).order("created_at"),
       supabase.from("deliverables").select("*").eq("case_id", id!).order("created_at", { ascending: false }),
       supabase.from("audit_events").select("*").eq("object_id", id!).eq("object_type", "case").order("created_at"),
+      supabase.from("case_modules").select("*").eq("case_id", id!),
     ]);
     setCaseData(caseRes.data);
     setMessages(msgsRes.data ?? []);
     setDeliverables(delsRes.data ?? []);
     setAuditEvents(auditRes.data ?? []);
+
+    // Enrich modules with type info
+    const rawModules = modulesRes.data ?? [];
+    if (rawModules.length > 0) {
+      const mtIds = [...new Set(rawModules.map((m: any) => m.module_type_id))];
+      const { data: mtData } = await supabase.from("module_types").select("*").in("id", mtIds);
+      const mtMap = Object.fromEntries((mtData ?? []).map((m) => [m.id, m]));
+      setCaseModules(rawModules.map((m: any) => ({ ...m, module_type: mtMap[m.module_type_id] })));
+    } else {
+      setCaseModules([]);
+    }
 
     if (caseRes.data?.entity_id) {
       const { data } = await supabase.from("entities").select("name, risk_tier").eq("id", caseRes.data.entity_id).single();
@@ -70,7 +84,6 @@ export default function CaseDetailPage() {
 
     await supabase.from("cases").update(updatePayload).eq("id", id!);
 
-    // Write audit event
     const actionMap: Record<string, string> = {
       approved: "CASE_APPROVED",
       cancelled: "CASE_REJECTED",
@@ -110,10 +123,8 @@ export default function CaseDetailPage() {
     if (!user || !caseData) return;
     setSimulating(true);
 
-    // Simulate a brief delay
     await new Promise((r) => setTimeout(r, 1500));
 
-    // Create a deliverable
     await supabase.from("deliverables").insert({
       case_id: id!,
       title: `Assurance Note — ${entity?.name ?? "Entity"}`,
@@ -121,7 +132,11 @@ export default function CaseDetailPage() {
       version: 1,
     });
 
-    // Update case status to complete
+    // Also deliver any in_progress modules
+    for (const cm of caseModules.filter((m) => m.status === "in_progress" || m.status === "approved")) {
+      await simulateModuleDelivery(cm, true);
+    }
+
     await supabase.from("cases").update({
       status: "complete",
       due_date: new Date().toISOString().split("T")[0],
@@ -129,11 +144,66 @@ export default function CaseDetailPage() {
 
     toast({
       title: "Report delivered",
-      description: "The Assurance Note has been completed and is now available in deliverables.",
+      description: "The Assurance Note and any EDD+ addenda have been completed.",
     });
 
     setSimulating(false);
     loadCase();
+  };
+
+  const simulateModuleDelivery = async (cm: any, skipReload?: boolean) => {
+    if (!user || !profile) return;
+    setSimulatingModule(cm.id);
+
+    if (!skipReload) await new Promise((r) => setTimeout(r, 1000));
+
+    // Create deliverable
+    const { data: del } = await supabase.from("deliverables").insert({
+      case_id: id!,
+      title: `${cm.module_type?.name ?? "Addendum"} — ${entity?.name ?? "Entity"}`,
+      deliverable_type: "addendum",
+      version: 1,
+    }).select("id").single();
+
+    // Create module_output
+    await supabase.from("module_outputs").insert({
+      case_module_id: cm.id,
+      deliverable_id: del?.id ?? null,
+      executive_summary: cm.module_type?.code === "COMMERCIAL_POSTURE"
+        ? "Commercial posture analysis indicates moderate-risk payment patterns with standard dispute resolution. Trade references are broadly positive with some latency signals."
+        : "Jurisdiction benchmarks indicate this entity operates within normal parameters for the sector. Enforcement environment is active with recent regulatory updates.",
+      confidence_level: "med",
+      limitations: "Based on publicly available data and client-provided references. Further verification may be warranted.",
+    });
+
+    // Update module status
+    await supabase.from("case_modules").update({ status: "complete" }).eq("id", cm.id);
+
+    // Audit
+    await supabase.from("audit_events").insert([
+      {
+        user_id: user.id,
+        org_id: profile.org_id,
+        action_type: "MODULE_COMPLETED",
+        object_type: "case_module",
+        object_id: cm.id,
+        metadata: { case_id: id, module_code: cm.module_type?.code, entity_name: entity?.name },
+      },
+      {
+        user_id: user.id,
+        org_id: profile.org_id,
+        action_type: "MODULE_DELIVERED",
+        object_type: "case_module",
+        object_id: cm.id,
+        metadata: { case_id: id, module_code: cm.module_type?.code, deliverable_id: del?.id, entity_name: entity?.name },
+      },
+    ]);
+
+    setSimulatingModule(null);
+    if (!skipReload) {
+      toast({ title: "Module delivered", description: `${cm.module_type?.name} addendum is now available.` });
+      loadCase();
+    }
   };
 
   if (!caseData) {
@@ -172,7 +242,6 @@ export default function CaseDetailPage() {
         </Badge>
       </div>
 
-      {/* High-risk approval warning */}
       {needsApproval && (
         <div className="flex items-center gap-3 p-4 rounded-lg border border-warning/30 bg-warning/5 mb-6 animate-fade-in">
           <AlertTriangle size={18} className="text-warning shrink-0" />
@@ -237,6 +306,37 @@ export default function CaseDetailPage() {
               )}
             </div>
           </div>
+
+          {/* EDD+ Modules */}
+          {caseModules.length > 0 && (
+            <div className="fvc-card">
+              <h2 className="fvc-heading-3 text-foreground mb-4 flex items-center gap-2">
+                <Sparkles size={16} className="text-accent" /> EDD+ Enhancements
+              </h2>
+              <div className="fvc-gold-rule mb-4" />
+              <div className="space-y-3">
+                {caseModules.map((cm) => (
+                  <div key={cm.id} className="border rounded-lg p-4 border-accent/20 bg-accent/5">
+                    <div className="flex items-center justify-between mb-2">
+                      <div className="font-medium text-sm text-foreground">{cm.module_type?.name ?? "Module"}</div>
+                      <Badge className={`fvc-status-badge capitalize text-[10px] ${
+                        cm.status === "complete" ? "bg-success/10 text-success" :
+                        cm.status === "cancelled" ? "bg-destructive/10 text-destructive" :
+                        cm.status === "in_progress" ? "bg-primary/10 text-primary" :
+                        "bg-muted text-muted-foreground"
+                      }`}>
+                        {cm.status.replace(/_/g, " ")}
+                      </Badge>
+                    </div>
+                    <div className="flex justify-between text-xs text-muted-foreground">
+                      <span>{cm.module_type?.description?.slice(0, 80)}…</span>
+                      {cm.price_estimate && <span className="text-accent font-medium">£{cm.price_estimate.toLocaleString()}</span>}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
 
           {/* Messages */}
           <div className="fvc-card">
@@ -309,6 +409,19 @@ export default function CaseDetailPage() {
                   <AlertTriangle size={11} /> High-risk entity — approval required
                 </p>
               )}
+              {caseModules.length > 0 && (
+                <div className="mb-3 border border-accent/20 rounded-lg p-2.5 bg-accent/5">
+                  <div className="text-[10px] font-medium text-foreground mb-1.5 flex items-center gap-1">
+                    <Sparkles size={10} className="text-accent" /> Includes EDD+
+                  </div>
+                  {caseModules.map((cm) => (
+                    <div key={cm.id} className="flex justify-between text-[11px] py-0.5">
+                      <span className="text-foreground">{cm.module_type?.name}</span>
+                      <span className="text-accent">£{cm.price_estimate?.toLocaleString() ?? "—"}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
               <div className="space-y-2">
                 <Button className="w-full" onClick={() => updateStatus("approved")}>
                   <CheckCircle2 size={14} className="mr-1" /> Approve
@@ -341,6 +454,18 @@ export default function CaseDetailPage() {
                   <FileText size={14} className="mr-1" />
                   {simulating ? "Generating report…" : "Simulate Delivery"}
                 </Button>
+                {caseModules.filter((cm) => cm.status !== "complete" && cm.status !== "cancelled").map((cm) => (
+                  <Button
+                    key={cm.id}
+                    variant="outline"
+                    className="w-full text-xs"
+                    onClick={() => simulateModuleDelivery(cm)}
+                    disabled={simulatingModule === cm.id}
+                  >
+                    <Sparkles size={12} className="mr-1 text-accent" />
+                    {simulatingModule === cm.id ? "Delivering…" : `Deliver ${cm.module_type?.name ?? "Module"}`}
+                  </Button>
+                ))}
                 <Button variant="outline" className="w-full" onClick={() => updateStatus("awaiting_client")}>
                   <Clock size={14} className="mr-1" /> Await Client
                 </Button>
@@ -362,7 +487,11 @@ export default function CaseDetailPage() {
                     onClick={() => setShowReport(!showReport)}
                   >
                     <div className="flex items-center gap-2">
-                      <FileText size={14} className="text-accent shrink-0" />
+                      {d.deliverable_type === "addendum" ? (
+                        <Sparkles size={14} className="text-accent shrink-0" />
+                      ) : (
+                        <FileText size={14} className="text-accent shrink-0" />
+                      )}
                       <div>
                         <div className="text-sm font-medium text-foreground">{d.title}</div>
                         <div className="text-xs text-muted-foreground capitalize">{d.deliverable_type.replace(/_/g, " ")} · v{d.version}</div>

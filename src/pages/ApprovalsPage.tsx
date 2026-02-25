@@ -12,7 +12,7 @@ import {
 import {
   Table, TableHeader, TableBody, TableRow, TableHead, TableCell,
 } from "@/components/ui/table";
-import { CheckCircle2, XCircle, AlertTriangle } from "lucide-react";
+import { CheckCircle2, XCircle, AlertTriangle, Sparkles } from "lucide-react";
 import { format } from "date-fns";
 
 interface PendingCase {
@@ -27,6 +27,7 @@ interface PendingCase {
   entity_name?: string;
   entity_risk_tier?: string;
   requester_name?: string;
+  modules?: { id: string; module_name: string; module_code: string; price_estimate: number | null; status: string }[];
 }
 
 export default function ApprovalsPage() {
@@ -75,6 +76,30 @@ export default function ApprovalsPage() {
       : { data: [] };
     const profileMap = Object.fromEntries((profiles ?? []).map((p) => [p.user_id, p]));
 
+    // Fetch case_modules for all pending cases
+    const caseIds = pendingCases.map((c) => c.id);
+    const { data: caseModules } = await supabase
+      .from("case_modules")
+      .select("id, case_id, module_type_id, price_estimate, status")
+      .in("case_id", caseIds);
+
+    // Fetch module type names
+    const { data: moduleTypesData } = await supabase.from("module_types").select("id, code, name");
+    const mtMap = Object.fromEntries((moduleTypesData ?? []).map((m) => [m.id, m]));
+
+    const modulesByCaseId: Record<string, PendingCase["modules"]> = {};
+    (caseModules ?? []).forEach((cm) => {
+      if (!modulesByCaseId[cm.case_id]) modulesByCaseId[cm.case_id] = [];
+      const mt = mtMap[cm.module_type_id];
+      modulesByCaseId[cm.case_id]!.push({
+        id: cm.id,
+        module_name: mt?.name ?? "Unknown",
+        module_code: mt?.code ?? "",
+        price_estimate: cm.price_estimate,
+        status: cm.status,
+      });
+    });
+
     setCases(
       pendingCases.map((c) => ({
         ...c,
@@ -83,6 +108,7 @@ export default function ApprovalsPage() {
         requester_name: c.requested_by
           ? profileMap[c.requested_by]?.full_name || profileMap[c.requested_by]?.email || "Unknown"
           : "—",
+        modules: modulesByCaseId[c.id] ?? [],
       }))
     );
     setLoading(false);
@@ -95,7 +121,7 @@ export default function ApprovalsPage() {
     const newStatus = actionType === "approve" ? "approved" : "cancelled";
     const sla = actionCase.priority === "rush" ? 5 : 10;
     const dueDate = new Date();
-    dueDate.setDate(dueDate.getDate() + (sla * 1.4)); // rough business day estimate
+    dueDate.setDate(dueDate.getDate() + (sla * 1.4));
 
     const updatePayload: Record<string, any> = {
       status: newStatus,
@@ -115,6 +141,33 @@ export default function ApprovalsPage() {
       return;
     }
 
+    // Update case_modules status too
+    if (actionCase.modules && actionCase.modules.length > 0) {
+      const moduleStatus = actionType === "approve" ? "approved" : "cancelled";
+      const moduleIds = actionCase.modules.map((m) => m.id);
+      await supabase.from("case_modules").update({
+        status: moduleStatus,
+        approved_by: actionType === "approve" ? user.id : null,
+      }).in("id", moduleIds);
+
+      // Audit events for each module
+      for (const mod of actionCase.modules) {
+        await supabase.from("audit_events").insert({
+          user_id: user.id,
+          org_id: profile?.org_id,
+          action_type: actionType === "approve" ? "MODULE_APPROVED" : "MODULE_REJECTED",
+          object_type: "case_module",
+          object_id: mod.id,
+          metadata: {
+            case_id: actionCase.id,
+            module_code: mod.module_code,
+            module_name: mod.module_name,
+            entity_name: actionCase.entity_name,
+          },
+        });
+      }
+    }
+
     // Write audit event
     await supabase.from("audit_events").insert({
       user_id: user.id,
@@ -127,6 +180,7 @@ export default function ApprovalsPage() {
         entity_name: actionCase.entity_name,
         comment: comment || null,
         price_estimate: actionCase.price_estimate,
+        enhancements: actionCase.modules?.map((m) => m.module_code) ?? [],
       },
     });
 
@@ -194,7 +248,15 @@ export default function ApprovalsPage() {
                       </Badge>
                     </div>
                   </TableCell>
-                  <TableCell className="text-sm">{c.product_type}</TableCell>
+                  <TableCell>
+                    <div className="text-sm">{c.product_type}</div>
+                    {c.modules && c.modules.length > 0 && (
+                      <div className="flex items-center gap-1 mt-0.5">
+                        <Sparkles size={10} className="text-accent" />
+                        <span className="text-[10px] text-accent">+{c.modules.length} EDD+</span>
+                      </div>
+                    )}
+                  </TableCell>
                   <TableCell>
                     <Badge className={`capitalize text-[10px] ${
                       c.priority === "rush"
@@ -270,6 +332,23 @@ export default function ApprovalsPage() {
                   </span>
                 </div>
               </div>
+
+              {/* Module line items */}
+              {actionCase.modules && actionCase.modules.length > 0 && (
+                <div className="border border-accent/20 rounded-lg p-3 bg-accent/5">
+                  <div className="text-xs font-medium text-foreground mb-2 flex items-center gap-1.5">
+                    <Sparkles size={12} className="text-accent" /> EDD+ Enhancements
+                  </div>
+                  {actionCase.modules.map((m) => (
+                    <div key={m.id} className="flex justify-between text-xs py-0.5">
+                      <span className="text-foreground">{m.module_name}</span>
+                      <span className="text-accent font-medium">
+                        {m.price_estimate ? `+£${m.price_estimate.toLocaleString()}` : "—"}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              )}
 
               {actionCase.entity_risk_tier === "A" && (
                 <div className="flex items-center gap-2 p-3 rounded-md bg-warning/5 border border-warning/20 text-xs text-warning">

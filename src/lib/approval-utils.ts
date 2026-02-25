@@ -6,6 +6,7 @@ interface ApprovalCheckParams {
   productType: string;
   priority: string;
   priceEstimate: number;
+  hasEnhancements?: boolean;
 }
 
 /**
@@ -14,6 +15,7 @@ interface ApprovalCheckParams {
  * 2. Rush priority
  * 3. Emergency Note product type
  * 4. Price exceeds org threshold
+ * 5. EDD+ enhancements selected
  */
 export async function requiresApproval(params: ApprovalCheckParams): Promise<{
   required: boolean;
@@ -51,8 +53,10 @@ export async function requiresApproval(params: ApprovalCheckParams): Promise<{
     reasons.push("Emergency Notes require approval");
   }
 
-  // 4. Out-of-cycle refresh (handled by caller tagging scope_notes)
-  // This is checked via the product_type or scope_notes by the caller
+  // 4. EDD+ enhancements require approval
+  if (params.hasEnhancements) {
+    reasons.push("EDD+ enhancements selected — approval required");
+  }
 
   // 5. Price threshold
   if (org?.approval_price_threshold && params.priceEstimate > Number(org.approval_price_threshold)) {
