@@ -1,1 +1,7 @@
 project_id = "nhojqcswjunsgcrudkrt"
+
+[functions.notify-quote-ready]
+verify_jwt = false
+
+[functions.notify-quote-approved]
+verify_jwt = false

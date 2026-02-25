@@ -320,7 +320,7 @@ export default function CaseDetailPage() {
 
           {/* Quote Panel — show for scheduled (create), quoted (approve/edit), approved (view) */}
           {(currentStatus === "scheduled" || currentStatus === "quoted" || currentStatus === "approved") && (
-            <QuotePanel caseId={id!} caseStatus={currentStatus} onStatusChange={loadCase} />
+            <QuotePanel caseId={id!} caseStatus={currentStatus} onStatusChange={loadCase} entityName={entity?.name} />
           )}
 
           {/* EDD+ Modules */}
