@@ -137,10 +137,32 @@ export default function AssuranceNoteReport({ entityName, caseDate, riskTier }: 
           .sign-off { display: flex; justify-content: space-between; border-top: 1px solid #e0d9cf; padding-top: 16px; margin-top: 28px; font-size: 11px; color: #6b7280; }
           .sign-name { font-weight: 500; color: #1a2235; }
           .no-print { display: none !important; }
-          @media print { body { padding: 24px; } }
+          .pdf-logo { display: flex; align-items: center; justify-content: space-between; padding-bottom: 20px; margin-bottom: 28px; border-bottom: 2px solid #c0924c; }
+          .pdf-logo-text { font-family: 'Cormorant Garamond', serif; font-size: 20px; font-weight: 600; color: #1a2235; letter-spacing: -0.01em; }
+          .pdf-logo-sub { font-family: 'DM Sans', sans-serif; font-size: 8px; text-transform: uppercase; letter-spacing: 0.25em; color: #c0924c; margin-top: 2px; }
+          .pdf-logo-shield { width: 36px; height: 36px; border: 2px solid #c0924c; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-family: 'Cormorant Garamond', serif; font-size: 15px; font-weight: 700; color: #c0924c; }
+          .pdf-footer { margin-top: 40px; padding-top: 20px; border-top: 1px solid #e0d9cf; }
+          .pdf-footer-brand { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
+          .pdf-footer-name { font-family: 'Cormorant Garamond', serif; font-size: 13px; font-weight: 600; color: #1a2235; }
+          .pdf-footer-ref { font-family: monospace; font-size: 10px; color: #9ca3af; }
+          .pdf-footer-disclaimer { font-size: 9px; color: #9ca3af; line-height: 1.5; }
+          .pdf-footer-contacts { display: flex; gap: 24px; margin-top: 12px; font-size: 9px; color: #6b7280; }
+          @media print {
+            body { padding: 24px; }
+            .pdf-footer { position: fixed; bottom: 0; left: 0; right: 0; padding: 16px 48px; background: white; }
+          }
         </style>
       </head>
       <body>
+        <!-- Branded header -->
+        <div class="pdf-logo">
+          <div>
+            <div class="pdf-logo-text">Far View &amp; Chase</div>
+            <div class="pdf-logo-sub">Assurance &amp; Advisory</div>
+          </div>
+          <div class="pdf-logo-shield">FVC</div>
+        </div>
+
         <div class="report-header">
           <div>
             <div class="classification">${report.classification}</div>
@@ -198,6 +220,23 @@ export default function AssuranceNoteReport({ entityName, caseDate, riskTier }: 
         <div class="sign-off">
           <div><div class="sign-name">${report.analyst}</div><div>Prepared by</div></div>
           <div style="text-align: right;"><div class="sign-name">${report.reviewer}</div><div>Reviewed by</div></div>
+        </div>
+
+        <!-- Branded footer -->
+        <div class="pdf-footer">
+          <div class="pdf-footer-brand">
+            <span class="pdf-footer-name">Far View &amp; Chase Ltd</span>
+            <span class="pdf-footer-ref">${report.reference} · Page 1 of 1</span>
+          </div>
+          <div class="pdf-footer-disclaimer">
+            This document is confidential and intended solely for the use of the commissioning party. It must not be disclosed, copied, or distributed to any third party without the prior written consent of Far View &amp; Chase Ltd. The findings herein are based on information available at the date of issue and do not constitute legal advice. Far View &amp; Chase Ltd accepts no liability for any loss arising from reliance on this document.
+          </div>
+          <div class="pdf-footer-contacts">
+            <span>info@farviewchase.com</span>
+            <span>+44 (0)20 7946 0123</span>
+            <span>farviewchase.com</span>
+            <span>Registered in England &amp; Wales No. 12345678</span>
+          </div>
         </div>
       </body>
       </html>
