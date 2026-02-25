@@ -1421,6 +1421,10 @@ export type Database = {
         | "fvc_analyst"
         | "fvc_ops_admin"
         | "partner"
+        | "fvc_assurance_manager"
+        | "fvc_assurance_officer"
+        | "fvc_assurance_lead"
+        | "fvc_quality_reviewer"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -1555,6 +1559,10 @@ export const Constants = {
         "fvc_analyst",
         "fvc_ops_admin",
         "partner",
+        "fvc_assurance_manager",
+        "fvc_assurance_officer",
+        "fvc_assurance_lead",
+        "fvc_quality_reviewer",
       ],
     },
   },
