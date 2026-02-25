@@ -1,6 +1,17 @@
 import { Link } from "react-router-dom";
 import { Shield, Scale, Globe, Lock, ArrowRight, FileText, BookOpen, RefreshCw, Eye, CheckCircle, Search, Calendar, Download } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useScrollReveal } from "@/hooks/use-scroll-reveal";
+
+/* ── scroll-reveal wrapper ── */
+const RevealSection = ({ children, className = "" }: { children: React.ReactNode; className?: string }) => {
+  const { ref, isVisible } = useScrollReveal(0.12);
+  return (
+    <div ref={ref} className={`scroll-reveal ${isVisible ? "visible" : ""} ${className}`}>
+      {children}
+    </div>
+  );
+};
 
 /* ── tiny reusable gold rule ── */
 const GoldRule = ({ className = "" }: { className?: string }) => (
@@ -97,47 +108,51 @@ export default function HomePage() {
 
       {/* ═══════════════════ TRUST STRIP ═══════════════════ */}
       <section className="bg-[#1a1a2e] py-8 border-t border-white/5">
-        <div className="flex items-center justify-center gap-4">
-          <div className="h-px w-16 bg-gradient-to-r from-transparent to-[#c9a962]/20" />
-          <p className="text-center text-[11px] uppercase tracking-[0.2em] text-white/35 font-medium">
-            Trusted by teams who answer to boards, regulators, and shareholders
-          </p>
-          <div className="h-px w-16 bg-gradient-to-l from-transparent to-[#c9a962]/20" />
-        </div>
+        <RevealSection>
+          <div className="flex items-center justify-center gap-4">
+            <div className="h-px w-16 bg-gradient-to-r from-transparent to-[#c9a962]/20" />
+            <p className="text-center text-[11px] uppercase tracking-[0.2em] text-white/35 font-medium">
+              Trusted by teams who answer to boards, regulators, and shareholders
+            </p>
+            <div className="h-px w-16 bg-gradient-to-l from-transparent to-[#c9a962]/20" />
+          </div>
+        </RevealSection>
       </section>
 
       {/* ═══════════════════ 4 PILLARS ═══════════════════ */}
       <section className="bg-[#f6f0e6] py-28">
-        <div className="mx-auto max-w-7xl px-6">
-          <div className="text-center mb-16">
-            <p className="text-[#c9a962] text-xs font-semibold uppercase tracking-[0.2em] mb-3">Our Standard</p>
-            <h2 className="font-display text-3xl sm:text-4xl font-semibold text-[#1a1a2e] tracking-tight">
-              The Clifton Ruskin Standard
-            </h2>
-            <div className="mx-auto mt-5 flex items-center gap-3 justify-center">
-              <div className="h-px w-12 bg-[#c9a962]/25" />
-              <div className="w-1.5 h-1.5 rotate-45 border border-[#c9a962]/30" />
-              <div className="h-px w-12 bg-[#c9a962]/25" />
+        <RevealSection>
+          <div className="mx-auto max-w-7xl px-6">
+            <div className="text-center mb-16">
+              <p className="text-[#c9a962] text-xs font-semibold uppercase tracking-[0.2em] mb-3">Our Standard</p>
+              <h2 className="font-display text-3xl sm:text-4xl font-semibold text-[#1a1a2e] tracking-tight">
+                The Clifton Ruskin Standard
+              </h2>
+              <div className="mx-auto mt-5 flex items-center gap-3 justify-center">
+                <div className="h-px w-12 bg-[#c9a962]/25" />
+                <div className="w-1.5 h-1.5 rotate-45 border border-[#c9a962]/30" />
+                <div className="h-px w-12 bg-[#c9a962]/25" />
+              </div>
+            </div>
+
+            <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-8">
+              {[
+                { icon: Shield, title: "Defensible Outputs", desc: "Every finding sourced, dated, and ready for regulatory scrutiny." },
+                { icon: Scale, title: "Proportionate Diligence", desc: "Scope matched to risk — no more, no less than the situation demands." },
+                { icon: Globe, title: "Global Reach", desc: "In-country networks across 50+ jurisdictions, coordinated from London." },
+                { icon: Lock, title: "Confidential by Default", desc: "Information barriers and need-to-know principles from first contact." },
+              ].map(({ icon: Icon, title, desc }) => (
+                <div key={title} className="group p-7 rounded-xl border border-[#c9a962]/10 bg-white/60 hover:bg-white transition-all duration-500 hover:shadow-[0_8px_30px_-12px_rgba(201,169,98,0.15)]">
+                  <div className="h-11 w-11 rounded-lg bg-[#1a1a2e] flex items-center justify-center mb-5 group-hover:bg-[#c9a962] transition-colors duration-500 shadow-sm">
+                    <Icon className="h-5 w-5 text-[#c9a962] group-hover:text-[#1a1a2e] transition-colors duration-500" />
+                  </div>
+                  <h3 className="font-display text-lg font-semibold text-[#1a1a2e] mb-2 tracking-tight">{title}</h3>
+                  <p className="text-[13px] text-[#1a1a2e]/55 leading-relaxed">{desc}</p>
+                </div>
+              ))}
             </div>
           </div>
-
-          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-8">
-            {[
-              { icon: Shield, title: "Defensible Outputs", desc: "Every finding sourced, dated, and ready for regulatory scrutiny." },
-              { icon: Scale, title: "Proportionate Diligence", desc: "Scope matched to risk — no more, no less than the situation demands." },
-              { icon: Globe, title: "Global Reach", desc: "In-country networks across 50+ jurisdictions, coordinated from London." },
-              { icon: Lock, title: "Confidential by Default", desc: "Information barriers and need-to-know principles from first contact." },
-            ].map(({ icon: Icon, title, desc }) => (
-              <div key={title} className="group p-7 rounded-xl border border-[#c9a962]/10 bg-white/60 hover:bg-white transition-all duration-500 hover:shadow-[0_8px_30px_-12px_rgba(201,169,98,0.15)]">
-                <div className="h-11 w-11 rounded-lg bg-[#1a1a2e] flex items-center justify-center mb-5 group-hover:bg-[#c9a962] transition-colors duration-500 shadow-sm">
-                  <Icon className="h-5 w-5 text-[#c9a962] group-hover:text-[#1a1a2e] transition-colors duration-500" />
-                </div>
-                <h3 className="font-display text-lg font-semibold text-[#1a1a2e] mb-2 tracking-tight">{title}</h3>
-                <p className="text-[13px] text-[#1a1a2e]/55 leading-relaxed">{desc}</p>
-              </div>
-            ))}
-          </div>
-        </div>
+        </RevealSection>
       </section>
 
       {/* ═══════════════════ PRODUCTS ═══════════════════ */}
@@ -147,7 +162,7 @@ export default function HomePage() {
           backgroundImage: `radial-gradient(circle at 1px 1px, white 1px, transparent 0)`,
           backgroundSize: "40px 40px",
         }} />
-        <div className="mx-auto max-w-7xl px-6 relative">
+        <RevealSection className="mx-auto max-w-7xl px-6 relative">
           <div className="text-center mb-16">
             <p className="text-[#c9a962] text-xs font-semibold uppercase tracking-[0.2em] mb-3">Products</p>
             <h2 className="font-display text-3xl sm:text-4xl font-semibold text-white tracking-tight">
@@ -194,12 +209,12 @@ export default function HomePage() {
               </div>
             ))}
           </div>
-        </div>
+        </RevealSection>
       </section>
 
       {/* ═══════════════════ HOW IT WORKS ═══════════════════ */}
       <section className="bg-[#f6f0e6] py-28">
-        <div className="mx-auto max-w-7xl px-6">
+        <RevealSection className="mx-auto max-w-7xl px-6">
           <div className="text-center mb-16">
             <p className="text-[#c9a962] text-xs font-semibold uppercase tracking-[0.2em] mb-3">Process</p>
             <h2 className="font-display text-3xl sm:text-4xl font-semibold text-[#1a1a2e] tracking-tight">
@@ -229,12 +244,12 @@ export default function HomePage() {
               </div>
             ))}
           </div>
-        </div>
+        </RevealSection>
       </section>
 
       {/* ═══════════════════ PORTAL PREVIEW ═══════════════════ */}
       <section className="bg-white py-28">
-        <div className="mx-auto max-w-7xl px-6">
+        <RevealSection className="mx-auto max-w-7xl px-6">
           <div className="grid lg:grid-cols-2 gap-16 items-center">
             <div>
               <p className="text-[#c9a962] text-xs font-semibold uppercase tracking-[0.2em] mb-3">Client Portal</p>
@@ -287,7 +302,7 @@ export default function HomePage() {
               </div>
             </div>
           </div>
-        </div>
+        </RevealSection>
       </section>
 
       {/* ═══════════════════ FINAL CTA ═══════════════════ */}
@@ -296,7 +311,7 @@ export default function HomePage() {
           backgroundImage: `radial-gradient(circle at 1px 1px, white 1px, transparent 0)`,
           backgroundSize: "40px 40px",
         }} />
-        <div className="mx-auto max-w-3xl px-6 text-center relative">
+        <RevealSection className="mx-auto max-w-3xl px-6 text-center relative">
           <div className="mx-auto mb-8 flex items-center gap-3 justify-center">
             <div className="h-px w-12 bg-[#c9a962]/25" />
             <div className="w-1.5 h-1.5 rotate-45 border border-[#c9a962]/30" />
@@ -316,7 +331,7 @@ export default function HomePage() {
           <p className="mt-6 text-[11px] text-white/25 tracking-wide italic">
             All enquiries treated in strict confidence.
           </p>
-        </div>
+        </RevealSection>
       </section>
     </div>
   );
