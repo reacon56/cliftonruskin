@@ -39,9 +39,15 @@ export default function HomePage() {
             </h1>
             {/* Gold decorative rule */}
             <div className="mx-auto mt-5 flex items-center gap-3 justify-center">
-              <div className="h-px w-8 bg-gradient-to-r from-transparent to-[#c9a962]/60" />
-              <span className="text-[10px] uppercase tracking-[0.2em] text-[#c9a962]/60 font-medium">Est. London 2026</span>
-              <div className="h-px w-8 bg-gradient-to-l from-transparent to-[#c9a962]/60" />
+              <div className="h-px w-12 bg-[#c9a962]/30" />
+              <div className="w-1.5 h-1.5 rotate-45 border border-[#c9a962]/40" />
+              <div className="h-px w-12 bg-[#c9a962]/30" />
+            </div>
+            <p className="mt-4 text-[10px] uppercase tracking-[0.25em] text-white/50 font-medium">Est. London 2026</p>
+            <div className="mx-auto mt-4 flex items-center gap-3 justify-center">
+              <div className="h-px w-12 bg-[#c9a962]/30" />
+              <div className="w-1.5 h-1.5 rotate-45 border border-[#c9a962]/40" />
+              <div className="h-px w-12 bg-[#c9a962]/30" />
             </div>
             <p className="mt-2 text-[12px] text-white/60 italic leading-relaxed">
               Founded on decades of investigative and advisory experience.
