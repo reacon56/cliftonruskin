@@ -1127,6 +1127,53 @@ export type Database = {
           },
         ]
       }
+      partner_evidence: {
+        Row: {
+          captured_at: string | null
+          client_shareable: boolean
+          created_at: string
+          evidence_type: string
+          file_url: string | null
+          geo_lat: number | null
+          geo_lng: number | null
+          id: string
+          notes: string | null
+          partner_task_id: string
+        }
+        Insert: {
+          captured_at?: string | null
+          client_shareable?: boolean
+          created_at?: string
+          evidence_type?: string
+          file_url?: string | null
+          geo_lat?: number | null
+          geo_lng?: number | null
+          id?: string
+          notes?: string | null
+          partner_task_id: string
+        }
+        Update: {
+          captured_at?: string | null
+          client_shareable?: boolean
+          created_at?: string
+          evidence_type?: string
+          file_url?: string | null
+          geo_lat?: number | null
+          geo_lng?: number | null
+          id?: string
+          notes?: string | null
+          partner_task_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "partner_evidence_partner_task_id_fkey"
+            columns: ["partner_task_id"]
+            isOneToOne: false
+            referencedRelation: "partner_tasks"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       partner_task_clarifications: {
         Row: {
           created_at: string
@@ -1247,8 +1294,10 @@ export type Database = {
           created_at: string
           created_by: string | null
           deadline: string | null
+          entity_id: string | null
           id: string
           method_statement: string | null
+          partner_id: string | null
           partner_user_id: string | null
           questions: Json
           response_notes: string | null
@@ -1262,8 +1311,10 @@ export type Database = {
           created_at?: string
           created_by?: string | null
           deadline?: string | null
+          entity_id?: string | null
           id?: string
           method_statement?: string | null
+          partner_id?: string | null
           partner_user_id?: string | null
           questions?: Json
           response_notes?: string | null
@@ -1277,8 +1328,10 @@ export type Database = {
           created_at?: string
           created_by?: string | null
           deadline?: string | null
+          entity_id?: string | null
           id?: string
           method_statement?: string | null
+          partner_id?: string | null
           partner_user_id?: string | null
           questions?: Json
           response_notes?: string | null
@@ -1294,7 +1347,51 @@ export type Database = {
             referencedRelation: "case_modules"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "partner_tasks_entity_id_fkey"
+            columns: ["entity_id"]
+            isOneToOne: false
+            referencedRelation: "entities"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "partner_tasks_partner_id_fkey"
+            columns: ["partner_id"]
+            isOneToOne: false
+            referencedRelation: "partners"
+            referencedColumns: ["id"]
+          },
         ]
+      }
+      partners: {
+        Row: {
+          active: boolean
+          capability_tags: Json | null
+          country: string | null
+          created_at: string
+          id: string
+          name: string
+          rate_card: Json | null
+        }
+        Insert: {
+          active?: boolean
+          capability_tags?: Json | null
+          country?: string | null
+          created_at?: string
+          id?: string
+          name: string
+          rate_card?: Json | null
+        }
+        Update: {
+          active?: boolean
+          capability_tags?: Json | null
+          country?: string | null
+          created_at?: string
+          id?: string
+          name?: string
+          rate_card?: Json | null
+        }
+        Relationships: []
       }
       policies: {
         Row: {

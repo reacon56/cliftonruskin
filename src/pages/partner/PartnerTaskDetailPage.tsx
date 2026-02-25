@@ -60,8 +60,13 @@ export default function PartnerTaskDetailPage() {
 
   const load = useCallback(async () => {
     if (!taskId) return;
+    // Partners: only select fields they need. No org_id, no case details, no client info.
+    // RLS ensures they can only see tasks assigned to them.
+    const taskSelect = isInternal
+      ? "*"
+      : "id, title, country, deadline, status, questions, method_statement, created_at";
     const [taskRes, itemsRes, clarsRes] = await Promise.all([
-      supabase.from("partner_tasks" as any).select("*").eq("id", taskId).single(),
+      supabase.from("partner_tasks" as any).select(taskSelect).eq("id", taskId).single(),
       supabase.from("partner_task_items" as any).select("*").eq("task_id", taskId).order("sort_order"),
       supabase.from("partner_task_clarifications" as any).select("*").eq("task_id", taskId).order("created_at"),
     ]);
@@ -113,7 +118,15 @@ export default function PartnerTaskDetailPage() {
       return;
     }
 
-    // Store the relative path, not a public URL — files are accessed via signed URLs
+    // Store in partner_evidence table (client_shareable defaults to false)
+    await supabase.from("partner_evidence" as any).insert({
+      partner_task_id: taskId,
+      evidence_type: "document",
+      file_url: path,
+      notes: file.name,
+    });
+
+    // Also update the checklist item with file reference
     await supabase.from("partner_task_items" as any).update({
       file_url: path,
       file_name: file.name,
@@ -310,14 +323,16 @@ export default function PartnerTaskDetailPage() {
                           className="text-xs resize-none"
                         />
 
-                        {/* Shareability toggle */}
-                        <div className="flex items-center gap-2">
-                          <Switch
-                            checked={item.is_client_shareable}
-                            onCheckedChange={(v) => updateItemField(item.id, "is_client_shareable", v)}
-                          />
-                          <Label className="text-xs text-muted-foreground">Client-shareable</Label>
-                        </div>
+                        {/* Client-shareable toggle — internal only, partners never control this */}
+                        {isInternal && (
+                          <div className="flex items-center gap-2">
+                            <Switch
+                              checked={item.is_client_shareable}
+                              onCheckedChange={(v) => updateItemField(item.id, "is_client_shareable", v)}
+                            />
+                            <Label className="text-xs text-muted-foreground">Client-shareable</Label>
+                          </div>
+                        )}
                       </div>
                     )}
 
