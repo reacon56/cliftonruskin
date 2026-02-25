@@ -64,6 +64,13 @@ export default function EntityDetailPage() {
         registration_number: ent.registration_number || "", business_unit: ent.business_unit || "",
         service_provided: ent.service_provided || "", criticality: ent.criticality || "med",
         contract_renewal_date: ent.contract_renewal_date || "", onboarded_date: ent.onboarded_date || "",
+        registered_address_line1: ent.registered_address_line1 || "", registered_address_line2: ent.registered_address_line2 || "",
+        registered_city: ent.registered_city || "", registered_region: ent.registered_region || "",
+        registered_postcode: ent.registered_postcode || "", registered_country: ent.registered_country || "",
+        head_office_address_line1: ent.head_office_address_line1 || "", head_office_address_line2: ent.head_office_address_line2 || "",
+        head_office_city: ent.head_office_city || "", head_office_region: ent.head_office_region || "",
+        head_office_postcode: ent.head_office_postcode || "", head_office_country: ent.head_office_country || "",
+        poc_name: ent.poc_name || "", poc_email: ent.poc_email || "", poc_phone: ent.poc_phone || "",
       });
       setNewTier(ent.risk_tier);
     }
@@ -183,7 +190,7 @@ export default function EntityDetailPage() {
 
       {/* Edit Entity Dialog */}
       <Dialog open={editOpen} onOpenChange={setEditOpen}>
-        <DialogContent className="max-w-lg">
+        <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="font-display text-xl">Edit Entity</DialogTitle>
           </DialogHeader>
@@ -239,6 +246,56 @@ export default function EntityDetailPage() {
                 <Input type="date" value={editForm.contract_renewal_date || ""} onChange={(e) => setEditForm({ ...editForm, contract_renewal_date: e.target.value })} />
               </div>
             </div>
+
+            {/* Registered Address */}
+            <div className="border-t border-border pt-4">
+              <p className="text-[10px] uppercase tracking-[0.08em] text-muted-foreground font-semibold mb-3">Registered Office</p>
+              <div className="space-y-3">
+                <Input placeholder="Address line 1" value={editForm.registered_address_line1 || ""} onChange={(e) => setEditForm({ ...editForm, registered_address_line1: e.target.value })} />
+                <Input placeholder="Address line 2" value={editForm.registered_address_line2 || ""} onChange={(e) => setEditForm({ ...editForm, registered_address_line2: e.target.value })} />
+                <div className="grid grid-cols-3 gap-3">
+                  <Input placeholder="City" value={editForm.registered_city || ""} onChange={(e) => setEditForm({ ...editForm, registered_city: e.target.value })} />
+                  <Input placeholder="Region" value={editForm.registered_region || ""} onChange={(e) => setEditForm({ ...editForm, registered_region: e.target.value })} />
+                  <Input placeholder="Postcode" value={editForm.registered_postcode || ""} onChange={(e) => setEditForm({ ...editForm, registered_postcode: e.target.value })} />
+                </div>
+                <Input placeholder="Country" value={editForm.registered_country || ""} onChange={(e) => setEditForm({ ...editForm, registered_country: e.target.value })} />
+              </div>
+            </div>
+
+            {/* Head Office */}
+            <div className="border-t border-border pt-4">
+              <p className="text-[10px] uppercase tracking-[0.08em] text-muted-foreground font-semibold mb-3">Head Office</p>
+              <div className="space-y-3">
+                <Input placeholder="Address line 1" value={editForm.head_office_address_line1 || ""} onChange={(e) => setEditForm({ ...editForm, head_office_address_line1: e.target.value })} />
+                <Input placeholder="Address line 2" value={editForm.head_office_address_line2 || ""} onChange={(e) => setEditForm({ ...editForm, head_office_address_line2: e.target.value })} />
+                <div className="grid grid-cols-3 gap-3">
+                  <Input placeholder="City" value={editForm.head_office_city || ""} onChange={(e) => setEditForm({ ...editForm, head_office_city: e.target.value })} />
+                  <Input placeholder="Region" value={editForm.head_office_region || ""} onChange={(e) => setEditForm({ ...editForm, head_office_region: e.target.value })} />
+                  <Input placeholder="Postcode" value={editForm.head_office_postcode || ""} onChange={(e) => setEditForm({ ...editForm, head_office_postcode: e.target.value })} />
+                </div>
+                <Input placeholder="Country" value={editForm.head_office_country || ""} onChange={(e) => setEditForm({ ...editForm, head_office_country: e.target.value })} />
+              </div>
+            </div>
+
+            {/* PoC */}
+            <div className="border-t border-border pt-4">
+              <p className="text-[10px] uppercase tracking-[0.08em] text-muted-foreground font-semibold mb-3">Point of Contact</p>
+              <div className="grid grid-cols-3 gap-3">
+                <div className="space-y-1.5">
+                  <Label>Name</Label>
+                  <Input value={editForm.poc_name || ""} onChange={(e) => setEditForm({ ...editForm, poc_name: e.target.value })} />
+                </div>
+                <div className="space-y-1.5">
+                  <Label>Email</Label>
+                  <Input type="email" value={editForm.poc_email || ""} onChange={(e) => setEditForm({ ...editForm, poc_email: e.target.value })} />
+                </div>
+                <div className="space-y-1.5">
+                  <Label>Phone</Label>
+                  <Input value={editForm.poc_phone || ""} onChange={(e) => setEditForm({ ...editForm, poc_phone: e.target.value })} />
+                </div>
+              </div>
+            </div>
+
             <Button onClick={handleEditSave} className="w-full">Save Changes</Button>
           </div>
         </DialogContent>

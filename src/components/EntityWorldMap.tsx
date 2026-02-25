@@ -74,6 +74,12 @@ interface Entity {
   name: string;
   country: string | null;
   risk_tier: string;
+  registered_lat?: number | null;
+  registered_lng?: number | null;
+  hq_lat?: number | null;
+  hq_lng?: number | null;
+  registered_city?: string | null;
+  head_office_city?: string | null;
 }
 
 interface Props {
@@ -124,15 +130,29 @@ export default function EntityWorldMap({ entities }: Props) {
     });
 
     entities.forEach((entity) => {
-      if (!entity.country) return;
-      const coords = COUNTRY_COORDS[entity.country];
-      if (!coords) return;
+      let lat: number | undefined;
+      let lng: number | undefined;
 
-      // Add slight randomness so overlapping markers spread
-      const jitter = () => (Math.random() - 0.5) * 1.5;
+      // Prefer lat/lng from DB, fallback to country lookup
+      if (entity.registered_lat && entity.registered_lng) {
+        lat = entity.registered_lat;
+        lng = entity.registered_lng;
+      } else if (entity.hq_lat && entity.hq_lng) {
+        lat = entity.hq_lat;
+        lng = entity.hq_lng;
+      } else if (entity.country) {
+        const coords = COUNTRY_COORDS[entity.country];
+        if (coords) {
+          const jitter = () => (Math.random() - 0.5) * 1.5;
+          lat = coords[0] + jitter();
+          lng = coords[1] + jitter();
+        }
+      }
+
+      if (lat === undefined || lng === undefined) return;
       const color = tierMarkerColor(entity.risk_tier);
 
-      L.circleMarker([coords[0] + jitter(), coords[1] + jitter()], {
+      L.circleMarker([lat, lng], {
         radius: 6,
         fillColor: color,
         fillOpacity: 0.8,

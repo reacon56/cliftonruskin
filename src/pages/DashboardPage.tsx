@@ -80,7 +80,7 @@ export default function DashboardPage() {
       supabase.from("monitoring_events").select("*").eq("status", "new").order("detected_at", { ascending: false }).limit(5),
       supabase.from("entities").select("*").eq("org_id", orgId).order("created_at", { ascending: false }).limit(5),
       supabase.from("cases").select("*, entities(name)").eq("org_id", orgId).order("created_at", { ascending: false }).limit(5),
-      supabase.from("entities").select("id, name, country, risk_tier, next_review_date").eq("org_id", orgId),
+      supabase.from("entities").select("id, name, country, risk_tier, next_review_date, registered_lat, registered_lng, hq_lat, hq_lng, registered_city, head_office_city").eq("org_id", orgId),
       // Pending approvals = cases submitted but not yet approved (status = 'submitted')
       supabase.from("cases").select("id", { count: "exact", head: true }).eq("org_id", orgId).eq("status", "submitted"),
       // Awaiting client input
