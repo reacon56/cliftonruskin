@@ -2,42 +2,122 @@ import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ArrowLeft, FileCheck } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { useToast } from "@/hooks/use-toast";
+import EntityDetailHeader from "@/components/entity-detail/EntityDetailHeader";
+import OverviewTab from "@/components/entity-detail/OverviewTab";
+import ProfileTab from "@/components/entity-detail/ProfileTab";
+import ReviewCycleTab from "@/components/entity-detail/ReviewCycleTab";
+import MonitoringTab from "@/components/entity-detail/MonitoringTab";
+import DeliverablesTab from "@/components/entity-detail/DeliverablesTab";
+import ActivityTab from "@/components/entity-detail/ActivityTab";
 
 export default function EntityDetailPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { profile } = useAuth();
+  const { profile, hasRole } = useAuth();
+  const { toast } = useToast();
+
   const [entity, setEntity] = useState<any>(null);
   const [cases, setCases] = useState<any[]>([]);
   const [changeLogs, setChangeLogs] = useState<any[]>([]);
   const [monitoringEvents, setMonitoringEvents] = useState<any[]>([]);
   const [deliverables, setDeliverables] = useState<any[]>([]);
+  const [policyRule, setPolicyRule] = useState<any>(null);
+
+  // Dialogs
+  const [editOpen, setEditOpen] = useState(false);
+  const [tierOpen, setTierOpen] = useState(false);
+  const [editForm, setEditForm] = useState<any>({});
+  const [newTier, setNewTier] = useState("B");
+
+  const canEdit = hasRole("client_admin") || hasRole("client_requester");
+  const canAdmin = hasRole("client_admin");
+  const canTriage = hasRole("client_admin") || hasRole("client_requester");
 
   useEffect(() => {
-    if (id) loadEntity();
+    if (id) loadAll();
   }, [id]);
 
-  const loadEntity = async () => {
+  const loadAll = async () => {
     const [entityRes, casesRes, clRes, meRes] = await Promise.all([
       supabase.from("entities").select("*").eq("id", id!).single(),
       supabase.from("cases").select("*").eq("entity_id", id!).order("created_at", { ascending: false }),
       supabase.from("change_logs").select("*").eq("entity_id", id!).order("created_at", { ascending: false }),
       supabase.from("monitoring_events").select("*").eq("entity_id", id!).order("detected_at", { ascending: false }),
     ]);
-    setEntity(entityRes.data);
+
+    const ent = entityRes.data;
+    setEntity(ent);
     setCases(casesRes.data ?? []);
     setChangeLogs(clRes.data ?? []);
     setMonitoringEvents(meRes.data ?? []);
 
-    // Load deliverables from cases
+    if (ent) {
+      setEditForm({
+        name: ent.name, country: ent.country || "", website: ent.website || "",
+        registration_number: ent.registration_number || "", business_unit: ent.business_unit || "",
+        service_provided: ent.service_provided || "", criticality: ent.criticality || "med",
+        contract_renewal_date: ent.contract_renewal_date || "", onboarded_date: ent.onboarded_date || "",
+      });
+      setNewTier(ent.risk_tier);
+    }
+
+    // Deliverables
     const caseIds = (casesRes.data ?? []).map((c: any) => c.id);
     if (caseIds.length > 0) {
       const { data } = await supabase.from("deliverables").select("*").in("case_id", caseIds).order("created_at", { ascending: false });
       setDeliverables(data ?? []);
+    }
+
+    // Policy rule for this tier
+    if (ent?.org_id) {
+      const { data: orgData } = await supabase.from("organisations").select("risk_policy_default_id").eq("id", ent.org_id).single();
+      if (orgData?.risk_policy_default_id) {
+        const { data: rule } = await supabase
+          .from("policy_rules")
+          .select("*")
+          .eq("policy_id", orgData.risk_policy_default_id)
+          .eq("risk_tier", ent.risk_tier)
+          .single();
+        setPolicyRule(rule);
+      }
+    }
+  };
+
+  const handleEditSave = async () => {
+    const { error } = await supabase.from("entities").update(editForm).eq("id", id!);
+    if (error) {
+      toast({ title: "Error", description: error.message, variant: "destructive" });
+    } else {
+      await supabase.from("audit_events").insert({
+        object_type: "entity", object_id: id!, action_type: "entity_updated",
+        user_id: profile!.user_id, org_id: entity.org_id, metadata: editForm,
+      });
+      toast({ title: "Entity updated" });
+      setEditOpen(false);
+      loadAll();
+    }
+  };
+
+  const handleTierChange = async () => {
+    const { error } = await supabase.from("entities").update({ risk_tier: newTier }).eq("id", id!);
+    if (error) {
+      toast({ title: "Error", description: error.message, variant: "destructive" });
+    } else {
+      await supabase.from("audit_events").insert({
+        object_type: "entity", object_id: id!, action_type: "risk_tier_changed",
+        user_id: profile!.user_id, org_id: entity.org_id,
+        metadata: { old_tier: entity.risk_tier, new_tier: newTier },
+      });
+      toast({ title: `Risk tier changed to ${newTier}` });
+      setTierOpen(false);
+      loadAll();
     }
   };
 
@@ -49,134 +129,145 @@ export default function EntityDetailPage() {
     );
   }
 
-  const tierColor = (t: string) => t === "A" ? "bg-destructive/10 text-destructive" : t === "B" ? "bg-warning/10 text-warning" : "bg-success/10 text-success";
-
   return (
     <div>
-      <button onClick={() => navigate("/entities")} className="flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground mb-6 transition-colors">
-        <ArrowLeft size={14} /> Back to register
-      </button>
+      <EntityDetailHeader
+        entity={entity}
+        canEdit={canEdit}
+        canAdmin={canAdmin}
+        onEditEntity={() => setEditOpen(true)}
+        onChangeTier={() => setTierOpen(true)}
+      />
 
-      <div className="flex items-start justify-between mb-6">
-        <div>
-          <h1 className="fvc-heading-1 text-foreground">{entity.name}</h1>
-          <div className="flex items-center gap-3 mt-2">
-            <Badge className={`fvc-status-badge ${tierColor(entity.risk_tier)}`}>Tier {entity.risk_tier}</Badge>
-            <span className="text-sm text-muted-foreground capitalize">{entity.entity_type}</span>
-            <span className="text-sm text-muted-foreground">{entity.country || ""}</span>
-          </div>
-        </div>
-        <Button onClick={() => navigate(`/commission?entity=${entity.id}`)}>
-          <FileCheck size={16} className="mr-2" /> Commission Check
-        </Button>
-      </div>
-
-      <Tabs defaultValue="overview" className="mt-6">
+      <Tabs defaultValue="overview" className="mt-8">
         <TabsList className="bg-muted/50">
           <TabsTrigger value="overview">Overview</TabsTrigger>
-          <TabsTrigger value="cases">Cases ({cases.length})</TabsTrigger>
+          <TabsTrigger value="profile">Profile</TabsTrigger>
+          <TabsTrigger value="review">Review Cycle</TabsTrigger>
           <TabsTrigger value="monitoring">Monitoring ({monitoringEvents.length})</TabsTrigger>
-          <TabsTrigger value="deliverables">Deliverables ({deliverables.length})</TabsTrigger>
-          <TabsTrigger value="changelog">Change Log ({changeLogs.length})</TabsTrigger>
+          <TabsTrigger value="deliverables">Deliverables ({deliverables.length + changeLogs.length})</TabsTrigger>
+          <TabsTrigger value="activity">Activity</TabsTrigger>
         </TabsList>
 
         <TabsContent value="overview" className="mt-6">
-          <div className="grid md:grid-cols-2 gap-6">
-            <div className="fvc-card space-y-4">
-              <h3 className="fvc-heading-3 text-foreground">Details</h3>
-              <div className="space-y-3 text-sm">
-                <div className="flex justify-between"><span className="text-muted-foreground">Status</span><span className="capitalize text-foreground">{entity.status}</span></div>
-                <div className="flex justify-between"><span className="text-muted-foreground">Website</span><span className="text-foreground">{entity.website || "—"}</span></div>
-                <div className="flex justify-between"><span className="text-muted-foreground">Registration</span><span className="text-foreground">{entity.registration_number || "—"}</span></div>
-              </div>
-            </div>
-            <div className="fvc-card space-y-4">
-              <h3 className="fvc-heading-3 text-foreground">Review Cycle</h3>
-              <div className="space-y-3 text-sm">
-                <div className="flex justify-between"><span className="text-muted-foreground">Last review</span><span className="text-foreground">{entity.last_review_date ? new Date(entity.last_review_date).toLocaleDateString() : "Never"}</span></div>
-                <div className="flex justify-between"><span className="text-muted-foreground">Next review</span><span className="text-foreground">{entity.next_review_date ? new Date(entity.next_review_date).toLocaleDateString() : "Not set"}</span></div>
-              </div>
-            </div>
-          </div>
+          <OverviewTab entity={entity} cases={cases} changeLogs={changeLogs} monitoringEvents={monitoringEvents} deliverables={deliverables} />
         </TabsContent>
 
-        <TabsContent value="cases" className="mt-6">
-          {cases.length === 0 ? (
-            <div className="fvc-card text-center py-10 text-sm text-muted-foreground">No cases for this entity yet.</div>
-          ) : (
-            <div className="space-y-3">
-              {cases.map((c) => (
-                <div key={c.id} className="fvc-card flex items-center justify-between cursor-pointer hover:shadow-md transition-shadow" onClick={() => navigate(`/cases/${c.id}`)}>
-                  <div>
-                    <div className="text-sm font-medium text-foreground">{c.product_type}</div>
-                    <div className="text-xs text-muted-foreground">{c.priority} · {new Date(c.created_at).toLocaleDateString()}</div>
-                  </div>
-                  <Badge className="fvc-status-badge bg-muted text-muted-foreground">{c.status.replace(/_/g, " ")}</Badge>
-                </div>
-              ))}
-            </div>
-          )}
+        <TabsContent value="profile" className="mt-6">
+          <ProfileTab entity={entity} />
+        </TabsContent>
+
+        <TabsContent value="review" className="mt-6">
+          <ReviewCycleTab
+            entity={entity}
+            cases={cases}
+            policyRule={policyRule}
+            canEdit={canEdit}
+            onRefresh={loadAll}
+            userId={profile!.user_id}
+          />
         </TabsContent>
 
         <TabsContent value="monitoring" className="mt-6">
-          {monitoringEvents.length === 0 ? (
-            <div className="fvc-card text-center py-10 text-sm text-muted-foreground">No monitoring events.</div>
-          ) : (
-            <div className="space-y-3">
-              {monitoringEvents.map((me) => (
-                <div key={me.id} className="fvc-card flex items-center justify-between">
-                  <div>
-                    <div className="text-sm font-medium text-foreground">{me.headline}</div>
-                    <div className="text-xs text-muted-foreground capitalize">{me.event_type.replace(/_/g, " ")} · {new Date(me.detected_at).toLocaleDateString()}</div>
-                  </div>
-                  <Badge className={`fvc-status-badge ${me.severity === "high" ? "bg-destructive/10 text-destructive" : me.severity === "med" ? "bg-warning/10 text-warning" : "bg-muted text-muted-foreground"}`}>{me.severity}</Badge>
-                </div>
-              ))}
-            </div>
-          )}
+          <MonitoringTab entity={entity} events={monitoringEvents} canTriage={canTriage} onRefresh={loadAll} />
         </TabsContent>
 
         <TabsContent value="deliverables" className="mt-6">
-          {deliverables.length === 0 ? (
-            <div className="fvc-card text-center py-10 text-sm text-muted-foreground">No deliverables yet.</div>
-          ) : (
-            <div className="space-y-3">
-              {deliverables.map((d) => (
-                <div key={d.id} className="fvc-card flex items-center justify-between">
-                  <div>
-                    <div className="text-sm font-medium text-foreground">{d.title}</div>
-                    <div className="text-xs text-muted-foreground capitalize">{d.deliverable_type.replace(/_/g, " ")} · v{d.version}</div>
-                  </div>
-                  <span className="text-xs text-muted-foreground">{new Date(d.created_at).toLocaleDateString()}</span>
-                </div>
-              ))}
-            </div>
-          )}
+          <DeliverablesTab deliverables={deliverables} changeLogs={changeLogs} cases={cases} />
         </TabsContent>
 
-        <TabsContent value="changelog" className="mt-6">
-          {changeLogs.length === 0 ? (
-            <div className="fvc-card text-center py-10 text-sm text-muted-foreground">No change logs recorded.</div>
-          ) : (
-            <div className="space-y-4">
-              {changeLogs.map((cl) => (
-                <div key={cl.id} className="fvc-card">
-                  <div className="flex items-center justify-between mb-2">
-                    <div className="text-sm font-medium text-foreground">{cl.summary}</div>
-                    <Badge className={`fvc-status-badge ${cl.confidence_level === "high" ? "bg-success/10 text-success" : cl.confidence_level === "med" ? "bg-warning/10 text-warning" : "bg-muted text-muted-foreground"}`}>
-                      {cl.confidence_level} confidence
-                    </Badge>
-                  </div>
-                  {cl.what_changed && <p className="text-xs text-muted-foreground mt-1"><strong>What changed:</strong> {cl.what_changed}</p>}
-                  {cl.why_it_matters && <p className="text-xs text-muted-foreground mt-1"><strong>Why it matters:</strong> {cl.why_it_matters}</p>}
-                  {cl.recommended_action && <p className="text-xs text-muted-foreground mt-1"><strong>Recommended:</strong> {cl.recommended_action}</p>}
-                  <p className="text-[10px] text-muted-foreground mt-2">{new Date(cl.created_at).toLocaleDateString()}</p>
-                </div>
-              ))}
-            </div>
-          )}
+        <TabsContent value="activity" className="mt-6">
+          <ActivityTab entityId={entity.id} />
         </TabsContent>
       </Tabs>
+
+      {/* Edit Entity Dialog */}
+      <Dialog open={editOpen} onOpenChange={setEditOpen}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle className="font-display text-xl">Edit Entity</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 mt-2">
+            <div className="space-y-1.5">
+              <Label>Name</Label>
+              <Input value={editForm.name || ""} onChange={(e) => setEditForm({ ...editForm, name: e.target.value })} />
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-1.5">
+                <Label>Country</Label>
+                <Input value={editForm.country || ""} onChange={(e) => setEditForm({ ...editForm, country: e.target.value })} />
+              </div>
+              <div className="space-y-1.5">
+                <Label>Website</Label>
+                <Input value={editForm.website || ""} onChange={(e) => setEditForm({ ...editForm, website: e.target.value })} />
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-1.5">
+                <Label>Business Unit</Label>
+                <Input value={editForm.business_unit || ""} onChange={(e) => setEditForm({ ...editForm, business_unit: e.target.value })} />
+              </div>
+              <div className="space-y-1.5">
+                <Label>Service Provided</Label>
+                <Input value={editForm.service_provided || ""} onChange={(e) => setEditForm({ ...editForm, service_provided: e.target.value })} />
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-1.5">
+                <Label>Criticality</Label>
+                <Select value={editForm.criticality || "med"} onValueChange={(v) => setEditForm({ ...editForm, criticality: v })}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="low">Low</SelectItem>
+                    <SelectItem value="med">Medium</SelectItem>
+                    <SelectItem value="high">High</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-1.5">
+                <Label>Registration Number</Label>
+                <Input value={editForm.registration_number || ""} onChange={(e) => setEditForm({ ...editForm, registration_number: e.target.value })} />
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-1.5">
+                <Label>Onboarded Date</Label>
+                <Input type="date" value={editForm.onboarded_date || ""} onChange={(e) => setEditForm({ ...editForm, onboarded_date: e.target.value })} />
+              </div>
+              <div className="space-y-1.5">
+                <Label>Contract Renewal</Label>
+                <Input type="date" value={editForm.contract_renewal_date || ""} onChange={(e) => setEditForm({ ...editForm, contract_renewal_date: e.target.value })} />
+              </div>
+            </div>
+            <Button onClick={handleEditSave} className="w-full">Save Changes</Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Change Tier Dialog */}
+      <Dialog open={tierOpen} onOpenChange={setTierOpen}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle className="font-display text-xl">Change Risk Tier</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 mt-2">
+            <p className="text-sm text-muted-foreground">
+              Current tier: <strong className="text-foreground">Tier {entity.risk_tier}</strong>. This change will be logged.
+            </p>
+            <Select value={newTier} onValueChange={setNewTier}>
+              <SelectTrigger><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="A">Tier A — High Risk</SelectItem>
+                <SelectItem value="B">Tier B — Medium Risk</SelectItem>
+                <SelectItem value="C">Tier C — Low Risk</SelectItem>
+              </SelectContent>
+            </Select>
+            <Button onClick={handleTierChange} className="w-full" disabled={newTier === entity.risk_tier}>
+              Confirm Tier Change
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
