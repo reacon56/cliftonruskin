@@ -85,10 +85,10 @@ export default function AuthPage() {
             <div className="h-px w-12 bg-accent/30" />
           </div>
 
-          <h1 className="font-display text-[2.75rem] font-semibold text-primary-foreground tracking-tight leading-[1.1]" style={{ letterSpacing: '0.04em' }}>
+          <h1 className="font-display text-[2.75rem] font-semibold text-white tracking-tight leading-[1.1]" style={{ letterSpacing: '0.04em' }}>
             Far View
           </h1>
-          <p className="font-display text-[2rem] font-semibold text-primary-foreground tracking-widest leading-none mt-1" style={{ letterSpacing: '0.18em' }}>
+          <p className="font-display text-[2.75rem] font-semibold text-white tracking-tight leading-[1.1] mt-1" style={{ letterSpacing: '0.04em' }}>
             &amp; Chase
           </p>
 
