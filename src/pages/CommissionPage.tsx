@@ -5,19 +5,25 @@ import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
-import { ChevronRight, Check, AlertTriangle } from "lucide-react";
+import { ChevronRight, Check, AlertTriangle, Sparkles } from "lucide-react";
 import { requiresApproval } from "@/lib/approval-utils";
 
-const STEPS = ["Select Entity", "Product", "Priority", "Scope Notes", "Estimate", "Review & Submit"];
+const STEPS = ["Select Entity", "Product", "Priority", "Enhancements", "Scope Notes", "Estimate", "Review & Submit"];
 
 const PRICING: Record<string, Record<string, number>> = {
   "Assurance Note": { standard: 1500, rush: 2250 },
   "Assurance Dossier": { standard: 4500, rush: 6750 },
   "Refresh Note": { standard: 950, rush: 1425 },
+};
+
+const MODULE_PRICING: Record<string, number> = {
+  COMMERCIAL_POSTURE: 750,
+  JURISDICTION_BENCHMARK: 600,
 };
 
 export default function CommissionPage() {
@@ -27,11 +33,13 @@ export default function CommissionPage() {
   const [searchParams] = useSearchParams();
   const [step, setStep] = useState(0);
   const [entities, setEntities] = useState<any[]>([]);
+  const [moduleTypes, setModuleTypes] = useState<any[]>([]);
   const [form, setForm] = useState({
     entity_id: searchParams.get("entity") || "",
     product_type: "Assurance Note",
     priority: "standard",
     scope_notes: "",
+    selectedModules: [] as string[], // module_type codes
   });
 
   useEffect(() => {
@@ -39,13 +47,15 @@ export default function CommissionPage() {
       supabase.from("entities").select("id, name, risk_tier").eq("org_id", profile.org_id).order("name")
         .then(({ data }) => setEntities(data ?? []));
     }
+    supabase.from("module_types").select("*").then(({ data }) => setModuleTypes(data ?? []));
   }, [profile?.org_id]);
 
-  const estimate = PRICING[form.product_type]?.[form.priority] ?? 0;
+  const baseEstimate = PRICING[form.product_type]?.[form.priority] ?? 0;
+  const moduleEstimate = form.selectedModules.reduce((sum, code) => sum + (MODULE_PRICING[code] ?? 0), 0);
+  const estimate = baseEstimate + moduleEstimate;
 
   const [approvalInfo, setApprovalInfo] = useState<{ required: boolean; reasons: string[] } | null>(null);
 
-  // Check approval requirement whenever relevant form fields change
   useEffect(() => {
     if (!profile?.org_id || !form.entity_id) return;
     const selectedEntity = entities.find((e: any) => e.id === form.entity_id);
@@ -57,8 +67,18 @@ export default function CommissionPage() {
       productType: form.product_type,
       priority: form.priority,
       priceEstimate: estimate,
+      hasEnhancements: form.selectedModules.length > 0,
     }).then(setApprovalInfo);
-  }, [profile?.org_id, form.entity_id, form.product_type, form.priority, estimate, entities]);
+  }, [profile?.org_id, form.entity_id, form.product_type, form.priority, estimate, entities, form.selectedModules]);
+
+  const toggleModule = (code: string) => {
+    setForm((prev) => ({
+      ...prev,
+      selectedModules: prev.selectedModules.includes(code)
+        ? prev.selectedModules.filter((c) => c !== code)
+        : [...prev.selectedModules, code],
+    }));
+  };
 
   const handleSubmit = async () => {
     if (!profile?.org_id || !user) return;
@@ -82,6 +102,42 @@ export default function CommissionPage() {
       return;
     }
 
+    // Create case_modules for selected enhancements
+    if (insertedCase?.id && form.selectedModules.length > 0) {
+      const moduleInserts = form.selectedModules.map((code) => {
+        const mt = moduleTypes.find((m) => m.code === code);
+        return {
+          case_id: insertedCase.id,
+          module_type_id: mt?.id,
+          status: "submitted",
+          requested_by: user.id,
+          price_estimate: MODULE_PRICING[code] ?? 0,
+        };
+      }).filter((m) => m.module_type_id);
+
+      if (moduleInserts.length > 0) {
+        await supabase.from("case_modules").insert(moduleInserts);
+
+        // Audit: MODULE_ADDED
+        for (const mod of moduleInserts) {
+          const mt = moduleTypes.find((m) => m.id === mod.module_type_id);
+          await supabase.from("audit_events").insert({
+            user_id: user.id,
+            org_id: profile.org_id,
+            action_type: "MODULE_ADDED",
+            object_type: "case",
+            object_id: insertedCase.id,
+            metadata: {
+              module_code: mt?.code,
+              module_name: mt?.name,
+              price_estimate: mod.price_estimate,
+              entity_name: selectedEntity?.name,
+            },
+          });
+        }
+      }
+    }
+
     // Write audit event for submission
     await supabase.from("audit_events").insert({
       user_id: user.id,
@@ -94,6 +150,7 @@ export default function CommissionPage() {
         priority: form.priority,
         entity_name: selectedEntity?.name,
         price_estimate: estimate,
+        enhancements: form.selectedModules,
         approval_required: approvalInfo?.required ?? false,
         approval_reasons: approvalInfo?.reasons ?? [],
       },
@@ -121,6 +178,12 @@ export default function CommissionPage() {
     if (step === 0) return !!form.entity_id;
     if (step === 1) return !!form.product_type;
     return true;
+  };
+
+  const getModuleDescription = (code: string) => {
+    if (code === "COMMERCIAL_POSTURE") return "Evidence-led view of market behaviour: payment reality, dispute posture, supplier/customer themes.";
+    if (code === "JURISDICTION_BENCHMARK") return "One–two page 'state of the environment' for this jurisdiction/sector, plus practical controls guidance.";
+    return "";
   };
 
   return (
@@ -228,7 +291,49 @@ export default function CommissionPage() {
           </div>
         )}
 
+        {/* Enhancements step */}
         {step === 3 && (
+          <div className="space-y-4 animate-fade-in">
+            <div className="flex items-center gap-2 mb-2">
+              <Sparkles size={16} className="text-accent" />
+              <p className="text-sm text-muted-foreground">Optional EDD+ modules that produce additional deliverables.</p>
+            </div>
+            {moduleTypes.map((mt) => {
+              const isSelected = form.selectedModules.includes(mt.code);
+              return (
+                <label
+                  key={mt.id}
+                  className={`block rounded-lg border p-5 cursor-pointer transition-all duration-300 ${
+                    isSelected
+                      ? "border-accent/50 bg-accent/5"
+                      : "border-border hover:border-border hover:bg-muted/30"
+                  }`}
+                  style={isSelected ? { boxShadow: "var(--shadow-gold-glow)" } : undefined}
+                >
+                  <div className="flex items-start gap-3">
+                    <Checkbox
+                      checked={isSelected}
+                      onCheckedChange={() => toggleModule(mt.code)}
+                      className="mt-0.5"
+                    />
+                    <div className="flex-1">
+                      <div className="flex items-center justify-between">
+                        <div className="font-medium text-foreground text-sm">{mt.name} <span className="text-accent text-xs font-normal">(EDD+)</span></div>
+                        <span className="text-xs text-accent font-display font-semibold">+£{(MODULE_PRICING[mt.code] ?? 0).toLocaleString()}</span>
+                      </div>
+                      <div className="text-[12px] text-muted-foreground mt-1.5 leading-relaxed">
+                        {getModuleDescription(mt.code)}
+                      </div>
+                    </div>
+                  </div>
+                </label>
+              );
+            })}
+            <p className="text-[10px] text-muted-foreground">You can skip this step if no enhancements are needed.</p>
+          </div>
+        )}
+
+        {step === 4 && (
           <div className="space-y-3 animate-fade-in">
             <Label>Scope notes &amp; special instructions</Label>
             <Textarea
@@ -241,7 +346,7 @@ export default function CommissionPage() {
           </div>
         )}
 
-        {step === 4 && (
+        {step === 5 && (
           <div className="space-y-4 animate-fade-in">
             <div className="flex justify-between text-sm py-1">
               <span className="text-muted-foreground">Product</span>
@@ -251,9 +356,24 @@ export default function CommissionPage() {
               <span className="text-muted-foreground">Priority</span>
               <span className="capitalize text-foreground font-medium">{form.priority}</span>
             </div>
+            <div className="flex justify-between text-sm py-1">
+              <span className="text-muted-foreground">Base fee</span>
+              <span className="text-foreground font-medium">£{baseEstimate.toLocaleString()}</span>
+            </div>
+            {form.selectedModules.map((code) => {
+              const mt = moduleTypes.find((m) => m.code === code);
+              return (
+                <div key={code} className="flex justify-between text-sm py-1">
+                  <span className="text-muted-foreground flex items-center gap-1">
+                    <Sparkles size={11} className="text-accent" /> {mt?.name ?? code}
+                  </span>
+                  <span className="text-accent font-medium">+£{(MODULE_PRICING[code] ?? 0).toLocaleString()}</span>
+                </div>
+              );
+            })}
             <div className="fvc-divider" />
             <div className="flex justify-between items-baseline py-1">
-              <span className="text-sm font-medium text-foreground">Estimated fee</span>
+              <span className="text-sm font-medium text-foreground">Total estimated fee</span>
               <span className="text-accent font-display text-2xl font-semibold tracking-tight">
                 £{estimate.toLocaleString()}
               </span>
@@ -264,12 +384,27 @@ export default function CommissionPage() {
           </div>
         )}
 
-        {step === 5 && (
+        {step === 6 && (
           <div className="space-y-4 text-sm animate-fade-in">
             <div className="flex justify-between py-1"><span className="text-muted-foreground">Entity</span><span className="text-foreground font-medium">{entities.find((e) => e.id === form.entity_id)?.name}</span></div>
             <div className="flex justify-between py-1"><span className="text-muted-foreground">Product</span><span className="text-foreground font-medium">{form.product_type}</span></div>
             <div className="flex justify-between py-1"><span className="text-muted-foreground">Priority</span><span className="capitalize text-foreground font-medium">{form.priority}</span></div>
-            <div className="flex justify-between py-1"><span className="text-muted-foreground">Estimated fee</span><span className="text-accent font-semibold font-display text-lg">£{estimate.toLocaleString()}</span></div>
+            {form.selectedModules.length > 0 && (
+              <div className="py-1">
+                <span className="text-muted-foreground block mb-1">Enhancements</span>
+                {form.selectedModules.map((code) => {
+                  const mt = moduleTypes.find((m) => m.code === code);
+                  return (
+                    <div key={code} className="flex items-center gap-2 text-foreground ml-2 mb-0.5">
+                      <Sparkles size={11} className="text-accent" />
+                      <span className="font-medium">{mt?.name ?? code}</span>
+                      <span className="text-accent text-xs">+£{(MODULE_PRICING[code] ?? 0).toLocaleString()}</span>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+            <div className="flex justify-between py-1"><span className="text-muted-foreground">Total estimated fee</span><span className="text-accent font-semibold font-display text-lg">£{estimate.toLocaleString()}</span></div>
             {form.scope_notes && (
               <div className="pt-2">
                 <span className="text-muted-foreground block mb-1.5 text-[11px] uppercase tracking-wider font-medium">Scope notes</span>
