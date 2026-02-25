@@ -98,11 +98,15 @@ export default function LiaLibraryPage() {
   const handleCreate = async (status: "draft" | "final") => {
     if (!profile?.org_id || !user) return;
     setSaving(true);
+    const reviewDate = status === "final"
+      ? new Date(Date.now() + 365 * 86400000).toISOString().split("T")[0]
+      : null;
     const record = {
       ...formToDbRecord(liaForm),
       org_id: profile.org_id,
       created_by_user_id: user.id,
       status,
+      review_date: reviewDate,
       updated_at: new Date().toISOString(),
     };
 
@@ -129,9 +133,13 @@ export default function LiaLibraryPage() {
   const handleUpdate = async (status: "draft" | "final") => {
     if (!editLia || !user || !profile) return;
     setSaving(true);
+    const reviewDate = status === "final" && !editLia.review_date
+      ? new Date(Date.now() + 365 * 86400000).toISOString().split("T")[0]
+      : editLia.review_date || null;
     const record = {
       ...formToDbRecord(liaForm),
       status,
+      review_date: reviewDate,
       updated_at: new Date().toISOString(),
     };
 
@@ -260,6 +268,11 @@ export default function LiaLibraryPage() {
                   {lia.legitimate_interest ? lia.legitimate_interest.slice(0, 80) : "No interest specified"}
                   {lia.case_id ? ` · Case ${String(lia.case_id).slice(0, 8).toUpperCase()}` : " · Standalone"}
                   {" · "}{new Date(lia.created_at).toLocaleDateString()}
+                  {lia.review_date && (
+                    <span className={new Date(lia.review_date) <= new Date(Date.now() + 30 * 86400000) ? " text-warning" : ""}>
+                      {" · Review "}{new Date(lia.review_date).toLocaleDateString()}
+                    </span>
+                  )}
                 </div>
               </div>
               <div className="flex items-center gap-2">
