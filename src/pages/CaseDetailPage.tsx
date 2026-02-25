@@ -49,6 +49,7 @@ export default function CaseDetailPage() {
   const [caseModules, setCaseModules] = useState<any[]>([]);
   const [simulatingModule, setSimulatingModule] = useState<string | null>(null);
   const [dpReview, setDpReview] = useState<any>(null);
+  const [allowPreApprovalStart, setAllowPreApprovalStart] = useState(false);
 
   useEffect(() => {
     if (id) loadCase();
@@ -93,6 +94,16 @@ export default function CaseDetailPage() {
       setDpReview(dpData);
     } else {
       setDpReview(null);
+    }
+
+    // Load org pre-approval setting
+    if (caseRes.data?.org_id) {
+      const { data: orgData } = await supabase
+        .from("organisations")
+        .select("allow_pre_approval_start")
+        .eq("id", caseRes.data.org_id)
+        .single();
+      setAllowPreApprovalStart((orgData as any)?.allow_pre_approval_start ?? false);
     }
   };
 
@@ -216,7 +227,18 @@ export default function CaseDetailPage() {
         </Badge>
       </div>
 
-      {/* Approval banner for quoted cases */}
+      {/* Banner: Scheduled — FV&C needs to generate quote */}
+      {currentStatus === "scheduled" && canQuote && (
+        <div className="flex items-center gap-3 p-4 rounded-lg border border-primary/30 bg-primary/5 mb-6 animate-fade-in">
+          <DollarSign size={18} className="text-primary shrink-0" />
+          <div>
+            <div className="text-sm font-medium text-foreground">Case scheduled — quote required</div>
+            <div className="text-xs text-muted-foreground">Generate a formal quote below to send to the client for approval.</div>
+          </div>
+        </div>
+      )}
+
+      {/* Banner: Quoted — awaiting client approval */}
       {currentStatus === "quoted" && hasRole("client_admin") && (
         <div className="flex items-center gap-3 p-4 rounded-lg border border-accent/30 bg-accent/5 mb-6 animate-fade-in">
           <DollarSign size={18} className="text-accent shrink-0" />
@@ -296,8 +318,8 @@ export default function CaseDetailPage() {
             </div>
           </div>
 
-          {/* Quote Panel */}
-          {(currentStatus === "quoted" || currentStatus === "approved") && (
+          {/* Quote Panel — show for scheduled (create), quoted (approve/edit), approved (view) */}
+          {(currentStatus === "scheduled" || currentStatus === "quoted" || currentStatus === "approved") && (
             <QuotePanel caseId={id!} caseStatus={currentStatus} onStatusChange={loadCase} />
           )}
 
@@ -386,7 +408,7 @@ export default function CaseDetailPage() {
 
         {/* Sidebar */}
         <div className="space-y-6">
-          {/* Approval gate — for submitted (legacy) or quoted status */}
+          {/* Approval gate — for submitted (legacy) status */}
           {(hasRole("client_admin") || isInternal) && caseData.status === "submitted" && (
             <div className="fvc-card">
               <h3 className="fvc-heading-3 text-foreground mb-3">Approval</h3>
@@ -404,17 +426,25 @@ export default function CaseDetailPage() {
             </div>
           )}
 
-          {/* Manager: Assign */}
-          {canAssign && currentStatus === "approved" && (
+          {/* Manager: Assign — after approved, OR after quoted if pre-approval enabled */}
+          {canAssign && (
+            currentStatus === "approved" ||
+            (allowPreApprovalStart && (currentStatus === "quoted" || currentStatus === "scheduled"))
+          ) && (
             <div className="fvc-card">
               <h3 className="fvc-heading-3 text-foreground mb-3">Assign</h3>
+              {currentStatus !== "approved" && (
+                <p className="text-[10px] text-warning mb-2 flex items-center gap-1">
+                  <AlertTriangle size={10} /> Pre-approval start enabled
+                </p>
+              )}
               <Button className="w-full" onClick={() => transitionTo("assigned", { assigned_to: user?.id })}>
                 <UserCheck size={14} className="mr-1" /> Assign to Me
               </Button>
             </div>
           )}
 
-          {/* Officer: Begin Work */}
+          {/* Officer: Begin Work — only if approved, or pre-approval enabled */}
           {canWork && currentStatus === "assigned" && (
             <div className="fvc-card">
               <h3 className="fvc-heading-3 text-foreground mb-3">Actions</h3>

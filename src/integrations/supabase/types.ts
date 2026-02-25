@@ -1088,6 +1088,7 @@ export type Database = {
       }
       organisations: {
         Row: {
+          allow_pre_approval_start: boolean
           approval_price_threshold: number | null
           auto_suggest_benchmark: boolean
           auto_suggest_posture: boolean
@@ -1098,6 +1099,7 @@ export type Database = {
           risk_policy_default_id: string | null
         }
         Insert: {
+          allow_pre_approval_start?: boolean
           approval_price_threshold?: number | null
           auto_suggest_benchmark?: boolean
           auto_suggest_posture?: boolean
@@ -1108,6 +1110,7 @@ export type Database = {
           risk_policy_default_id?: string | null
         }
         Update: {
+          allow_pre_approval_start?: boolean
           approval_price_threshold?: number | null
           auto_suggest_benchmark?: boolean
           auto_suggest_posture?: boolean
