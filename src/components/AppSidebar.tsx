@@ -3,10 +3,11 @@ import { useAuth } from "@/contexts/AuthContext";
 import {
   LayoutDashboard, Building2, FileCheck, FolderOpen, Activity,
   Shield, Users, ClipboardList, HeadphonesIcon, ListTodo,
-  Settings, FileText, LogOut, ChevronLeft, ChevronRight,
+  Settings, FileText, LogOut, ChevronLeft, ChevronRight, Moon, Sun,
 } from "lucide-react";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
+import { useTheme } from "@/hooks/use-theme";
 
 interface NavItem {
   label: string;
@@ -16,6 +17,7 @@ interface NavItem {
 
 export default function AppSidebar() {
   const { hasRole, isClient, isInternal, signOut, profile } = useAuth();
+  const { theme, toggleTheme } = useTheme();
   const location = useLocation();
   const [collapsed, setCollapsed] = useState(false);
 
@@ -104,10 +106,19 @@ export default function AppSidebar() {
         })}
       </nav>
 
-      {/* User / Sign Out */}
-      <div className="border-t border-sidebar-border p-3">
+      {/* Theme Toggle & User / Sign Out */}
+      <div className="border-t border-sidebar-border p-3 space-y-2">
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={toggleTheme}
+          className="w-full justify-start gap-2 text-sidebar-foreground/40 hover:text-sidebar-foreground hover:bg-sidebar-accent/40 transition-colors duration-200"
+        >
+          {theme === "dark" ? <Sun size={15} /> : <Moon size={15} />}
+          {!collapsed && <span className="text-[13px]">{theme === "dark" ? "Light mode" : "Dark mode"}</span>}
+        </Button>
         {!collapsed && profile && (
-          <div className="mb-2 px-1">
+          <div className="px-1">
             <div className="text-xs font-medium text-sidebar-foreground truncate">
               {profile.full_name || profile.email}
             </div>
