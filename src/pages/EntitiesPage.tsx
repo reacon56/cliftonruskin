@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Plus, Search, Building2 } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger,
 } from "@/components/ui/dialog";
@@ -18,16 +18,36 @@ import { useToast } from "@/hooks/use-toast";
 export default function EntitiesPage() {
   const { profile, hasRole } = useAuth();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { toast } = useToast();
   const [entities, setEntities] = useState<any[]>([]);
   const [search, setSearch] = useState("");
   const [filterTier, setFilterTier] = useState<string>("all");
   const [filterType, setFilterType] = useState<string>("all");
+  const [filterStatus, setFilterStatus] = useState<string>("all");
   const [dialogOpen, setDialogOpen] = useState(false);
   const [form, setForm] = useState({
     name: "", entity_type: "supplier", country: "", website: "",
     registration_number: "", risk_tier: "B",
   });
+
+  // Sync query params to filter state
+  useEffect(() => {
+    const tier = searchParams.get("tier");
+    const filter = searchParams.get("filter");
+
+    if (tier) setFilterTier(tier);
+
+    if (filter === "overdue" || filter === "due_soon" || filter === "due_60") {
+      setFilterStatus(filter);
+    }
+    if (filter === "mine") {
+      setFilterStatus("mine");
+    }
+    if (filter === "high_alerts") {
+      setFilterStatus("high_alerts");
+    }
+  }, [searchParams]);
 
   useEffect(() => {
     if (profile?.org_id) loadEntities();
@@ -55,12 +75,28 @@ export default function EntitiesPage() {
     }
   };
 
+  const todayStr = new Date().toISOString().split("T")[0];
+  const in30Str = new Date(Date.now() + 30 * 86400000).toISOString().split("T")[0];
+  const in60Str = new Date(Date.now() + 60 * 86400000).toISOString().split("T")[0];
+
   const filtered = entities.filter((e) => {
     const matchSearch = e.name.toLowerCase().includes(search.toLowerCase()) ||
       (e.country || "").toLowerCase().includes(search.toLowerCase());
     const matchTier = filterTier === "all" || e.risk_tier === filterTier;
     const matchType = filterType === "all" || e.entity_type === filterType;
-    return matchSearch && matchTier && matchType;
+
+    let matchStatus = true;
+    if (filterStatus === "overdue") {
+      matchStatus = !!e.next_review_date && e.next_review_date < todayStr;
+    } else if (filterStatus === "due_soon") {
+      matchStatus = !!e.next_review_date && e.next_review_date >= todayStr && e.next_review_date <= in30Str;
+    } else if (filterStatus === "due_60") {
+      matchStatus = !!e.next_review_date && e.next_review_date >= todayStr && e.next_review_date <= in60Str;
+    } else if (filterStatus === "mine") {
+      matchStatus = e.owner_user_id === profile?.user_id;
+    }
+
+    return matchSearch && matchTier && matchType && matchStatus;
   });
 
   const tierColor = (tier: string) => {
@@ -160,6 +196,16 @@ export default function EntitiesPage() {
             <SelectItem value="supplier">Supplier</SelectItem>
             <SelectItem value="partner">Partner</SelectItem>
             <SelectItem value="target">Target</SelectItem>
+          </SelectContent>
+        </Select>
+        <Select value={filterStatus} onValueChange={setFilterStatus}>
+          <SelectTrigger className="w-44"><SelectValue placeholder="Review status" /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All statuses</SelectItem>
+            <SelectItem value="overdue">Overdue</SelectItem>
+            <SelectItem value="due_soon">Due within 30 days</SelectItem>
+            <SelectItem value="due_60">Due within 60 days</SelectItem>
+            <SelectItem value="mine">My entities</SelectItem>
           </SelectContent>
         </Select>
       </div>
