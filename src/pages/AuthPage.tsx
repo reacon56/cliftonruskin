@@ -72,7 +72,7 @@ export default function AuthPage() {
           <img
             src="/images/clifton-ruskin-logo.png"
             alt="Clifton Ruskin"
-            className="mx-auto mb-6 w-20 h-20 rounded-full animate-scale-in transition-shadow duration-700 hover:shadow-[0_0_28px_hsl(38_55%_52%/0.3),0_0_8px_hsl(38_55%_52%/0.15)]"
+            className="mx-auto mb-6 w-28 h-28 rounded-full animate-scale-in transition-shadow duration-700 hover:shadow-[0_0_28px_hsl(38_55%_52%/0.3),0_0_8px_hsl(38_55%_52%/0.15)]"
             style={{ boxShadow: '0 0 24px hsl(38 55% 52% / 0.1)', animationDuration: '0.8s', animationTimingFunction: 'cubic-bezier(0.16, 1, 0.3, 1)' }}
           />
 
@@ -84,11 +84,8 @@ export default function AuthPage() {
           </div>
 
           <h1 className="font-display text-[2.75rem] font-semibold text-white tracking-tight leading-[1.1]" style={{ letterSpacing: '0.04em' }}>
-            Clifton
+            Clifton Ruskin
           </h1>
-          <p className="font-display text-[2.75rem] font-semibold text-white tracking-tight leading-[1.1] mt-1" style={{ letterSpacing: '0.04em' }}>
-            Ruskin
-          </p>
 
           {/* Decorative rule */}
           <div className="mx-auto mt-6 flex items-center gap-3 justify-center">
