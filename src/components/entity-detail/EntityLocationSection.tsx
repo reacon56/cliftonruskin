@@ -132,7 +132,23 @@ export default function EntityLocationSection({ entity }: Props) {
         </div>
 
         {hasMap && (
-          <div ref={mapRef} className="aspect-square rounded-lg overflow-hidden border border-border" style={{ background: mapTheme === "light" ? "hsl(0 0% 96%)" : "hsl(220 30% 8%)" }} />
+          <div className="relative">
+            <div ref={mapRef} className="aspect-square rounded-lg overflow-hidden border border-border" style={{ background: mapTheme === "light" ? "hsl(0 0% 96%)" : "hsl(220 30% 8%)" }} />
+            <div className="absolute bottom-3 left-3 flex flex-col gap-1.5 bg-background/90 backdrop-blur-sm rounded-md border border-border px-2.5 py-2 text-[11px]">
+              {hasReg && (
+                <div className="flex items-center gap-2">
+                  <span className="inline-block w-2.5 h-2.5 rounded-full" style={{ background: "#d4a843" }} />
+                  <span className="text-muted-foreground">Registered Office</span>
+                </div>
+              )}
+              {hasHq && (
+                <div className="flex items-center gap-2">
+                  <span className="inline-block w-2.5 h-2.5 rounded-full" style={{ background: "#4a90d9" }} />
+                  <span className="text-muted-foreground">Head Office</span>
+                </div>
+              )}
+            </div>
+          </div>
         )}
       </div>
     </div>
