@@ -22,6 +22,7 @@ interface AuthContextType {
   hasRole: (role: AppRole) => boolean;
   isClient: boolean;
   isInternal: boolean;
+  isPartner: boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -81,10 +82,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const isInternal = roles.some((r) =>
     ["fvc_analyst", "fvc_ops_admin"].includes(r)
   );
+  const isPartner = roles.includes("partner" as AppRole);
 
   return (
     <AuthContext.Provider
-      value={{ user, profile, roles, loading, signOut, hasRole, isClient, isInternal }}
+      value={{ user, profile, roles, loading, signOut, hasRole, isClient, isInternal, isPartner }}
     >
       {children}
     </AuthContext.Provider>
