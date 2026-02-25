@@ -7,6 +7,7 @@ interface ApprovalCheckParams {
   priority: string;
   priceEstimate: number;
   hasEnhancements?: boolean;
+  dpRiskLevel?: string;
 }
 
 /**
@@ -61,6 +62,11 @@ export async function requiresApproval(params: ApprovalCheckParams): Promise<{
   // 5. Price threshold
   if (org?.approval_price_threshold && params.priceEstimate > Number(org.approval_price_threshold)) {
     reasons.push(`Estimate exceeds org threshold of £${Number(org.approval_price_threshold).toLocaleString()}`);
+  }
+
+  // 6. High DP risk
+  if (params.dpRiskLevel === "high") {
+    reasons.push("High data protection risk — sensitive personal data categories requested");
   }
 
   return { required: reasons.length > 0, reasons };
