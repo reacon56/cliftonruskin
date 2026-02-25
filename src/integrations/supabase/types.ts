@@ -143,14 +143,24 @@ export type Database = {
           approved_by: string | null
           assigned_to: string | null
           created_at: string
+          data_categories: Json | null
+          dp_review_required: boolean
+          dp_risk_level: string | null
           due_date: string | null
           entity_id: string
           id: string
+          lawful_basis: string | null
+          lia_summary: string | null
+          minimisation_confirmed: boolean
           org_id: string
           price_estimate: number | null
           priority: string
+          processing_purpose: string | null
+          processing_purpose_detail: string | null
           product_type: string
           requested_by: string | null
+          requires_personal_data: boolean
+          retention_months: number | null
           scope_notes: string | null
           sla_days: number | null
           status: string
@@ -159,14 +169,24 @@ export type Database = {
           approved_by?: string | null
           assigned_to?: string | null
           created_at?: string
+          data_categories?: Json | null
+          dp_review_required?: boolean
+          dp_risk_level?: string | null
           due_date?: string | null
           entity_id: string
           id?: string
+          lawful_basis?: string | null
+          lia_summary?: string | null
+          minimisation_confirmed?: boolean
           org_id: string
           price_estimate?: number | null
           priority?: string
+          processing_purpose?: string | null
+          processing_purpose_detail?: string | null
           product_type?: string
           requested_by?: string | null
+          requires_personal_data?: boolean
+          retention_months?: number | null
           scope_notes?: string | null
           sla_days?: number | null
           status?: string
@@ -175,14 +195,24 @@ export type Database = {
           approved_by?: string | null
           assigned_to?: string | null
           created_at?: string
+          data_categories?: Json | null
+          dp_review_required?: boolean
+          dp_risk_level?: string | null
           due_date?: string | null
           entity_id?: string
           id?: string
+          lawful_basis?: string | null
+          lia_summary?: string | null
+          minimisation_confirmed?: boolean
           org_id?: string
           price_estimate?: number | null
           priority?: string
+          processing_purpose?: string | null
+          processing_purpose_detail?: string | null
           product_type?: string
           requested_by?: string | null
+          requires_personal_data?: boolean
+          retention_months?: number | null
           scope_notes?: string | null
           sla_days?: number | null
           status?: string
@@ -295,6 +325,41 @@ export type Database = {
             columns: ["case_module_id"]
             isOneToOne: false
             referencedRelation: "case_modules"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      data_protection_reviews: {
+        Row: {
+          case_id: string
+          created_at: string
+          id: string
+          notes: string | null
+          reviewer_user_id: string | null
+          status: string
+        }
+        Insert: {
+          case_id: string
+          created_at?: string
+          id?: string
+          notes?: string | null
+          reviewer_user_id?: string | null
+          status?: string
+        }
+        Update: {
+          case_id?: string
+          created_at?: string
+          id?: string
+          notes?: string | null
+          reviewer_user_id?: string | null
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "data_protection_reviews_case_id_fkey"
+            columns: ["case_id"]
+            isOneToOne: false
+            referencedRelation: "cases"
             referencedColumns: ["id"]
           },
         ]

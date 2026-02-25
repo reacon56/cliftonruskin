@@ -9,6 +9,7 @@ import { ArrowLeft, CheckCircle2, Clock, FileText, Play, Send, AlertTriangle, Sp
 import { useToast } from "@/hooks/use-toast";
 import AssuranceNoteReport from "@/components/AssuranceNoteReport";
 import CaseActivityTimeline from "@/components/CaseActivityTimeline";
+import DataProtectionSummary from "@/components/case-detail/DataProtectionSummary";
 
 export default function CaseDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -25,6 +26,7 @@ export default function CaseDetailPage() {
   const [auditEvents, setAuditEvents] = useState<any[]>([]);
   const [caseModules, setCaseModules] = useState<any[]>([]);
   const [simulatingModule, setSimulatingModule] = useState<string | null>(null);
+  const [dpReview, setDpReview] = useState<any>(null);
 
   useEffect(() => {
     if (id) loadCase();
@@ -57,6 +59,20 @@ export default function CaseDetailPage() {
     if (caseRes.data?.entity_id) {
       const { data } = await supabase.from("entities").select("name, risk_tier").eq("id", caseRes.data.entity_id).single();
       setEntity(data);
+    }
+
+    // Fetch DP review if required
+    if (caseRes.data?.dp_review_required) {
+      const { data: dpData } = await supabase
+        .from("data_protection_reviews" as any)
+        .select("*")
+        .eq("case_id", id!)
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .single();
+      setDpReview(dpData);
+    } else {
+      setDpReview(null);
     }
   };
 
@@ -284,7 +300,10 @@ export default function CaseDetailPage() {
             </div>
           );
         })}
-      </div>
+          </div>
+
+          {/* Data Protection Summary */}
+          <DataProtectionSummary caseData={caseData} isInternal={isInternal} dpReview={dpReview} />
 
       <div className="grid lg:grid-cols-3 gap-6">
         {/* Details */}
@@ -415,6 +434,11 @@ export default function CaseDetailPage() {
                 entityName={entity?.name ?? "Entity"}
                 caseDate={caseData.created_at}
                 riskTier={entity?.risk_tier}
+                dpSummary={caseData?.requires_personal_data ? {
+                  purpose: caseData.processing_purpose,
+                  lawfulBasis: caseData.lawful_basis,
+                  minimisationConfirmed: caseData.minimisation_confirmed,
+                } : undefined}
               />
             </div>
           )}

@@ -7,6 +7,11 @@ interface AssuranceNoteReportProps {
   entityName: string;
   caseDate: string;
   riskTier?: string;
+  dpSummary?: {
+    purpose?: string;
+    lawfulBasis?: string;
+    minimisationConfirmed?: boolean;
+  };
 }
 
 const DUMMY_REPORT = {
@@ -80,7 +85,7 @@ const statusConfig = {
   adverse: { label: "Adverse", color: "bg-destructive/10 text-destructive", icon: AlertTriangle },
 };
 
-export default function AssuranceNoteReport({ entityName, caseDate, riskTier }: AssuranceNoteReportProps) {
+export default function AssuranceNoteReport({ entityName, caseDate, riskTier, dpSummary }: AssuranceNoteReportProps) {
   const report = DUMMY_REPORT;
   const reportRef = useRef<HTMLDivElement>(null);
 
@@ -349,6 +354,24 @@ export default function AssuranceNoteReport({ entityName, caseDate, riskTier }: 
         </div>
         <p className="text-sm text-foreground leading-relaxed">{report.recommendation}</p>
       </div>
+
+      {/* Data Protection Summary (if applicable) */}
+      {dpSummary?.purpose && (
+        <div className="border border-border rounded-lg p-5 bg-muted/20">
+          <div className="flex items-center gap-2 mb-3">
+            <Shield size={16} className="text-accent" />
+            <h3 className="text-sm font-semibold text-foreground">Data Protection Summary</h3>
+          </div>
+          <div className="space-y-1.5 text-xs text-foreground">
+            <div className="flex justify-between"><span className="text-muted-foreground">Purpose</span><span>{dpSummary.purpose}</span></div>
+            {dpSummary.lawfulBasis && <div className="flex justify-between"><span className="text-muted-foreground">Lawful basis</span><span>{dpSummary.lawfulBasis}</span></div>}
+            <div className="flex justify-between"><span className="text-muted-foreground">As-of date</span><span>{new Date().toISOString().split("T")[0]}</span></div>
+            {dpSummary.minimisationConfirmed && (
+              <p className="text-muted-foreground pt-1 italic">Only necessary personal data was processed in accordance with the stated purpose and lawful basis.</p>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* Sign-off */}
       <div className="border-t border-border pt-4 flex justify-between text-xs text-muted-foreground">

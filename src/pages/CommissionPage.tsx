@@ -13,8 +13,9 @@ import { useToast } from "@/hooks/use-toast";
 import { ChevronRight, Check, AlertTriangle, Sparkles } from "lucide-react";
 import { requiresApproval } from "@/lib/approval-utils";
 import EnhancementSuggestionPanel from "@/components/EnhancementSuggestionPanel";
+import DataProtectionStep, { DP_INITIAL, computeDpRiskLevel, type DpFormState } from "@/components/commission/DataProtectionStep";
 
-const STEPS = ["Select Entity", "Product", "Priority", "Enhancements", "Scope Notes", "Estimate", "Review & Submit"];
+const STEPS = ["Select Entity", "Product", "Priority", "Enhancements", "Data Protection", "Scope Notes", "Estimate", "Review & Submit"];
 
 const PRICING: Record<string, Record<string, number>> = {
   "Assurance Note": { standard: 1500, rush: 2250 },
@@ -40,8 +41,9 @@ export default function CommissionPage() {
     product_type: "Assurance Note",
     priority: "standard",
     scope_notes: "",
-    selectedModules: [] as string[], // module_type codes
+    selectedModules: [] as string[],
   });
+  const [dpForm, setDpForm] = useState<DpFormState>(DP_INITIAL);
 
   useEffect(() => {
     if (profile?.org_id) {
@@ -56,6 +58,7 @@ export default function CommissionPage() {
   const estimate = baseEstimate + moduleEstimate;
 
   const [approvalInfo, setApprovalInfo] = useState<{ required: boolean; reasons: string[] } | null>(null);
+  const dpRisk = computeDpRiskLevel(dpForm);
 
   useEffect(() => {
     if (!profile?.org_id || !form.entity_id) return;
@@ -69,8 +72,9 @@ export default function CommissionPage() {
       priority: form.priority,
       priceEstimate: estimate,
       hasEnhancements: form.selectedModules.length > 0,
+      dpRiskLevel: dpRisk.level,
     }).then(setApprovalInfo);
-  }, [profile?.org_id, form.entity_id, form.product_type, form.priority, estimate, entities, form.selectedModules]);
+  }, [profile?.org_id, form.entity_id, form.product_type, form.priority, estimate, entities, form.selectedModules, dpRisk.level]);
 
   const toggleModule = (code: string) => {
     setForm((prev) => ({
@@ -96,7 +100,17 @@ export default function CommissionPage() {
       status: "submitted",
       price_estimate: estimate,
       sla_days: form.priority === "rush" ? 5 : 10,
-    }).select("id").single();
+      requires_personal_data: dpForm.requires_personal_data,
+      processing_purpose: dpForm.processing_purpose || null,
+      processing_purpose_detail: dpForm.processing_purpose_detail || null,
+      lawful_basis: dpForm.lawful_basis || null,
+      lia_summary: dpForm.lia_summary || null,
+      data_categories: dpForm.requires_personal_data ? dpForm.data_categories : [],
+      minimisation_confirmed: dpForm.minimisation_confirmed,
+      retention_months: dpForm.retention_months,
+      dp_risk_level: dpRisk.level,
+      dp_review_required: dpRisk.reviewRequired,
+    } as any).select("id").single();
 
     if (error) {
       toast({ title: "Error", description: error.message, variant: "destructive" });
@@ -119,7 +133,6 @@ export default function CommissionPage() {
       if (moduleInserts.length > 0) {
         await supabase.from("case_modules").insert(moduleInserts);
 
-        // Audit: MODULE_ADDED
         for (const mod of moduleInserts) {
           const mt = moduleTypes.find((m) => m.id === mod.module_type_id);
           await supabase.from("audit_events").insert({
@@ -139,6 +152,45 @@ export default function CommissionPage() {
       }
     }
 
+    // Create DP review record if required
+    if (dpRisk.reviewRequired && insertedCase?.id) {
+      await supabase.from("data_protection_reviews").insert({
+        case_id: insertedCase.id,
+        status: "pending",
+      });
+
+      await supabase.from("audit_events").insert({
+        user_id: user.id,
+        org_id: profile.org_id,
+        action_type: "DP_REVIEW_REQUESTED",
+        object_type: "case",
+        object_id: insertedCase.id,
+        metadata: {
+          dp_risk_level: dpRisk.level,
+          data_categories: dpForm.data_categories,
+        },
+      });
+    }
+
+    // DP details audit event
+    if (dpForm.requires_personal_data && insertedCase?.id) {
+      await supabase.from("audit_events").insert({
+        user_id: user.id,
+        org_id: profile.org_id,
+        action_type: "DP_DETAILS_ADDED",
+        object_type: "case",
+        object_id: insertedCase.id,
+        metadata: {
+          processing_purpose: dpForm.processing_purpose,
+          lawful_basis: dpForm.lawful_basis,
+          data_categories: dpForm.data_categories,
+          dp_risk_level: dpRisk.level,
+          minimisation_confirmed: dpForm.minimisation_confirmed,
+          retention_months: dpForm.retention_months,
+        },
+      });
+    }
+
     // Write audit event for submission
     await supabase.from("audit_events").insert({
       user_id: user.id,
@@ -154,6 +206,8 @@ export default function CommissionPage() {
         enhancements: form.selectedModules,
         approval_required: approvalInfo?.required ?? false,
         approval_reasons: approvalInfo?.reasons ?? [],
+        dp_risk_level: dpRisk.level,
+        dp_review_required: dpRisk.reviewRequired,
       },
     });
 
@@ -178,6 +232,10 @@ export default function CommissionPage() {
   const canNext = () => {
     if (step === 0) return !!form.entity_id;
     if (step === 1) return !!form.product_type;
+    // DP step validation
+    if (step === 4 && dpForm.requires_personal_data) {
+      return !!(dpForm.processing_purpose && dpForm.lawful_basis && dpForm.minimisation_confirmed);
+    }
     return true;
   };
 
@@ -185,6 +243,18 @@ export default function CommissionPage() {
     if (code === "COMMERCIAL_POSTURE") return "Evidence-led view of market behaviour: payment reality, dispute posture, supplier/customer themes.";
     if (code === "JURISDICTION_BENCHMARK") return "One–two page 'state of the environment' for this jurisdiction/sector, plus practical controls guidance.";
     return "";
+  };
+
+  const getLawfulBasisLabel = (value: string) => {
+    const map: Record<string, string> = {
+      legitimate_interests: "Legitimate interests",
+      contract: "Performance of a contract",
+      legal_obligation: "Legal obligation",
+      consent: "Consent",
+      public_task: "Public task",
+      vital_interests: "Vital interests",
+    };
+    return map[value] || value;
   };
 
   return (
@@ -300,7 +370,6 @@ export default function CommissionPage() {
               <p className="text-sm text-muted-foreground">Optional EDD+ modules that produce additional deliverables.</p>
             </div>
 
-            {/* Intelligent suggestions */}
             {(() => {
               const selectedEntity = entities.find((e: any) => e.id === form.entity_id);
               return selectedEntity ? (
@@ -349,7 +418,12 @@ export default function CommissionPage() {
           </div>
         )}
 
+        {/* Data Protection step */}
         {step === 4 && (
+          <DataProtectionStep form={dpForm} onChange={setDpForm} />
+        )}
+
+        {step === 5 && (
           <div className="space-y-3 animate-fade-in">
             <Label>Scope notes &amp; special instructions</Label>
             <Textarea
@@ -362,7 +436,7 @@ export default function CommissionPage() {
           </div>
         )}
 
-        {step === 5 && (
+        {step === 6 && (
           <div className="space-y-4 animate-fade-in">
             <div className="flex justify-between text-sm py-1">
               <span className="text-muted-foreground">Product</span>
@@ -400,7 +474,7 @@ export default function CommissionPage() {
           </div>
         )}
 
-        {step === 6 && (
+        {step === 7 && (
           <div className="space-y-4 text-sm animate-fade-in">
             <div className="flex justify-between py-1"><span className="text-muted-foreground">Entity</span><span className="text-foreground font-medium">{entities.find((e) => e.id === form.entity_id)?.name}</span></div>
             <div className="flex justify-between py-1"><span className="text-muted-foreground">Product</span><span className="text-foreground font-medium">{form.product_type}</span></div>
@@ -420,6 +494,29 @@ export default function CommissionPage() {
                 })}
               </div>
             )}
+
+            {/* DP summary in review */}
+            {dpForm.requires_personal_data && (
+              <div className="border-t border-border pt-3 mt-2">
+                <span className="text-[10px] uppercase tracking-wider font-semibold text-muted-foreground block mb-2">Data Protection</span>
+                <div className="space-y-1.5">
+                  <div className="flex justify-between"><span className="text-muted-foreground">PII processing</span><span className="text-foreground font-medium">Yes</span></div>
+                  <div className="flex justify-between"><span className="text-muted-foreground">Purpose</span><span className="text-foreground font-medium">{dpForm.processing_purpose}</span></div>
+                  <div className="flex justify-between"><span className="text-muted-foreground">Lawful basis</span><span className="text-foreground font-medium">{getLawfulBasisLabel(dpForm.lawful_basis)}</span></div>
+                  <div className="flex justify-between"><span className="text-muted-foreground">Data categories</span><span className="text-foreground font-medium">{dpForm.data_categories.length}</span></div>
+                  <div className="flex justify-between"><span className="text-muted-foreground">DP risk level</span>
+                    <span className={`font-medium capitalize ${dpRisk.level === "high" ? "text-destructive" : dpRisk.level === "medium" ? "text-warning" : "text-foreground"}`}>
+                      {dpRisk.level}
+                    </span>
+                  </div>
+                  {dpForm.retention_months !== null && (
+                    <div className="flex justify-between"><span className="text-muted-foreground">Retention</span><span className="text-foreground font-medium">{dpForm.retention_months === 0 ? "Per policy" : `${dpForm.retention_months} months`}</span></div>
+                  )}
+                  <div className="flex justify-between"><span className="text-muted-foreground">Minimisation confirmed</span><span className="text-foreground font-medium">{dpForm.minimisation_confirmed ? "Yes" : "No"}</span></div>
+                </div>
+              </div>
+            )}
+
             <div className="flex justify-between py-1"><span className="text-muted-foreground">Total estimated fee</span><span className="text-accent font-semibold font-display text-lg">£{estimate.toLocaleString()}</span></div>
             {form.scope_notes && (
               <div className="pt-2">
