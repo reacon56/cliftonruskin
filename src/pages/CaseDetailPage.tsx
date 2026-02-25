@@ -319,14 +319,36 @@ export default function CaseDetailPage() {
                   <div key={cm.id} className="border rounded-lg p-4 border-accent/20 bg-accent/5">
                     <div className="flex items-center justify-between mb-2">
                       <div className="font-medium text-sm text-foreground">{cm.module_type?.name ?? "Module"}</div>
-                      <Badge className={`fvc-status-badge capitalize text-[10px] ${
-                        cm.status === "complete" ? "bg-success/10 text-success" :
-                        cm.status === "cancelled" ? "bg-destructive/10 text-destructive" :
-                        cm.status === "in_progress" ? "bg-primary/10 text-primary" :
-                        "bg-muted text-muted-foreground"
-                      }`}>
-                        {cm.status.replace(/_/g, " ")}
-                      </Badge>
+                      <div className="flex items-center gap-2">
+                        <Badge className={`fvc-status-badge capitalize text-[10px] ${
+                          cm.status === "complete" ? "bg-success/10 text-success" :
+                          cm.status === "cancelled" ? "bg-destructive/10 text-destructive" :
+                          cm.status === "in_progress" ? "bg-primary/10 text-primary" :
+                          "bg-muted text-muted-foreground"
+                        }`}>
+                          {cm.status.replace(/_/g, " ")}
+                        </Badge>
+                        {isInternal && cm.status !== "complete" && cm.status !== "cancelled" && (
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            className="h-6 px-2.5 text-[10px]"
+                            onClick={() => navigate(`/cases/${id}/modules/${cm.id}`)}
+                          >
+                            Open Workbench
+                          </Button>
+                        )}
+                        {isInternal && cm.status === "complete" && (
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            className="h-6 px-2.5 text-[10px] text-muted-foreground"
+                            onClick={() => navigate(`/cases/${id}/modules/${cm.id}`)}
+                          >
+                            View
+                          </Button>
+                        )}
+                      </div>
                     </div>
                     <div className="flex justify-between text-xs text-muted-foreground">
                       <span>{cm.module_type?.description?.slice(0, 80)}…</span>
