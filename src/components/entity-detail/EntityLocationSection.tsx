@@ -119,7 +119,7 @@ export default function EntityLocationSection({ entity }: Props) {
         </div>
 
         {hasMap && (
-          <div ref={mapRef} className="h-[340px] rounded-lg overflow-hidden border border-border" style={{ background: "hsl(220 30% 8%)" }} />
+          <div ref={mapRef} className="aspect-square rounded-lg overflow-hidden border border-border" style={{ background: "hsl(220 30% 8%)" }} />
         )}
       </div>
     </div>
