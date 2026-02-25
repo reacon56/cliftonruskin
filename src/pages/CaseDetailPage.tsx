@@ -53,12 +53,41 @@ export default function CaseDetailPage() {
     loadCase();
   };
 
-  const updateStatus = async (status: string) => {
-    await supabase.from("cases").update({
+  const updateStatus = async (status: string, comment?: string) => {
+    const sla = caseData?.priority === "rush" ? 5 : 10;
+    const dueDate = new Date();
+    dueDate.setDate(dueDate.getDate() + Math.round(sla * 1.4));
+
+    const updatePayload: Record<string, any> = {
       status,
-      ...(status === "approved" ? { approved_by: user?.id } : {}),
+      ...(status === "approved" ? { approved_by: user?.id, sla_days: sla, due_date: dueDate.toISOString().split("T")[0] } : {}),
       ...(status === "in_progress" ? { assigned_to: user?.id } : {}),
-    }).eq("id", id!);
+    };
+
+    await supabase.from("cases").update(updatePayload).eq("id", id!);
+
+    // Write audit event
+    const actionMap: Record<string, string> = {
+      approved: "CASE_APPROVED",
+      cancelled: "CASE_REJECTED",
+      in_progress: "CASE_WORK_STARTED",
+      complete: "CASE_COMPLETED",
+    };
+
+    if (actionMap[status] && user && profile) {
+      await supabase.from("audit_events").insert({
+        user_id: user.id,
+        org_id: profile.org_id,
+        action_type: actionMap[status],
+        object_type: "case",
+        object_id: id,
+        metadata: {
+          entity_name: entity?.name,
+          product_type: caseData?.product_type,
+          comment: comment || null,
+        },
+      });
+    }
 
     const statusMessages: Record<string, { title: string; description: string }> = {
       approved: { title: "Case approved", description: "The commission has been approved and is now awaiting analyst assignment." },

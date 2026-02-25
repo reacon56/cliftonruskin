@@ -4,7 +4,7 @@ import {
   LayoutDashboard, Building2, FileCheck, FolderOpen, Activity,
   Shield, Users, ClipboardList, HeadphonesIcon, ListTodo,
   Settings, FileText, LogOut, ChevronLeft, ChevronRight, Moon, Sun,
-  ArrowLeftRight,
+  ArrowLeftRight, CheckCircle2,
 } from "lucide-react";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
@@ -33,6 +33,10 @@ export default function AppSidebar() {
     { label: "Monitoring", path: "/monitoring", icon: <Activity size={18} /> },
     { label: "Policies", path: "/policies", icon: <Shield size={18} /> },
   ];
+
+  if (hasRole("client_admin")) {
+    clientNav.splice(4, 0, { label: "Approvals", path: "/approvals", icon: <CheckCircle2 size={18} /> });
+  }
 
   if (hasRole("client_admin")) {
     clientNav.push({ label: "Users & Roles", path: "/users", icon: <Users size={18} /> });
