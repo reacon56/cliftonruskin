@@ -35,7 +35,7 @@ export default function CommissionPage() {
 
   useEffect(() => {
     if (profile?.org_id) {
-      supabase.from("entities").select("id, name").eq("org_id", profile.org_id).order("name")
+      supabase.from("entities").select("id, name, risk_tier").eq("org_id", profile.org_id).order("name")
         .then(({ data }) => setEntities(data ?? []));
     }
   }, [profile?.org_id]);
@@ -44,7 +44,11 @@ export default function CommissionPage() {
 
   const handleSubmit = async () => {
     if (!profile?.org_id || !user) return;
-    const { error } = await supabase.from("cases").insert({
+
+    // Check if entity is high-risk for approval gate messaging
+    const selectedEntity = entities.find((e: any) => e.id === form.entity_id);
+
+    const { data: insertedCase, error } = await supabase.from("cases").insert({
       org_id: profile.org_id,
       entity_id: form.entity_id,
       requested_by: user.id,
@@ -54,11 +58,25 @@ export default function CommissionPage() {
       status: "submitted",
       price_estimate: estimate,
       sla_days: form.priority === "rush" ? 5 : 10,
-    });
+    }).select("id").single();
+
     if (error) {
       toast({ title: "Error", description: error.message, variant: "destructive" });
+      return;
+    }
+
+    // Rich confirmation toast
+    toast({
+      title: "✓ Commission submitted",
+      description: `${form.product_type} for ${selectedEntity?.name ?? "entity"} has been submitted. ${
+        form.priority === "rush" ? "Rush processing — 5 business day SLA." : "Standard processing — 10 business day SLA."
+      } You'll receive updates as the case progresses.`,
+    });
+
+    // Navigate to the case detail so user can track it
+    if (insertedCase?.id) {
+      navigate(`/cases/${insertedCase.id}`);
     } else {
-      toast({ title: "Case submitted", description: "Your commission has been submitted for approval." });
       navigate("/dashboard");
     }
   };
