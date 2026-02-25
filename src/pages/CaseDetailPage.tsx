@@ -84,7 +84,7 @@ export default function CaseDetailPage() {
     await supabase.from("deliverables").insert({
       case_id: id!,
       title: `Assurance Note — ${entity?.name ?? "Entity"}`,
-      deliverable_type: "assurance_note",
+      deliverable_type: "report",
       version: 1,
     });
 
