@@ -29,6 +29,15 @@ import PartnerTaskListPage from "@/pages/partner/PartnerTaskListPage";
 import PartnerTaskDetailPage from "@/pages/partner/PartnerTaskDetailPage";
 import NotFound from "@/pages/NotFound";
 
+// Website pages
+import WebsiteLayout from "@/components/website/WebsiteLayout";
+import HomePage from "@/pages/website/HomePage";
+import AboutPage from "@/pages/website/AboutPage";
+import ServicesPage from "@/pages/website/ServicesPage";
+import SectorsPage from "@/pages/website/SectorsPage";
+import InsightsPage from "@/pages/website/InsightsPage";
+import ContactPage from "@/pages/website/ContactPage";
+
 const queryClient = new QueryClient();
 
 function AppRoutes() {
@@ -47,8 +56,17 @@ function AppRoutes() {
 
   return (
     <Routes>
+      {/* ── Public website ── */}
+      <Route element={<WebsiteLayout />}>
+        <Route path="/" element={<HomePage />} />
+        <Route path="/about" element={<AboutPage />} />
+        <Route path="/services" element={<ServicesPage />} />
+        <Route path="/sectors" element={<SectorsPage />} />
+        <Route path="/insights" element={<InsightsPage />} />
+        <Route path="/contact" element={<ContactPage />} />
+      </Route>
+
       <Route path="/auth" element={user ? <Navigate to={defaultRoute} replace /> : <AuthPage />} />
-      <Route path="/" element={user ? <Navigate to={defaultRoute} replace /> : <Navigate to="/auth" replace />} />
       
       {/* Partner portal — isolated layout */}
       <Route element={<ProtectedRoute><PartnerLayout /></ProtectedRoute>}>
