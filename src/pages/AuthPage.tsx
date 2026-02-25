@@ -50,35 +50,44 @@ export default function AuthPage() {
   return (
     <div className="flex min-h-screen">
       {/* Left panel — branding */}
-      <div className="hidden lg:flex lg:w-1/2 items-center justify-center bg-primary">
-        <div className="max-w-md px-8">
-          <h1 className="font-display text-4xl font-semibold text-primary-foreground tracking-tight leading-tight">
+      <div
+        className="hidden lg:flex lg:w-1/2 items-center justify-center relative overflow-hidden"
+        style={{ background: "var(--gradient-navy)" }}
+      >
+        {/* Subtle texture overlay */}
+        <div className="absolute inset-0 opacity-[0.03]" style={{
+          backgroundImage: `radial-gradient(circle at 1px 1px, hsl(40 25% 97%) 1px, transparent 0)`,
+          backgroundSize: "32px 32px",
+        }} />
+        
+        <div className="max-w-md px-8 relative z-10 animate-fade-in">
+          <h1 className="font-display text-[2.75rem] font-semibold text-primary-foreground tracking-tight leading-[1.1]">
             Far View &amp; Chase
           </h1>
-          <div className="mt-2 h-px w-16 bg-accent" />
-          <p className="mt-6 font-display text-xl text-primary-foreground/80 leading-relaxed">
+          <div className="mt-4 h-px w-20 bg-accent/80" />
+          <p className="mt-6 font-display text-xl text-primary-foreground/70 leading-relaxed italic">
             Assurance Portal
           </p>
-          <p className="mt-4 text-sm text-primary-foreground/60 leading-relaxed">
+          <p className="mt-5 text-[13px] text-primary-foreground/40 leading-relaxed max-w-[280px]">
             Manage third-party due diligence with clarity, confidence, and discretion.
           </p>
         </div>
       </div>
 
       {/* Right panel — form */}
-      <div className="flex flex-1 items-center justify-center p-8">
-        <div className="w-full max-w-sm">
+      <div className="flex flex-1 items-center justify-center p-8 bg-background">
+        <div className="w-full max-w-sm animate-fade-in">
           <div className="lg:hidden mb-10">
             <h1 className="font-display text-2xl font-semibold text-foreground tracking-tight">
               Far View &amp; Chase
             </h1>
-            <div className="mt-1.5 h-px w-10 bg-accent" />
+            <div className="fvc-gold-rule mt-2" />
           </div>
 
-          <h2 className="font-display text-2xl font-semibold text-foreground">
+          <h2 className="font-display text-[1.75rem] font-semibold text-foreground leading-none">
             {isLogin ? "Sign in" : "Create account"}
           </h2>
-          <p className="mt-2 text-sm text-muted-foreground">
+          <p className="mt-3 text-sm text-muted-foreground leading-relaxed">
             {isLogin
               ? "Enter your credentials to access the portal."
               : "Register for access to the assurance portal."}
@@ -86,7 +95,7 @@ export default function AuthPage() {
 
           <form onSubmit={handleSubmit} className="mt-8 space-y-5">
             {!isLogin && (
-              <div className="space-y-2">
+              <div className="space-y-2 animate-fade-in">
                 <Label htmlFor="fullName">Full name</Label>
                 <Input
                   id="fullName"
@@ -120,17 +129,17 @@ export default function AuthPage() {
                 minLength={6}
               />
             </div>
-            <Button type="submit" className="w-full" disabled={loading}>
+            <Button type="submit" className="w-full h-11 text-[13px] font-medium tracking-wide" disabled={loading}>
               {loading ? "Please wait…" : isLogin ? "Sign in" : "Create account"}
             </Button>
           </form>
 
-          <p className="mt-6 text-center text-sm text-muted-foreground">
+          <p className="mt-8 text-center text-sm text-muted-foreground">
             {isLogin ? "Don't have an account?" : "Already have an account?"}{" "}
             <button
               type="button"
               onClick={() => setIsLogin(!isLogin)}
-              className="font-medium text-accent hover:underline"
+              className="fvc-link text-accent"
             >
               {isLogin ? "Register" : "Sign in"}
             </button>

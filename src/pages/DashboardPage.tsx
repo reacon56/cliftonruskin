@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
-import { Building2, AlertTriangle, FileCheck, Activity, Clock, BarChart3, TrendingUp } from "lucide-react";
+import { Building2, AlertTriangle, FileCheck, Activity, Clock, TrendingUp } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { useNavigate } from "react-router-dom";
 
@@ -61,12 +61,12 @@ export default function DashboardPage() {
   };
 
   const kpis = [
-    { label: "Total Entities", value: stats.totalEntities, icon: <Building2 size={20} />, color: "text-foreground" },
-    { label: "Due Within 30 Days", value: stats.dueSoon, icon: <Clock size={20} />, color: "text-warning" },
-    { label: "Overdue Reviews", value: stats.overdue, icon: <AlertTriangle size={20} />, color: "text-destructive" },
-    { label: "Active Cases", value: stats.activeCases, icon: <FileCheck size={20} />, color: "text-info" },
-    { label: "Completed This Month", value: stats.completedThisMonth, icon: <TrendingUp size={20} />, color: "text-success" },
-    { label: "High Severity Alerts", value: stats.highAlerts, icon: <Activity size={20} />, color: "text-destructive" },
+    { label: "Total Entities", value: stats.totalEntities, icon: <Building2 size={18} className="opacity-60" />, accent: false },
+    { label: "Due Within 30 Days", value: stats.dueSoon, icon: <Clock size={18} />, accent: stats.dueSoon > 0, color: "text-warning" },
+    { label: "Overdue Reviews", value: stats.overdue, icon: <AlertTriangle size={18} />, accent: stats.overdue > 0, color: "text-destructive" },
+    { label: "Active Cases", value: stats.activeCases, icon: <FileCheck size={18} />, accent: false, color: "text-info" },
+    { label: "Completed This Month", value: stats.completedThisMonth, icon: <TrendingUp size={18} />, accent: false, color: "text-success" },
+    { label: "High Severity Alerts", value: stats.highAlerts, icon: <Activity size={18} />, accent: stats.highAlerts > 0, color: "text-destructive" },
   ];
 
   const tierColor = (tier: string) => {
@@ -90,40 +90,52 @@ export default function DashboardPage() {
 
   return (
     <div>
-      <div className="mb-8">
+      {/* Header */}
+      <div className="mb-10">
         <h1 className="fvc-heading-1 text-foreground">Dashboard</h1>
-        <p className="mt-1 text-sm text-muted-foreground">
+        <div className="fvc-gold-rule mt-3 mb-2" />
+        <p className="text-sm text-muted-foreground">
           Overview of your assurance programme
         </p>
       </div>
 
       {/* KPI tiles */}
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-8">
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-10 fvc-stagger">
         {kpis.map((kpi) => (
-          <div key={kpi.label} className="fvc-kpi-tile">
-            <div className={`${kpi.color} mb-2`}>{kpi.icon}</div>
-            <div className="text-2xl font-semibold font-display text-foreground">{kpi.value}</div>
-            <div className="text-[11px] text-muted-foreground mt-1">{kpi.label}</div>
+          <div key={kpi.label} className="fvc-kpi-tile group">
+            <div className={`${kpi.color || "text-muted-foreground"} mb-3 transition-transform duration-300 group-hover:scale-110`}>
+              {kpi.icon}
+            </div>
+            <div className="text-[1.75rem] font-semibold font-display text-foreground leading-none tracking-tight">
+              {kpi.value}
+            </div>
+            <div className="text-[10px] font-medium uppercase tracking-[0.08em] text-muted-foreground mt-2">
+              {kpi.label}
+            </div>
           </div>
         ))}
       </div>
 
-      <div className="grid lg:grid-cols-2 gap-6">
+      <div className="grid lg:grid-cols-2 gap-6 fvc-stagger">
         {/* Recent entities */}
         <div className="fvc-card">
-          <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center justify-between mb-5">
             <h2 className="fvc-heading-3 text-foreground">Recent Entities</h2>
-            <button onClick={() => navigate("/entities")} className="text-xs text-accent hover:underline">View all</button>
+            <button onClick={() => navigate("/entities")} className="fvc-link text-xs">View all</button>
           </div>
           {recentEntities.length === 0 ? (
-            <p className="text-sm text-muted-foreground">No entities registered yet.</p>
+            <p className="text-sm text-muted-foreground py-4">No entities registered yet.</p>
           ) : (
-            <div className="space-y-3">
+            <div className="space-y-0">
               {recentEntities.map((e) => (
-                <div key={e.id} className="flex items-center justify-between py-2 border-b border-border last:border-0">
+                <div
+                  key={e.id}
+                  className="flex items-center justify-between py-3 border-b border-border/60 last:border-0 cursor-pointer transition-colors hover:bg-muted/30 -mx-2 px-2 rounded"
+                  onClick={() => navigate(`/entities/${e.id}`)}
+                >
                   <div>
                     <div className="text-sm font-medium text-foreground">{e.name}</div>
-                    <div className="text-xs text-muted-foreground capitalize">{e.entity_type} · {e.country || "—"}</div>
+                    <div className="text-[11px] text-muted-foreground capitalize mt-0.5">{e.entity_type} · {e.country || "—"}</div>
                   </div>
                   <Badge className={`fvc-status-badge ${tierColor(e.risk_tier)}`}>
                     Tier {e.risk_tier}
@@ -136,21 +148,25 @@ export default function DashboardPage() {
 
         {/* Recent cases */}
         <div className="fvc-card">
-          <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center justify-between mb-5">
             <h2 className="fvc-heading-3 text-foreground">Active Cases</h2>
-            <button onClick={() => navigate("/commission")} className="text-xs text-accent hover:underline">View all</button>
+            <button onClick={() => navigate("/commission")} className="fvc-link text-xs">View all</button>
           </div>
           {recentCases.length === 0 ? (
-            <p className="text-sm text-muted-foreground">No cases commissioned yet.</p>
+            <p className="text-sm text-muted-foreground py-4">No cases commissioned yet.</p>
           ) : (
-            <div className="space-y-3">
+            <div className="space-y-0">
               {recentCases.map((c) => (
-                <div key={c.id} className="flex items-center justify-between py-2 border-b border-border last:border-0">
+                <div
+                  key={c.id}
+                  className="flex items-center justify-between py-3 border-b border-border/60 last:border-0 cursor-pointer transition-colors hover:bg-muted/30 -mx-2 px-2 rounded"
+                  onClick={() => navigate(`/cases/${c.id}`)}
+                >
                   <div>
                     <div className="text-sm font-medium text-foreground">
                       {(c as any).entities?.name ?? "Entity"}
                     </div>
-                    <div className="text-xs text-muted-foreground">{c.product_type} · {c.priority}</div>
+                    <div className="text-[11px] text-muted-foreground mt-0.5">{c.product_type} · {c.priority}</div>
                   </div>
                   <Badge className={`fvc-status-badge ${statusColor(c.status)}`}>
                     {c.status.replace(/_/g, " ")}
@@ -163,21 +179,27 @@ export default function DashboardPage() {
 
         {/* Monitoring alerts */}
         <div className="fvc-card lg:col-span-2">
-          <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center justify-between mb-5">
             <h2 className="fvc-heading-3 text-foreground">Monitoring Alerts</h2>
-            <button onClick={() => navigate("/monitoring")} className="text-xs text-accent hover:underline">View all</button>
+            <button onClick={() => navigate("/monitoring")} className="fvc-link text-xs">View all</button>
           </div>
           {alerts.length === 0 ? (
-            <p className="text-sm text-muted-foreground">No new monitoring alerts.</p>
+            <p className="text-sm text-muted-foreground py-4">No new monitoring alerts.</p>
           ) : (
-            <div className="space-y-3">
+            <div className="space-y-0">
               {alerts.map((a) => (
-                <div key={a.id} className="flex items-center justify-between py-2 border-b border-border last:border-0">
-                  <div className="flex-1">
+                <div key={a.id} className="flex items-center justify-between py-3 border-b border-border/60 last:border-0 transition-colors hover:bg-muted/30 -mx-2 px-2 rounded">
+                  <div className="flex-1 min-w-0 mr-4">
                     <div className="text-sm font-medium text-foreground">{a.headline}</div>
-                    <div className="text-xs text-muted-foreground capitalize">{a.event_type.replace(/_/g, " ")} · {new Date(a.detected_at).toLocaleDateString()}</div>
+                    <div className="text-[11px] text-muted-foreground capitalize mt-0.5">
+                      {a.event_type.replace(/_/g, " ")} · {new Date(a.detected_at).toLocaleDateString()}
+                    </div>
                   </div>
-                  <Badge className={`fvc-status-badge ${a.severity === "high" ? "bg-destructive/10 text-destructive" : a.severity === "med" ? "bg-warning/10 text-warning" : "bg-muted text-muted-foreground"}`}>
+                  <Badge className={`fvc-status-badge shrink-0 ${
+                    a.severity === "high" ? "bg-destructive/10 text-destructive" 
+                    : a.severity === "med" ? "bg-warning/10 text-warning" 
+                    : "bg-muted text-muted-foreground"
+                  }`}>
                     {a.severity}
                   </Badge>
                 </div>

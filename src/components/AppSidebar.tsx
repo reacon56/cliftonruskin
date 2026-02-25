@@ -57,20 +57,20 @@ export default function AppSidebar() {
       {/* Logo */}
       <div className="flex items-center justify-between px-4 py-5 border-b border-sidebar-border">
         {!collapsed && (
-          <div>
-            <div className="font-display text-base font-semibold text-sidebar-foreground tracking-tight">
+          <div className="animate-fade-in">
+            <div className="font-display text-[15px] font-semibold text-sidebar-foreground tracking-tight leading-tight">
               Far View &amp; Chase
             </div>
-            <div className="text-[10px] uppercase tracking-[0.2em] text-sidebar-primary mt-0.5">
+            <div className="text-[9px] uppercase tracking-[0.25em] text-sidebar-primary mt-1 font-medium">
               Assurance Portal
             </div>
           </div>
         )}
         <button
           onClick={() => setCollapsed(!collapsed)}
-          className="text-sidebar-foreground/60 hover:text-sidebar-foreground transition-colors"
+          className="text-sidebar-foreground/40 hover:text-sidebar-foreground transition-colors duration-200"
         >
-          {collapsed ? <ChevronRight size={16} /> : <ChevronLeft size={16} />}
+          {collapsed ? <ChevronRight size={14} /> : <ChevronLeft size={14} />}
         </button>
       </div>
 
@@ -82,15 +82,23 @@ export default function AppSidebar() {
             <NavLink
               key={item.path}
               to={item.path}
-              className={`flex items-center gap-3 rounded-md px-3 py-2 text-sm transition-colors ${
+              className={`group flex items-center gap-3 rounded-md px-3 py-2 text-[13px] transition-all duration-200 relative ${
                 isActive
                   ? "bg-sidebar-accent text-sidebar-accent-foreground"
-                  : "text-sidebar-foreground/70 hover:bg-sidebar-accent/50 hover:text-sidebar-foreground"
+                  : "text-sidebar-foreground/60 hover:bg-sidebar-accent/40 hover:text-sidebar-foreground"
               }`}
               title={collapsed ? item.label : undefined}
             >
-              {item.icon}
-              {!collapsed && <span>{item.label}</span>}
+              {/* Active indicator */}
+              {isActive && (
+                <span className="absolute left-0 top-1/2 -translate-y-1/2 w-[2px] h-4 rounded-r bg-sidebar-primary" />
+              )}
+              <span className={`transition-transform duration-200 ${isActive ? "" : "group-hover:translate-x-0.5"}`}>
+                {item.icon}
+              </span>
+              {!collapsed && (
+                <span className="font-medium">{item.label}</span>
+              )}
             </NavLink>
           );
         })}
@@ -103,7 +111,7 @@ export default function AppSidebar() {
             <div className="text-xs font-medium text-sidebar-foreground truncate">
               {profile.full_name || profile.email}
             </div>
-            <div className="text-[10px] text-sidebar-foreground/50 truncate">
+            <div className="text-[10px] text-sidebar-foreground/40 truncate mt-0.5">
               {profile.email}
             </div>
           </div>
@@ -112,10 +120,10 @@ export default function AppSidebar() {
           variant="ghost"
           size="sm"
           onClick={signOut}
-          className="w-full justify-start gap-2 text-sidebar-foreground/60 hover:text-sidebar-foreground hover:bg-sidebar-accent/50"
+          className="w-full justify-start gap-2 text-sidebar-foreground/40 hover:text-sidebar-foreground hover:bg-sidebar-accent/40 transition-colors duration-200"
         >
-          <LogOut size={16} />
-          {!collapsed && <span>Sign out</span>}
+          <LogOut size={15} />
+          {!collapsed && <span className="text-[13px]">Sign out</span>}
         </Button>
       </div>
     </aside>

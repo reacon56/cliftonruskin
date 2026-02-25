@@ -73,19 +73,20 @@ export default function EntitiesPage() {
 
   return (
     <div>
-      <div className="flex items-center justify-between mb-8">
+      <div className="flex items-center justify-between mb-10">
         <div>
           <h1 className="fvc-heading-1 text-foreground">Entity Register</h1>
-          <p className="mt-1 text-sm text-muted-foreground">Third parties under due diligence</p>
+          <div className="fvc-gold-rule mt-3 mb-2" />
+          <p className="text-sm text-muted-foreground">Third parties under due diligence</p>
         </div>
         {canAdd && (
           <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
             <DialogTrigger asChild>
-              <Button><Plus size={16} className="mr-2" />Add Entity</Button>
+              <Button><Plus size={15} className="mr-2" />Add Entity</Button>
             </DialogTrigger>
             <DialogContent>
               <DialogHeader>
-                <DialogTitle className="font-display">Add Entity</DialogTitle>
+                <DialogTitle className="font-display text-xl">Add Entity</DialogTitle>
               </DialogHeader>
               <form onSubmit={handleAdd} className="space-y-4 mt-2">
                 <div className="space-y-2">
@@ -140,7 +141,7 @@ export default function EntitiesPage() {
       {/* Filters */}
       <div className="flex flex-wrap gap-3 mb-6">
         <div className="relative flex-1 min-w-[200px] max-w-sm">
-          <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
+          <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground/60" />
           <Input placeholder="Search entities…" value={search} onChange={(e) => setSearch(e.target.value)} className="pl-9" />
         </div>
         <Select value={filterTier} onValueChange={setFilterTier}>
@@ -165,38 +166,38 @@ export default function EntitiesPage() {
 
       {/* Table */}
       {filtered.length === 0 ? (
-        <div className="fvc-card text-center py-12">
-          <Building2 size={40} className="mx-auto text-muted-foreground/40 mb-3" />
+        <div className="fvc-card text-center py-16">
+          <Building2 size={36} className="mx-auto text-muted-foreground/30 mb-4" />
           <p className="text-sm text-muted-foreground">No entities found. Add your first third party to begin.</p>
         </div>
       ) : (
-        <div className="border rounded-md overflow-hidden">
+        <div className="border rounded-lg overflow-hidden bg-card" style={{ boxShadow: "var(--shadow-card)" }}>
           <table className="w-full text-sm">
             <thead>
-              <tr className="border-b bg-muted/50">
-                <th className="text-left px-4 py-3 fvc-label">Name</th>
-                <th className="text-left px-4 py-3 fvc-label">Type</th>
-                <th className="text-left px-4 py-3 fvc-label">Country</th>
-                <th className="text-left px-4 py-3 fvc-label">Risk</th>
-                <th className="text-left px-4 py-3 fvc-label">Status</th>
-                <th className="text-left px-4 py-3 fvc-label">Next Review</th>
+              <tr className="border-b bg-muted/40">
+                <th className="text-left px-5 py-3 fvc-label">Name</th>
+                <th className="text-left px-5 py-3 fvc-label">Type</th>
+                <th className="text-left px-5 py-3 fvc-label">Country</th>
+                <th className="text-left px-5 py-3 fvc-label">Risk</th>
+                <th className="text-left px-5 py-3 fvc-label">Status</th>
+                <th className="text-left px-5 py-3 fvc-label">Next Review</th>
               </tr>
             </thead>
             <tbody>
               {filtered.map((e) => (
                 <tr
                   key={e.id}
-                  className="border-b last:border-0 hover:bg-muted/30 cursor-pointer transition-colors"
+                  className="fvc-table-row"
                   onClick={() => navigate(`/entities/${e.id}`)}
                 >
-                  <td className="px-4 py-3 font-medium text-foreground">{e.name}</td>
-                  <td className="px-4 py-3 capitalize text-muted-foreground">{e.entity_type}</td>
-                  <td className="px-4 py-3 text-muted-foreground">{e.country || "—"}</td>
-                  <td className="px-4 py-3">
+                  <td className="px-5 py-3.5 font-medium text-foreground">{e.name}</td>
+                  <td className="px-5 py-3.5 capitalize text-muted-foreground">{e.entity_type}</td>
+                  <td className="px-5 py-3.5 text-muted-foreground">{e.country || "—"}</td>
+                  <td className="px-5 py-3.5">
                     <Badge className={`fvc-status-badge ${tierColor(e.risk_tier)}`}>Tier {e.risk_tier}</Badge>
                   </td>
-                  <td className="px-4 py-3 capitalize text-muted-foreground">{e.status}</td>
-                  <td className="px-4 py-3 text-muted-foreground">
+                  <td className="px-5 py-3.5 capitalize text-muted-foreground">{e.status}</td>
+                  <td className="px-5 py-3.5 text-muted-foreground">
                     {e.next_review_date ? new Date(e.next_review_date).toLocaleDateString() : "—"}
                   </td>
                 </tr>
