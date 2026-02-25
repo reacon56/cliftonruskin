@@ -14,6 +14,7 @@ import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
+import SavedViewsDropdown, { type FilterState } from "@/components/SavedViewsDropdown";
 
 export default function EntitiesPage() {
   const { profile, hasRole } = useAuth();
@@ -25,6 +26,7 @@ export default function EntitiesPage() {
   const [filterTier, setFilterTier] = useState<string>("all");
   const [filterType, setFilterType] = useState<string>("all");
   const [filterStatus, setFilterStatus] = useState<string>("all");
+  const [activeViewName, setActiveViewName] = useState<string | undefined>();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [form, setForm] = useState({
     name: "", entity_type: "supplier", country: "", website: "",
@@ -75,6 +77,19 @@ export default function EntitiesPage() {
     }
   };
 
+  const handleApplyFilters = (filters: FilterState) => {
+    setFilterTier(filters.tier || "all");
+    setFilterType(filters.type || "all");
+    setFilterStatus(filters.status || "all");
+    setActiveViewName(undefined); // will be set by the dropdown label logic
+  };
+
+  const currentFilters: FilterState = {
+    tier: filterTier,
+    type: filterType,
+    status: filterStatus,
+  };
+
   const todayStr = new Date().toISOString().split("T")[0];
   const in30Str = new Date(Date.now() + 30 * 86400000).toISOString().split("T")[0];
   const in60Str = new Date(Date.now() + 60 * 86400000).toISOString().split("T")[0];
@@ -115,63 +130,70 @@ export default function EntitiesPage() {
           <div className="fvc-gold-rule mt-3 mb-2" />
           <p className="text-sm text-muted-foreground">Third parties under due diligence</p>
         </div>
-        {canAdd && (
-          <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-            <DialogTrigger asChild>
-              <Button><Plus size={15} className="mr-2" />Add Entity</Button>
-            </DialogTrigger>
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle className="font-display text-xl">Add Entity</DialogTitle>
-              </DialogHeader>
-              <form onSubmit={handleAdd} className="space-y-4 mt-2">
-                <div className="space-y-2">
-                  <Label>Name</Label>
-                  <Input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} required />
-                </div>
-                <div className="grid grid-cols-2 gap-4">
+        <div className="flex items-center gap-3">
+          <SavedViewsDropdown
+            pageType="entities"
+            currentFilters={currentFilters}
+            onApplyFilters={handleApplyFilters}
+          />
+          {canAdd && (
+            <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+              <DialogTrigger asChild>
+                <Button><Plus size={15} className="mr-2" />Add Entity</Button>
+              </DialogTrigger>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle className="font-display text-xl">Add Entity</DialogTitle>
+                </DialogHeader>
+                <form onSubmit={handleAdd} className="space-y-4 mt-2">
                   <div className="space-y-2">
-                    <Label>Type</Label>
-                    <Select value={form.entity_type} onValueChange={(v) => setForm({ ...form, entity_type: v })}>
-                      <SelectTrigger><SelectValue /></SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="supplier">Supplier</SelectItem>
-                        <SelectItem value="partner">Partner</SelectItem>
-                        <SelectItem value="target">Target</SelectItem>
-                      </SelectContent>
-                    </Select>
+                    <Label>Name</Label>
+                    <Input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} required />
+                  </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label>Type</Label>
+                      <Select value={form.entity_type} onValueChange={(v) => setForm({ ...form, entity_type: v })}>
+                        <SelectTrigger><SelectValue /></SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="supplier">Supplier</SelectItem>
+                          <SelectItem value="partner">Partner</SelectItem>
+                          <SelectItem value="target">Target</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Risk Tier</Label>
+                      <Select value={form.risk_tier} onValueChange={(v) => setForm({ ...form, risk_tier: v })}>
+                        <SelectTrigger><SelectValue /></SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="A">A — High</SelectItem>
+                          <SelectItem value="B">B — Medium</SelectItem>
+                          <SelectItem value="C">C — Low</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label>Country</Label>
+                      <Input value={form.country} onChange={(e) => setForm({ ...form, country: e.target.value })} />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Website</Label>
+                      <Input value={form.website} onChange={(e) => setForm({ ...form, website: e.target.value })} />
+                    </div>
                   </div>
                   <div className="space-y-2">
-                    <Label>Risk Tier</Label>
-                    <Select value={form.risk_tier} onValueChange={(v) => setForm({ ...form, risk_tier: v })}>
-                      <SelectTrigger><SelectValue /></SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="A">A — High</SelectItem>
-                        <SelectItem value="B">B — Medium</SelectItem>
-                        <SelectItem value="C">C — Low</SelectItem>
-                      </SelectContent>
-                    </Select>
+                    <Label>Registration number</Label>
+                    <Input value={form.registration_number} onChange={(e) => setForm({ ...form, registration_number: e.target.value })} />
                   </div>
-                </div>
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label>Country</Label>
-                    <Input value={form.country} onChange={(e) => setForm({ ...form, country: e.target.value })} />
-                  </div>
-                  <div className="space-y-2">
-                    <Label>Website</Label>
-                    <Input value={form.website} onChange={(e) => setForm({ ...form, website: e.target.value })} />
-                  </div>
-                </div>
-                <div className="space-y-2">
-                  <Label>Registration number</Label>
-                  <Input value={form.registration_number} onChange={(e) => setForm({ ...form, registration_number: e.target.value })} />
-                </div>
-                <Button type="submit" className="w-full">Add Entity</Button>
-              </form>
-            </DialogContent>
-          </Dialog>
-        )}
+                  <Button type="submit" className="w-full">Add Entity</Button>
+                </form>
+              </DialogContent>
+            </Dialog>
+          )}
+        </div>
       </div>
 
       {/* Filters */}

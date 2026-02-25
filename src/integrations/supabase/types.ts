@@ -503,6 +503,44 @@ export type Database = {
           },
         ]
       }
+      saved_views: {
+        Row: {
+          created_at: string
+          filter_json: Json
+          id: string
+          name: string
+          org_id: string
+          page_type: string
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          filter_json?: Json
+          id?: string
+          name: string
+          org_id: string
+          page_type: string
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          filter_json?: Json
+          id?: string
+          name?: string
+          org_id?: string
+          page_type?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "saved_views_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organisations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_roles: {
         Row: {
           id: string

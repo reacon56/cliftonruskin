@@ -7,22 +7,22 @@ import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
 import { Activity } from "lucide-react";
+import SavedViewsDropdown, { type FilterState } from "@/components/SavedViewsDropdown";
 
 export default function MonitoringPage() {
   const { profile, isInternal } = useAuth();
   const [events, setEvents] = useState<any[]>([]);
   const [filterSeverity, setFilterSeverity] = useState("all");
+  const [filterEventStatus, setFilterEventStatus] = useState("all");
 
   useEffect(() => {
     loadEvents();
   }, [profile?.org_id]);
 
   const loadEvents = async () => {
-    // For internal users, show all; for clients, filter by entity org
     let query = supabase.from("monitoring_events").select("*, entities(name, org_id)").order("detected_at", { ascending: false });
     const { data } = await query;
     
-    // Client-side filter for org scoping
     if (!isInternal && profile?.org_id) {
       setEvents((data ?? []).filter((e: any) => e.entities?.org_id === profile.org_id));
     } else {
@@ -35,7 +35,21 @@ export default function MonitoringPage() {
     loadEvents();
   };
 
-  const filtered = events.filter((e) => filterSeverity === "all" || e.severity === filterSeverity);
+  const handleApplyFilters = (filters: FilterState) => {
+    setFilterSeverity(filters.severity || "all");
+    setFilterEventStatus(filters.eventStatus || "all");
+  };
+
+  const currentFilters: FilterState = {
+    severity: filterSeverity,
+    eventStatus: filterEventStatus,
+  };
+
+  const filtered = events.filter((e) => {
+    const matchSeverity = filterSeverity === "all" || e.severity === filterSeverity;
+    const matchStatus = filterEventStatus === "all" || e.status === filterEventStatus;
+    return matchSeverity && matchStatus;
+  });
 
   const severityColor = (s: string) => {
     if (s === "high") return "bg-destructive/10 text-destructive";
@@ -45,7 +59,14 @@ export default function MonitoringPage() {
 
   return (
     <div>
-      <h1 className="fvc-heading-1 text-foreground mb-1">Monitoring</h1>
+      <div className="flex items-center justify-between mb-1">
+        <h1 className="fvc-heading-1 text-foreground">Monitoring</h1>
+        <SavedViewsDropdown
+          pageType="monitoring"
+          currentFilters={currentFilters}
+          onApplyFilters={handleApplyFilters}
+        />
+      </div>
       <p className="text-sm text-muted-foreground mb-8">Continuous monitoring alerts and events</p>
 
       <div className="flex gap-3 mb-6">
@@ -56,6 +77,15 @@ export default function MonitoringPage() {
             <SelectItem value="high">High</SelectItem>
             <SelectItem value="med">Medium</SelectItem>
             <SelectItem value="low">Low</SelectItem>
+          </SelectContent>
+        </Select>
+        <Select value={filterEventStatus} onValueChange={setFilterEventStatus}>
+          <SelectTrigger className="w-40"><SelectValue /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All statuses</SelectItem>
+            <SelectItem value="new">New</SelectItem>
+            <SelectItem value="noted">Noted</SelectItem>
+            <SelectItem value="actioned">Actioned</SelectItem>
           </SelectContent>
         </Select>
       </div>
