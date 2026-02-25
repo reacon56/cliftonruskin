@@ -1,0 +1,2 @@
+ALTER TABLE public.cases DROP CONSTRAINT IF EXISTS cases_status_check;
+ALTER TABLE public.cases ADD CONSTRAINT cases_status_check CHECK (status IN ('draft', 'scheduled', 'quoted', 'submitted', 'approved', 'assigned', 'in_progress', 'awaiting_client', 'qc', 'delivered', 'closed', 'cancelled', 'complete'));
