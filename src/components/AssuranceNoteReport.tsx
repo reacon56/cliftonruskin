@@ -162,10 +162,10 @@ export default function AssuranceNoteReport({ entityName, caseDate, riskTier, dp
         <!-- Branded header -->
         <div class="pdf-logo">
           <div>
-            <div class="pdf-logo-text">Far View &amp; Chase</div>
+            <div class="pdf-logo-text">Clifton Ruskin</div>
             <div class="pdf-logo-sub">Assurance &amp; Advisory</div>
           </div>
-          <div class="pdf-logo-shield">FVC</div>
+          <div class="pdf-logo-shield">CR</div>
         </div>
 
         <div class="report-header">
@@ -230,16 +230,16 @@ export default function AssuranceNoteReport({ entityName, caseDate, riskTier, dp
         <!-- Branded footer -->
         <div class="pdf-footer">
           <div class="pdf-footer-brand">
-            <span class="pdf-footer-name">Far View &amp; Chase Ltd</span>
+            <span class="pdf-footer-name">Clifton Ruskin Ltd</span>
             <span class="pdf-footer-ref">${report.reference} · Page 1 of 1</span>
           </div>
           <div class="pdf-footer-disclaimer">
-            This document is confidential and intended solely for the use of the commissioning party. It must not be disclosed, copied, or distributed to any third party without the prior written consent of Far View &amp; Chase Ltd. The findings herein are based on information available at the date of issue and do not constitute legal advice. Far View &amp; Chase Ltd accepts no liability for any loss arising from reliance on this document.
+            This document is confidential and intended solely for the use of the commissioning party. It must not be disclosed, copied, or distributed to any third party without the prior written consent of Clifton Ruskin Ltd. The findings herein are based on information available at the date of issue and do not constitute legal advice. Clifton Ruskin Ltd accepts no liability for any loss arising from reliance on this document.
           </div>
           <div class="pdf-footer-contacts">
-            <span>info@farviewchase.com</span>
+            <span>info@cliftonruskin.com</span>
             <span>+44 (0)20 7946 0123</span>
-            <span>farviewchase.com</span>
+            <span>cliftonruskin.com</span>
             <span>Registered in England &amp; Wales No. 12345678</span>
           </div>
         </div>

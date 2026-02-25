@@ -28,7 +28,7 @@ interface AuthContextType {
   isClient: boolean;
   isInternal: boolean;
   isPartner: boolean;
-  /** Granular FV&C permission helpers */
+  /** Granular CR permission helpers */
   canQuote: boolean;
   canAssign: boolean;
   canWork: boolean;

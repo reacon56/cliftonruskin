@@ -88,15 +88,20 @@ export default function AppSidebar() {
     >
       {/* Logo */}
       <div className="flex items-center justify-between px-4 py-5 border-b border-sidebar-border">
-        {!collapsed && (
-          <div className="animate-fade-in">
-            <div className="font-display text-[15px] font-semibold text-sidebar-foreground tracking-tight leading-tight">
-              Far View &amp; Chase
-            </div>
-            <div className="text-[9px] uppercase tracking-[0.25em] text-sidebar-primary mt-1 font-medium">
-              Assurance Portal
+        {!collapsed ? (
+          <div className="animate-fade-in flex items-center gap-2.5">
+            <img src="/images/clifton-ruskin-logo.png" alt="CR" className="w-8 h-8 rounded-full" />
+            <div>
+              <div className="font-display text-[15px] font-semibold text-sidebar-foreground tracking-tight leading-tight">
+                Clifton Ruskin
+              </div>
+              <div className="text-[9px] uppercase tracking-[0.25em] text-sidebar-primary mt-1 font-medium">
+                Assurance Portal
+              </div>
             </div>
           </div>
+        ) : (
+          <img src="/images/clifton-ruskin-logo.png" alt="CR" className="w-8 h-8 rounded-full mx-auto" />
         )}
         <button
           onClick={() => setCollapsed(!collapsed)}
@@ -154,12 +159,12 @@ export default function AppSidebar() {
             size="sm"
             onClick={toggleView}
             className="w-full justify-start gap-2 text-sidebar-primary hover:text-sidebar-foreground hover:bg-sidebar-accent/40 transition-colors duration-200 border border-sidebar-border/50"
-            title={collapsed ? `Switch to ${activeView === "internal" ? "Client" : "FV&C"}` : undefined}
+            title={collapsed ? `Switch to ${activeView === "internal" ? "Client" : "CR Internal"}` : undefined}
           >
             <ArrowLeftRight size={15} />
             {!collapsed && (
               <span className="text-[13px]">
-                {activeView === "internal" ? "Switch to Client" : "Switch to FV&C"}
+                {activeView === "internal" ? "Switch to Client" : "Switch to CR Internal"}
               </span>
             )}
           </Button>

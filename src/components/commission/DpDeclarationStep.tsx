@@ -148,7 +148,7 @@ export default function DpDeclarationStep({ form, onChange, orgId }: Props) {
               />
               <div className="text-sm font-medium text-foreground">{val ? "Yes — use approved template" : "No — declare independently"}</div>
               <div className="text-[11px] text-muted-foreground mt-0.5">
-                {val ? "Select from your organisation's finalised Master LIA templates" : "This case will require Client Admin approval + FV&C DP review"}
+                {val ? "Select from your organisation's finalised Master LIA templates" : "This case will require Client Admin approval + CR DP review"}
               </div>
             </label>
           ))}

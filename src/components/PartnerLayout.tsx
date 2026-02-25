@@ -16,7 +16,7 @@ export default function PartnerLayout() {
       <aside className="w-60 flex flex-col border-r border-sidebar-border bg-sidebar">
         <div className="px-4 py-5 border-b border-sidebar-border">
           <div className="font-display text-[15px] font-semibold text-sidebar-foreground tracking-tight leading-tight">
-            Far View &amp; Chase
+            Clifton Ruskin
           </div>
           <div className="text-[9px] uppercase tracking-[0.25em] text-sidebar-primary mt-1 font-medium">
             Partner Portal

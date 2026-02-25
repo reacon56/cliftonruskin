@@ -21,7 +21,7 @@ export default function SupportPage() {
       <div className="text-center mb-8">
         <HeadphonesIcon size={32} className="mx-auto text-accent mb-3" />
         <h1 className="fvc-heading-1 text-foreground">Support</h1>
-        <p className="text-sm text-muted-foreground mt-2">Get in touch with the Far View &amp; Chase team</p>
+        <p className="text-sm text-muted-foreground mt-2">Get in touch with the Clifton Ruskin team</p>
       </div>
 
       <form onSubmit={handleSubmit} className="fvc-card-elevated space-y-5">
