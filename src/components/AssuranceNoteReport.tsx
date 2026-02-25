@@ -1,5 +1,7 @@
+import { useRef, useCallback } from "react";
 import { Badge } from "@/components/ui/badge";
-import { Shield, AlertTriangle, CheckCircle2, Info, Building2, Globe, Users, FileText } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Shield, AlertTriangle, CheckCircle2, Info, Building2, Globe, Users, FileText, Download } from "lucide-react";
 
 interface AssuranceNoteReportProps {
   entityName: string;
@@ -80,10 +82,142 @@ const statusConfig = {
 
 export default function AssuranceNoteReport({ entityName, caseDate, riskTier }: AssuranceNoteReportProps) {
   const report = DUMMY_REPORT;
+  const reportRef = useRef<HTMLDivElement>(null);
+
+  const handleDownloadPDF = useCallback(() => {
+    if (!reportRef.current) return;
+
+    const printWindow = window.open("", "_blank");
+    if (!printWindow) return;
+
+    const reportHTML = reportRef.current.innerHTML;
+
+    printWindow.document.write(`
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <title>Assurance Note — ${entityName}</title>
+        <style>
+          @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600;700&family=DM+Sans:wght@300;400;500;600;700&display=swap');
+          * { margin: 0; padding: 0; box-sizing: border-box; }
+          body { font-family: 'DM Sans', sans-serif; color: #1a2235; padding: 48px; line-height: 1.6; max-width: 800px; margin: 0 auto; }
+          h2, h3, h4 { font-family: 'Cormorant Garamond', serif; }
+          .report-header { display: flex; justify-content: space-between; border-bottom: 1px solid #e0d9cf; padding-bottom: 24px; margin-bottom: 24px; }
+          .classification { font-size: 9px; letter-spacing: 0.2em; text-transform: uppercase; color: #6b7280; margin-bottom: 8px; }
+          .report-title { font-size: 28px; font-weight: 600; }
+          .entity-name { font-size: 14px; color: #6b7280; margin-top: 4px; }
+          .ref-label { font-size: 11px; color: #6b7280; }
+          .ref-value { font-size: 13px; font-family: monospace; font-weight: 500; }
+          .risk-bar-container { background: #f5f0eb; border: 1px solid #e0d9cf; border-radius: 8px; padding: 16px; margin-top: 20px; }
+          .risk-bar-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+          .risk-bar-label { font-size: 10px; text-transform: uppercase; letter-spacing: 0.15em; color: #6b7280; }
+          .risk-badge { font-size: 11px; padding: 2px 10px; border-radius: 12px; font-weight: 500; }
+          .risk-medium { background: #fef3c7; color: #92400e; }
+          .risk-low { background: #d1fae5; color: #065f46; }
+          .risk-high { background: #fee2e2; color: #991b1b; }
+          .risk-track { width: 100%; height: 6px; background: #e0d9cf; border-radius: 4px; overflow: hidden; }
+          .risk-fill { height: 100%; border-radius: 4px; }
+          .risk-labels { display: flex; justify-content: space-between; font-size: 9px; color: #9ca3af; margin-top: 4px; }
+          .section-title { font-size: 18px; font-weight: 600; margin-bottom: 12px; margin-top: 28px; }
+          .gold-rule { width: 40px; height: 2px; background: #c0924c; margin-bottom: 12px; }
+          .summary-text { font-size: 13px; line-height: 1.7; }
+          .finding-card { border: 1px solid #e0d9cf; border-radius: 8px; padding: 16px; margin-top: 16px; page-break-inside: avoid; }
+          .finding-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+          .finding-title { font-size: 14px; font-weight: 600; }
+          .status-badge { font-size: 10px; padding: 2px 8px; border-radius: 10px; font-weight: 500; }
+          .status-clear { background: #d1fae5; color: #065f46; }
+          .status-attention { background: #fef3c7; color: #92400e; }
+          .status-adverse { background: #fee2e2; color: #991b1b; }
+          .finding-list { list-style: none; }
+          .finding-item { font-size: 13px; color: #374151; margin-bottom: 6px; padding-left: 12px; position: relative; }
+          .finding-item::before { content: "•"; position: absolute; left: 0; color: #9ca3af; }
+          .recommendation { border: 1px solid #dbc49a; border-radius: 8px; padding: 20px; background: #faf6f0; margin-top: 24px; }
+          .recommendation-title { font-size: 14px; font-weight: 600; margin-bottom: 8px; }
+          .recommendation-text { font-size: 13px; line-height: 1.7; }
+          .sign-off { display: flex; justify-content: space-between; border-top: 1px solid #e0d9cf; padding-top: 16px; margin-top: 28px; font-size: 11px; color: #6b7280; }
+          .sign-name { font-weight: 500; color: #1a2235; }
+          .no-print { display: none !important; }
+          @media print { body { padding: 24px; } }
+        </style>
+      </head>
+      <body>
+        <div class="report-header">
+          <div>
+            <div class="classification">${report.classification}</div>
+            <h2 class="report-title">Assurance Note</h2>
+            <p class="entity-name">${entityName}</p>
+          </div>
+          <div style="text-align: right;">
+            <div class="ref-label">Reference</div>
+            <div class="ref-value">${report.reference}</div>
+            <div class="ref-label" style="margin-top: 8px;">Date</div>
+            <div style="font-size: 13px;">${new Date(caseDate).toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" })}</div>
+          </div>
+        </div>
+
+        <div class="risk-bar-container">
+          <div class="risk-bar-header">
+            <span class="risk-bar-label">Overall Risk Assessment</span>
+            <span class="risk-badge ${report.riskRating === "Low" ? "risk-low" : report.riskRating === "Medium" ? "risk-medium" : "risk-high"}">${report.riskRating} Risk</span>
+          </div>
+          <div class="risk-track">
+            <div class="risk-fill" style="width: ${report.overallScore}%; background: ${report.overallScore < 40 ? "#059669" : report.overallScore < 70 ? "#d97706" : "#dc2626"};"></div>
+          </div>
+          <div class="risk-labels">
+            <span>Low Risk</span>
+            <span>Score: ${report.overallScore}/100</span>
+            <span>High Risk</span>
+          </div>
+        </div>
+
+        <h3 class="section-title">Executive Summary</h3>
+        <div class="gold-rule"></div>
+        <p class="summary-text">${report.executiveSummary}</p>
+
+        ${report.sections.map((section) => {
+          const statusClass = section.status === "clear" ? "status-clear" : section.status === "attention" ? "status-attention" : "status-adverse";
+          const statusLabel = section.status === "clear" ? "Clear" : section.status === "attention" ? "Attention" : "Adverse";
+          return `
+            <div class="finding-card">
+              <div class="finding-header">
+                <span class="finding-title">${section.title}</span>
+                <span class="status-badge ${statusClass}">${statusLabel}</span>
+              </div>
+              <ul class="finding-list">
+                ${section.findings.map((f) => `<li class="finding-item">${f}</li>`).join("")}
+              </ul>
+            </div>
+          `;
+        }).join("")}
+
+        <div class="recommendation">
+          <div class="recommendation-title">Recommendation</div>
+          <p class="recommendation-text">${report.recommendation}</p>
+        </div>
+
+        <div class="sign-off">
+          <div><div class="sign-name">${report.analyst}</div><div>Prepared by</div></div>
+          <div style="text-align: right;"><div class="sign-name">${report.reviewer}</div><div>Reviewed by</div></div>
+        </div>
+      </body>
+      </html>
+    `);
+
+    printWindow.document.close();
+    printWindow.onload = () => {
+      printWindow.print();
+    };
+  }, [entityName, caseDate]);
 
   return (
-    <div className="space-y-6 animate-fade-in">
-      {/* Header */}
+    <div className="space-y-6 animate-fade-in" ref={reportRef}>
+      {/* Download button */}
+      <div className="flex justify-end no-print">
+        <Button variant="outline" size="sm" onClick={handleDownloadPDF} className="gap-2">
+          <Download size={14} />
+          Download PDF
+        </Button>
+      </div>
       <div className="border-b border-border pb-6">
         <div className="flex items-start justify-between">
           <div>
