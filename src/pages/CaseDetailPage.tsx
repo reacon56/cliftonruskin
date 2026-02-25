@@ -8,6 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { ArrowLeft, CheckCircle2, Clock, FileText, Play, Send, AlertTriangle } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import AssuranceNoteReport from "@/components/AssuranceNoteReport";
+import CaseActivityTimeline from "@/components/CaseActivityTimeline";
 
 export default function CaseDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -21,20 +22,23 @@ export default function CaseDetailPage() {
   const [entity, setEntity] = useState<any>(null);
   const [showReport, setShowReport] = useState(false);
   const [simulating, setSimulating] = useState(false);
+  const [auditEvents, setAuditEvents] = useState<any[]>([]);
 
   useEffect(() => {
     if (id) loadCase();
   }, [id]);
 
   const loadCase = async () => {
-    const [caseRes, msgsRes, delsRes] = await Promise.all([
+    const [caseRes, msgsRes, delsRes, auditRes] = await Promise.all([
       supabase.from("cases").select("*").eq("id", id!).single(),
       supabase.from("case_messages").select("*").eq("case_id", id!).order("created_at"),
       supabase.from("deliverables").select("*").eq("case_id", id!).order("created_at", { ascending: false }),
+      supabase.from("audit_events").select("*").eq("object_id", id!).eq("object_type", "case").order("created_at"),
     ]);
     setCaseData(caseRes.data);
     setMessages(msgsRes.data ?? []);
     setDeliverables(delsRes.data ?? []);
+    setAuditEvents(auditRes.data ?? []);
 
     if (caseRes.data?.entity_id) {
       const { data } = await supabase.from("entities").select("name, risk_tier").eq("id", caseRes.data.entity_id).single();
@@ -267,6 +271,19 @@ export default function CaseDetailPage() {
                 <Send size={14} className="mr-1" /> Send
               </Button>
             </div>
+          </div>
+
+          {/* Activity Timeline */}
+          <div className="fvc-card">
+            <h2 className="fvc-heading-3 text-foreground mb-4">Activity Timeline</h2>
+            <div className="fvc-gold-rule mb-4" />
+            <CaseActivityTimeline
+              caseData={caseData}
+              messages={messages}
+              deliverables={deliverables}
+              auditEvents={auditEvents}
+              currentUserId={user?.id}
+            />
           </div>
 
           {/* Report view */}
