@@ -21,6 +21,7 @@ import ModuleWorkbenchPage from "@/pages/ModuleWorkbenchPage";
 import CaseQueuePage from "@/pages/CaseQueuePage";
 import SupportPage from "@/pages/SupportPage";
 import StubPage from "@/pages/StubPage";
+import LiaLibraryPage from "@/pages/LiaLibraryPage";
 import NotFound from "@/pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -51,6 +52,7 @@ function AppRoutes() {
         <Route path="/monitoring" element={<MonitoringPage />} />
         <Route path="/policies" element={<PoliciesPage />} />
         <Route path="/audit-log" element={<AuditLogPage />} />
+        <Route path="/lia-library" element={<LiaLibraryPage />} />
         <Route path="/cases" element={<CaseQueuePage />} />
         <Route path="/cases/:id" element={<CaseDetailPage />} />
         <Route path="/cases/:caseId/modules/:moduleId" element={<ModuleWorkbenchPage />} />

@@ -6,6 +6,8 @@ import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
 import { AlertTriangle, Shield, Info } from "lucide-react";
+import MiniLiaForm from "@/components/lia/MiniLiaForm";
+import { LIA_INITIAL, type LiaFormState } from "@/components/lia/LiaFormTypes";
 
 export interface DpFormState {
   requires_personal_data: boolean;
@@ -13,6 +15,7 @@ export interface DpFormState {
   processing_purpose_detail: string;
   lawful_basis: string;
   lia_summary: string;
+  lia_form: LiaFormState;
   data_categories: string[];
   minimisation_confirmed: boolean;
   exclude_special_category: boolean;
@@ -26,6 +29,7 @@ export const DP_INITIAL: DpFormState = {
   processing_purpose_detail: "",
   lawful_basis: "",
   lia_summary: "",
+  lia_form: LIA_INITIAL,
   data_categories: [],
   minimisation_confirmed: false,
   exclude_special_category: true,
@@ -173,16 +177,17 @@ export default function DataProtectionStep({ form, onChange }: Props) {
             </Select>
           </div>
 
-          {/* LIA summary for legitimate interests */}
+          {/* Mini-LIA for legitimate interests */}
           {form.lawful_basis === "legitimate_interests" && (
-            <div className="space-y-2 border-l-2 border-accent/30 pl-4">
-              <Label className="text-xs font-medium">Legitimate Interests Assessment (LIA)</Label>
-              <p className="text-[11px] text-muted-foreground">Briefly outline necessity and balancing considerations.</p>
-              <Textarea
-                rows={3}
-                placeholder="Why is this processing necessary? How have you balanced interests against data subject rights?"
-                value={form.lia_summary}
-                onChange={(e) => set({ lia_summary: e.target.value })}
+            <div className="space-y-3 border-l-2 border-accent/30 pl-4">
+              <div className="flex items-center gap-2">
+                <Shield size={14} className="text-accent" />
+                <Label className="text-xs font-medium">Mini Legitimate Interests Assessment</Label>
+              </div>
+              <p className="text-[11px] text-muted-foreground">Complete the structured assessment below to record a defensible LIA.</p>
+              <MiniLiaForm
+                form={form.lia_form}
+                onChange={(liaForm) => set({ lia_form: liaForm })}
               />
             </div>
           )}

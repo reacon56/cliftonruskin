@@ -16,6 +16,7 @@ import { MessageSquare, Shield } from "lucide-react";
 import PlanUtilisationCard from "@/components/dashboard/PlanUtilisationCard";
 import ApprovalsSummaryCard from "@/components/dashboard/ApprovalsSummaryCard";
 import EnhancementCoverageCard from "@/components/dashboard/EnhancementCoverageCard";
+import LiaSummaryCard from "@/components/dashboard/LiaSummaryCard";
 
 interface DashboardStats {
   totalEntities: number;
@@ -428,6 +429,9 @@ export default function DashboardPage() {
 
         {/* Enhancement Coverage */}
         <EnhancementCoverageCard />
+
+        {/* Data Protection / LIA Summary */}
+        <LiaSummaryCard />
       </div>
 
       {/* Actions Drawer */}
