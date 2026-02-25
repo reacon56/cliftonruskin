@@ -20,6 +20,7 @@ interface Props {
     overdue: number;
     highAlerts: number;
     dueSoon: number;
+    liaReviewsDue?: number;
   };
   onViewAll: () => void;
 }
@@ -77,6 +78,16 @@ export default function ActionsRequired({ stats, onViewAll }: Props) {
       bgClass: "bg-info/10",
       cta: "Plan upcoming reviews",
       onClick: () => navigate("/entities?filter=due_soon"),
+    },
+    {
+      key: "liaReviews",
+      label: "LIA reviews due",
+      count: stats.liaReviewsDue ?? 0,
+      icon: <Shield size={16} />,
+      colorClass: "text-warning",
+      bgClass: "bg-warning/10",
+      cta: "Review LIAs",
+      onClick: () => navigate("/lia-library"),
     },
   ];
 

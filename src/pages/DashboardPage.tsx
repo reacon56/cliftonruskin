@@ -29,6 +29,7 @@ interface DashboardStats {
   pendingApprovals: number;
   awaitingClient: number;
   compliancePct: number;
+  liaReviewsDue: number;
 }
 
 export default function DashboardPage() {
@@ -37,6 +38,7 @@ export default function DashboardPage() {
   const [stats, setStats] = useState<DashboardStats>({
     totalEntities: 0, dueSoon: 0, dueIn60: 0, overdue: 0, activeCases: 0,
     completedThisMonth: 0, highAlerts: 0, pendingApprovals: 0, awaitingClient: 0, compliancePct: 100,
+    liaReviewsDue: 0,
   });
   const [recentEntities, setRecentEntities] = useState<any[]>([]);
   const [allEntities, setAllEntities] = useState<any[]>([]);
@@ -52,6 +54,7 @@ export default function DashboardPage() {
   const [dueSoonEntities, setDueSoonEntities] = useState<any[]>([]);
   const [pendingCases, setPendingCases] = useState<any[]>([]);
   const [changeStats, setChangeStats] = useState({ total: 0, adverseMedia: 0, ownership: 0, litigation: 0 });
+  const [liaReviewItems, setLiaReviewItems] = useState<any[]>([]);
 
   useEffect(() => {
     if (!profile?.org_id) return;
@@ -72,6 +75,7 @@ export default function DashboardPage() {
       pendingApprovalsRes, awaitingClientRes, highAlertsRes,
       overdueEntRes, awaitingCasesRes, dueSoonEntRes, pendingCasesRes,
       changeLogsRes, monitoringTypesRes,
+      liaReviewsDueRes, liaReviewItemsRes,
     ] = await Promise.all([
       supabase.from("entities").select("id", { count: "exact", head: true }).eq("org_id", orgId),
       supabase.from("entities").select("id", { count: "exact", head: true }).eq("org_id", orgId).lte("next_review_date", in30).gte("next_review_date", todayStr),
@@ -83,21 +87,18 @@ export default function DashboardPage() {
       supabase.from("entities").select("*").eq("org_id", orgId).order("created_at", { ascending: false }).limit(5),
       supabase.from("cases").select("*, entities(name)").eq("org_id", orgId).order("created_at", { ascending: false }).limit(5),
       supabase.from("entities").select("id, name, country, risk_tier, next_review_date, registered_lat, registered_lng, hq_lat, hq_lng, registered_city, head_office_city").eq("org_id", orgId),
-      // Pending approvals = cases submitted but not yet approved (status = 'submitted')
       supabase.from("cases").select("id", { count: "exact", head: true }).eq("org_id", orgId).eq("status", "submitted"),
-      // Awaiting client input
       supabase.from("cases").select("id", { count: "exact", head: true }).eq("org_id", orgId).eq("status", "awaiting_client"),
-      // High severity alerts
       supabase.from("monitoring_events").select("id", { count: "exact", head: true }).eq("status", "new").eq("severity", "high"),
-      // Detail lists for drawer
       supabase.from("entities").select("id, name, country, next_review_date").eq("org_id", orgId).lt("next_review_date", todayStr).order("next_review_date", { ascending: true }).limit(10),
       supabase.from("cases").select("id, product_type, entities(name)").eq("org_id", orgId).eq("status", "awaiting_client").limit(10),
       supabase.from("entities").select("id, name, next_review_date").eq("org_id", orgId).lte("next_review_date", in30).gte("next_review_date", todayStr).order("next_review_date", { ascending: true }).limit(10),
       supabase.from("cases").select("id, product_type, entities(name)").eq("org_id", orgId).eq("status", "submitted").limit(10),
-      // Change logs last 30 days
       supabase.from("change_logs").select("id, summary, what_changed").gte("created_at", new Date(now.getTime() - 30 * 86400000).toISOString()),
-      // Monitoring events by type last 30 days
       supabase.from("monitoring_events").select("id, event_type").gte("detected_at", new Date(now.getTime() - 30 * 86400000).toISOString()),
+      // LIA reviews due within 30 days or overdue
+      supabase.from("lia_assessments" as any).select("id", { count: "exact", head: true }).eq("org_id", orgId).eq("status", "final").lte("review_date", in30),
+      supabase.from("lia_assessments" as any).select("id, purpose, review_date").eq("org_id", orgId).eq("status", "final").lte("review_date", in30).order("review_date", { ascending: true }).limit(10),
     ]);
 
     const totalEntities = entitiesRes.count ?? 0;
@@ -115,7 +116,9 @@ export default function DashboardPage() {
       pendingApprovals: pendingApprovalsRes.count ?? 0,
       awaitingClient: awaitingClientRes.count ?? 0,
       compliancePct,
+      liaReviewsDue: (liaReviewsDueRes as any).count ?? 0,
     });
+    setLiaReviewItems(((liaReviewItemsRes as any).data as any[]) ?? []);
     setRecentEntities(recentEntRes.data ?? []);
     setAllEntities(allEntRes.data ?? []);
     setRecentCases(recentCasesRes.data ?? []);
@@ -227,6 +230,21 @@ export default function DashboardPage() {
         subtitle: e.next_review_date ? `Due ${e.next_review_date}` : "No date set",
       })),
     },
+    {
+      key: "liaReviews",
+      label: "LIA reviews due",
+      count: stats.liaReviewsDue,
+      icon: <Shield size={14} />,
+      colorClass: "text-warning",
+      bgClass: "bg-warning/10",
+      cta: "Review LIAs",
+      route: "/lia-library",
+      items: liaReviewItems.map((l: any) => ({
+        id: l.id,
+        title: l.purpose || "Untitled LIA",
+        subtitle: l.review_date ? `Review due ${l.review_date}` : "No date",
+      })),
+    },
   ];
 
   const tierColor = (tier: string) => {
@@ -270,6 +288,7 @@ export default function DashboardPage() {
           overdue: stats.overdue,
           highAlerts: stats.highAlerts,
           dueSoon: stats.dueSoon,
+          liaReviewsDue: stats.liaReviewsDue,
         }}
         onViewAll={() => setDrawerOpen(true)}
       />
