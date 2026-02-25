@@ -69,7 +69,10 @@ export default function AuthPage() {
         
         <div className="max-w-md px-8 relative z-10 animate-fade-in text-center">
           {/* Monogram */}
-          <div className="mx-auto mb-6 w-20 h-20 rounded-full border-2 border-accent/50 flex items-center justify-center relative animate-scale-in" style={{ boxShadow: '0 0 24px hsl(38 55% 52% / 0.1)', animationDuration: '0.8s', animationTimingFunction: 'cubic-bezier(0.16, 1, 0.3, 1)' }}>
+          <div
+            className="mx-auto mb-6 w-20 h-20 rounded-full border-2 border-accent/50 flex items-center justify-center relative animate-scale-in transition-shadow duration-700 hover:shadow-[0_0_28px_hsl(38_55%_52%/0.3),0_0_8px_hsl(38_55%_52%/0.15)]"
+            style={{ boxShadow: '0 0 24px hsl(38 55% 52% / 0.1)', animationDuration: '0.8s', animationTimingFunction: 'cubic-bezier(0.16, 1, 0.3, 1)' }}
+          >
             <span className="font-display text-lg font-semibold text-accent tracking-[0.08em]" style={{ lineHeight: 1 }}>
               FV<span className="text-accent/50 mx-[2px]">&</span>C
             </span>
