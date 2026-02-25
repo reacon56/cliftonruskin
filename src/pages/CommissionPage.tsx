@@ -13,9 +13,11 @@ import { useToast } from "@/hooks/use-toast";
 import { ChevronRight, Check, AlertTriangle, Sparkles } from "lucide-react";
 import { requiresApproval } from "@/lib/approval-utils";
 import EnhancementSuggestionPanel from "@/components/EnhancementSuggestionPanel";
-import DataProtectionStep, { DP_INITIAL, computeDpRiskLevel, type DpFormState } from "@/components/commission/DataProtectionStep";
+import DpDeclarationStep, {
+  DP_DECLARATION_INITIAL, computeDpDeclarationRisk, type DpDeclarationState,
+} from "@/components/commission/DpDeclarationStep";
 
-const STEPS = ["Select Entity", "Product", "Priority", "Enhancements", "Data Protection", "Scope Notes", "Estimate", "Review & Submit"];
+const STEPS = ["Select Entity", "Product", "Priority", "Enhancements", "DP Declaration", "Scope Notes", "Estimate", "Review & Submit"];
 
 const PRICING: Record<string, Record<string, number>> = {
   "Assurance Note": { standard: 1500, rush: 2250 },
@@ -43,11 +45,11 @@ export default function CommissionPage() {
     scope_notes: "",
     selectedModules: [] as string[],
   });
-  const [dpForm, setDpForm] = useState<DpFormState>(DP_INITIAL);
+  const [dpForm, setDpForm] = useState<DpDeclarationState>(DP_DECLARATION_INITIAL);
 
   useEffect(() => {
     if (profile?.org_id) {
-      supabase.from("entities").select("id, name, risk_tier").eq("org_id", profile.org_id).order("name")
+      supabase.from("entities").select("id, name, risk_tier, country, data_access_level").eq("org_id", profile.org_id).order("name")
         .then(({ data }) => setEntities(data ?? []));
     }
     supabase.from("module_types").select("*").then(({ data }) => setModuleTypes(data ?? []));
@@ -58,7 +60,7 @@ export default function CommissionPage() {
   const estimate = baseEstimate + moduleEstimate;
 
   const [approvalInfo, setApprovalInfo] = useState<{ required: boolean; reasons: string[] } | null>(null);
-  const dpRisk = computeDpRiskLevel(dpForm);
+  const dpRisk = computeDpDeclarationRisk(dpForm);
 
   useEffect(() => {
     if (!profile?.org_id || !form.entity_id) return;
@@ -72,9 +74,9 @@ export default function CommissionPage() {
       priority: form.priority,
       priceEstimate: estimate,
       hasEnhancements: form.selectedModules.length > 0,
-      dpRiskLevel: dpRisk.level,
+      dpRiskLevel: dpRisk.requiresApproval ? "high" : "low",
     }).then(setApprovalInfo);
-  }, [profile?.org_id, form.entity_id, form.product_type, form.priority, estimate, entities, form.selectedModules, dpRisk.level]);
+  }, [profile?.org_id, form.entity_id, form.product_type, form.priority, estimate, entities, form.selectedModules, dpRisk.requiresApproval]);
 
   const toggleModule = (code: string) => {
     setForm((prev) => ({
@@ -89,6 +91,7 @@ export default function CommissionPage() {
     if (!profile?.org_id || !user) return;
 
     const selectedEntity = entities.find((e: any) => e.id === form.entity_id);
+    const dpApprovalRequired = dpRisk.requiresApproval;
 
     const { data: insertedCase, error } = await supabase.from("cases").insert({
       org_id: profile.org_id,
@@ -100,21 +103,35 @@ export default function CommissionPage() {
       status: "submitted",
       price_estimate: estimate,
       sla_days: form.priority === "rush" ? 5 : 10,
-      requires_personal_data: dpForm.requires_personal_data,
-      processing_purpose: dpForm.processing_purpose || null,
-      processing_purpose_detail: dpForm.processing_purpose_detail || null,
-      lawful_basis: dpForm.lawful_basis || null,
-      lia_summary: dpForm.lia_summary || null,
-      data_categories: dpForm.requires_personal_data ? dpForm.data_categories : [],
+      requires_personal_data: true,
+      processing_purpose: dpForm.purpose || null,
+      data_categories: dpForm.data_categories,
       minimisation_confirmed: dpForm.minimisation_confirmed,
       retention_months: dpForm.retention_months,
-      dp_risk_level: dpRisk.level,
-      dp_review_required: dpRisk.reviewRequired,
+      dp_risk_level: dpApprovalRequired ? "high" : "low",
+      dp_review_required: dpApprovalRequired,
     } as any).select("id").single();
 
     if (error) {
       toast({ title: "Error", description: error.message, variant: "destructive" });
       return;
+    }
+
+    // Create case_dp_declaration
+    if (insertedCase?.id) {
+      await supabase.from("case_dp_declarations" as any).insert({
+        case_id: insertedCase.id,
+        org_id: profile.org_id,
+        master_lia_id: dpForm.use_master_lia && dpForm.master_lia_id ? dpForm.master_lia_id : null,
+        purpose: dpForm.purpose,
+        data_categories: dpForm.data_categories,
+        sensitive_criminal_offence: dpForm.sensitive_criminal_offence,
+        sensitive_special_category: dpForm.sensitive_special_category,
+        minimisation_confirmed: dpForm.minimisation_confirmed,
+        retention_months: dpForm.retention_months,
+        requires_approval: dpApprovalRequired,
+        approval_reasons: dpRisk.reasons,
+      } as any);
     }
 
     // Create case_modules for selected enhancements
@@ -153,7 +170,7 @@ export default function CommissionPage() {
     }
 
     // Create DP review record if required
-    if (dpRisk.reviewRequired && insertedCase?.id) {
+    if (dpApprovalRequired && insertedCase?.id) {
       await supabase.from("data_protection_reviews").insert({
         case_id: insertedCase.id,
         status: "pending",
@@ -166,71 +183,10 @@ export default function CommissionPage() {
         object_type: "case",
         object_id: insertedCase.id,
         metadata: {
-          dp_risk_level: dpRisk.level,
+          dp_reasons: dpRisk.reasons,
           data_categories: dpForm.data_categories,
         },
       });
-    }
-
-    // DP details audit event
-    if (dpForm.requires_personal_data && insertedCase?.id) {
-      await supabase.from("audit_events").insert({
-        user_id: user.id,
-        org_id: profile.org_id,
-        action_type: "DP_DETAILS_ADDED",
-        object_type: "case",
-        object_id: insertedCase.id,
-        metadata: {
-          processing_purpose: dpForm.processing_purpose,
-          lawful_basis: dpForm.lawful_basis,
-          data_categories: dpForm.data_categories,
-          dp_risk_level: dpRisk.level,
-          minimisation_confirmed: dpForm.minimisation_confirmed,
-          retention_months: dpForm.retention_months,
-        },
-      });
-    }
-
-    // Create Mini-LIA record if legitimate interests basis used
-    if (dpForm.requires_personal_data && dpForm.lawful_basis === "legitimate_interests" && insertedCase?.id) {
-      const liaForm = dpForm.lia_form;
-      const { data: liaData } = await supabase.from("lia_assessments" as any).insert({
-        org_id: profile.org_id,
-        case_id: insertedCase.id,
-        created_by_user_id: user.id,
-        status: liaForm.outcome ? "final" : "draft",
-        purpose: liaForm.purpose || dpForm.processing_purpose,
-        legitimate_interest: liaForm.legitimate_interest,
-        necessity: liaForm.necessity,
-        data_subjects: liaForm.data_subjects,
-        data_categories: liaForm.data_categories.length > 0 ? liaForm.data_categories : dpForm.data_categories,
-        sources: liaForm.sources,
-        special_category_requested: liaForm.data_categories.includes("special_category"),
-        criminal_offence_requested: liaForm.data_categories.includes("criminal_offence"),
-        safeguards: liaForm.safeguards,
-        balancing_test_factors: {
-          reasonable_expectations: liaForm.balancing_reasonable_expectations,
-          likely_impact: liaForm.balancing_likely_impact,
-          nature_of_processing: liaForm.balancing_nature_of_processing,
-          mitigations: liaForm.balancing_mitigations,
-          notes: liaForm.balancing_notes,
-        },
-        outcome: liaForm.outcome || null,
-        conditions: liaForm.conditions || null,
-        retention_months: liaForm.retention_months ?? dpForm.retention_months,
-        updated_at: new Date().toISOString(),
-      } as any).select("id").single();
-
-      if (liaData) {
-        await supabase.from("audit_events").insert({
-          user_id: user.id,
-          org_id: profile.org_id,
-          action_type: liaForm.outcome ? "LIA_FINALISED" : "LIA_CREATED",
-          object_type: "lia_assessment",
-          object_id: (liaData as any).id,
-          metadata: { case_id: insertedCase.id, purpose: liaForm.purpose },
-        });
-      }
     }
 
     // Write audit event for submission
@@ -248,17 +204,17 @@ export default function CommissionPage() {
         enhancements: form.selectedModules,
         approval_required: approvalInfo?.required ?? false,
         approval_reasons: approvalInfo?.reasons ?? [],
-        dp_risk_level: dpRisk.level,
-        dp_review_required: dpRisk.reviewRequired,
+        dp_approval_required: dpApprovalRequired,
+        master_lia_used: dpForm.use_master_lia && !!dpForm.master_lia_id,
       },
     });
 
-    const needsApproval = approvalInfo?.required;
+    const needsApproval = approvalInfo?.required || dpApprovalRequired;
 
     toast({
       title: needsApproval ? "⏳ Submitted for approval" : "✓ Commission submitted",
       description: needsApproval
-        ? `${form.product_type} for ${selectedEntity?.name ?? "entity"} requires admin approval before processing begins.`
+        ? `${form.product_type} for ${selectedEntity?.name ?? "entity"} requires approval before processing begins.`
         : `${form.product_type} for ${selectedEntity?.name ?? "entity"} has been submitted. ${
             form.priority === "rush" ? "Rush — 5 day SLA." : "Standard — 10 day SLA."
           }`,
@@ -274,10 +230,7 @@ export default function CommissionPage() {
   const canNext = () => {
     if (step === 0) return !!form.entity_id;
     if (step === 1) return !!form.product_type;
-    // DP step validation
-    if (step === 4 && dpForm.requires_personal_data) {
-      return !!(dpForm.processing_purpose && dpForm.lawful_basis && dpForm.minimisation_confirmed);
-    }
+    if (step === 4) return !!(dpForm.purpose && dpForm.minimisation_confirmed);
     return true;
   };
 
@@ -285,18 +238,6 @@ export default function CommissionPage() {
     if (code === "COMMERCIAL_POSTURE") return "Evidence-led view of market behaviour: payment reality, dispute posture, supplier/customer themes.";
     if (code === "JURISDICTION_BENCHMARK") return "One–two page 'state of the environment' for this jurisdiction/sector, plus practical controls guidance.";
     return "";
-  };
-
-  const getLawfulBasisLabel = (value: string) => {
-    const map: Record<string, string> = {
-      legitimate_interests: "Legitimate interests",
-      contract: "Performance of a contract",
-      legal_obligation: "Legal obligation",
-      consent: "Consent",
-      public_task: "Public task",
-      vital_interests: "Vital interests",
-    };
-    return map[value] || value;
   };
 
   return (
@@ -460,9 +401,9 @@ export default function CommissionPage() {
           </div>
         )}
 
-        {/* Data Protection step */}
+        {/* DP Declaration step */}
         {step === 4 && (
-          <DataProtectionStep form={dpForm} onChange={setDpForm} />
+          <DpDeclarationStep form={dpForm} onChange={setDpForm} orgId={profile?.org_id ?? null} />
         )}
 
         {step === 5 && (
@@ -537,27 +478,24 @@ export default function CommissionPage() {
               </div>
             )}
 
-            {/* DP summary in review */}
-            {dpForm.requires_personal_data && (
-              <div className="border-t border-border pt-3 mt-2">
-                <span className="text-[10px] uppercase tracking-wider font-semibold text-muted-foreground block mb-2">Data Protection</span>
-                <div className="space-y-1.5">
-                  <div className="flex justify-between"><span className="text-muted-foreground">PII processing</span><span className="text-foreground font-medium">Yes</span></div>
-                  <div className="flex justify-between"><span className="text-muted-foreground">Purpose</span><span className="text-foreground font-medium">{dpForm.processing_purpose}</span></div>
-                  <div className="flex justify-between"><span className="text-muted-foreground">Lawful basis</span><span className="text-foreground font-medium">{getLawfulBasisLabel(dpForm.lawful_basis)}</span></div>
-                  <div className="flex justify-between"><span className="text-muted-foreground">Data categories</span><span className="text-foreground font-medium">{dpForm.data_categories.length}</span></div>
-                  <div className="flex justify-between"><span className="text-muted-foreground">DP risk level</span>
-                    <span className={`font-medium capitalize ${dpRisk.level === "high" ? "text-destructive" : dpRisk.level === "medium" ? "text-warning" : "text-foreground"}`}>
-                      {dpRisk.level}
-                    </span>
-                  </div>
-                  {dpForm.retention_months !== null && (
-                    <div className="flex justify-between"><span className="text-muted-foreground">Retention</span><span className="text-foreground font-medium">{dpForm.retention_months === 0 ? "Per policy" : `${dpForm.retention_months} months`}</span></div>
-                  )}
-                  <div className="flex justify-between"><span className="text-muted-foreground">Minimisation confirmed</span><span className="text-foreground font-medium">{dpForm.minimisation_confirmed ? "Yes" : "No"}</span></div>
+            {/* DP Declaration summary */}
+            <div className="border-t border-border pt-3 mt-2">
+              <span className="text-[10px] uppercase tracking-wider font-semibold text-muted-foreground block mb-2">DP Declaration</span>
+              <div className="space-y-1.5">
+                <div className="flex justify-between"><span className="text-muted-foreground">Master LIA</span><span className="text-foreground font-medium">{dpForm.use_master_lia && dpForm.master_lia_id ? "Yes" : "No"}</span></div>
+                <div className="flex justify-between"><span className="text-muted-foreground">Purpose</span><span className="text-foreground font-medium">{dpForm.purpose || "—"}</span></div>
+                <div className="flex justify-between"><span className="text-muted-foreground">Data categories</span><span className="text-foreground font-medium">{dpForm.data_categories.length}</span></div>
+                <div className="flex justify-between"><span className="text-muted-foreground">Sensitive data</span>
+                  <span className={`font-medium ${(dpForm.sensitive_criminal_offence || dpForm.sensitive_special_category) ? "text-destructive" : "text-foreground"}`}>
+                    {dpForm.sensitive_criminal_offence || dpForm.sensitive_special_category ? "Yes" : "No"}
+                  </span>
                 </div>
+                <div className="flex justify-between"><span className="text-muted-foreground">Minimisation</span><span className="text-foreground font-medium">{dpForm.minimisation_confirmed ? "Confirmed" : "Not confirmed"}</span></div>
+                {dpForm.retention_months !== null && (
+                  <div className="flex justify-between"><span className="text-muted-foreground">Retention</span><span className="text-foreground font-medium">{dpForm.retention_months === 0 ? "Per policy" : `${dpForm.retention_months} months`}</span></div>
+                )}
               </div>
-            )}
+            </div>
 
             <div className="flex justify-between py-1"><span className="text-muted-foreground">Total estimated fee</span><span className="text-accent font-semibold font-display text-lg">£{estimate.toLocaleString()}</span></div>
             {form.scope_notes && (
@@ -568,13 +506,13 @@ export default function CommissionPage() {
             )}
 
             {/* Approval gate notice */}
-            {approvalInfo?.required && (
+            {(approvalInfo?.required || dpRisk.requiresApproval) && (
               <div className="flex items-start gap-3 p-4 rounded-lg border border-warning/30 bg-warning/5 mt-4">
                 <AlertTriangle size={16} className="text-warning shrink-0 mt-0.5" />
                 <div>
                   <div className="text-sm font-medium text-foreground mb-1">Approval required</div>
                   <ul className="text-xs text-muted-foreground space-y-0.5">
-                    {approvalInfo.reasons.map((r, i) => (
+                    {[...(approvalInfo?.reasons ?? []), ...(dpRisk.requiresApproval ? dpRisk.reasons : [])].map((r, i) => (
                       <li key={i}>• {r}</li>
                     ))}
                   </ul>
