@@ -57,7 +57,7 @@ export default function EntityMapView({ entities, highlightId }: Props) {
       attributionControl: false,
       scrollWheelZoom: true,
     });
-    L.tileLayer("https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png", {
+    L.tileLayer("https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png", {
       maxZoom: 18,
     }).addTo(map);
     leafletMap.current = map;
@@ -90,12 +90,12 @@ export default function EntityMapView({ entities, highlightId }: Props) {
       const isHighlighted = entity.id === highlightId;
 
       const marker = L.circleMarker([lat, lng], {
-        radius: isHighlighted ? 10 : 6,
+        radius: isHighlighted ? 11 : 7,
         fillColor: color,
-        fillOpacity: isHighlighted ? 1 : 0.8,
-        color: isHighlighted ? "#ffffff" : color,
-        weight: isHighlighted ? 2 : 1,
-        opacity: isHighlighted ? 1 : 0.4,
+        fillOpacity: isHighlighted ? 1 : 0.9,
+        color: "#ffffff",
+        weight: isHighlighted ? 2.5 : 1.5,
+        opacity: 1,
       });
 
       marker.on("click", () => setSelected(entity));
@@ -145,7 +145,7 @@ export default function EntityMapView({ entities, highlightId }: Props) {
       <div
         ref={mapRef}
         className="w-full h-[500px] rounded-lg overflow-hidden border border-border"
-        style={{ background: "hsl(220 30% 8%)" }}
+        style={{ background: "hsl(0 0% 96%)" }}
       />
 
       {/* Popover for selected entity */}
