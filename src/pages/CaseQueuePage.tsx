@@ -5,9 +5,12 @@ import { useNavigate } from "react-router-dom";
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
+import { useAuth } from "@/contexts/AuthContext";
+import SavedViewsDropdown, { type FilterState } from "@/components/SavedViewsDropdown";
 
 export default function CaseQueuePage() {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [cases, setCases] = useState<any[]>([]);
   const [filterStatus, setFilterStatus] = useState("all");
 
@@ -23,11 +26,29 @@ export default function CaseQueuePage() {
     setCases(data ?? []);
   };
 
-  const filtered = cases.filter((c) => filterStatus === "all" || c.status === filterStatus);
+  const handleApplyFilters = (filters: FilterState) => {
+    setFilterStatus(filters.status || "all");
+  };
+
+  const currentFilters: FilterState = { status: filterStatus };
+
+  const filtered = cases.filter((c) => {
+    if (filterStatus === "awaiting_client") {
+      return c.status === "awaiting_client";
+    }
+    return filterStatus === "all" || c.status === filterStatus;
+  });
 
   return (
     <div>
-      <h1 className="fvc-heading-1 text-foreground mb-1">Case Queue</h1>
+      <div className="flex items-center justify-between mb-1">
+        <h1 className="fvc-heading-1 text-foreground">Case Queue</h1>
+        <SavedViewsDropdown
+          pageType="cases"
+          currentFilters={currentFilters}
+          onApplyFilters={handleApplyFilters}
+        />
+      </div>
       <p className="text-sm text-muted-foreground mb-8">All commissioned cases across clients</p>
 
       <div className="flex gap-3 mb-6">
