@@ -102,6 +102,76 @@ export type Database = {
           },
         ]
       }
+      case_dp_declarations: {
+        Row: {
+          approval_reasons: Json | null
+          case_id: string
+          created_at: string
+          data_categories: Json | null
+          id: string
+          master_lia_id: string | null
+          minimisation_confirmed: boolean
+          org_id: string
+          purpose: string
+          requires_approval: boolean
+          retention_months: number | null
+          sensitive_criminal_offence: boolean
+          sensitive_special_category: boolean
+        }
+        Insert: {
+          approval_reasons?: Json | null
+          case_id: string
+          created_at?: string
+          data_categories?: Json | null
+          id?: string
+          master_lia_id?: string | null
+          minimisation_confirmed?: boolean
+          org_id: string
+          purpose?: string
+          requires_approval?: boolean
+          retention_months?: number | null
+          sensitive_criminal_offence?: boolean
+          sensitive_special_category?: boolean
+        }
+        Update: {
+          approval_reasons?: Json | null
+          case_id?: string
+          created_at?: string
+          data_categories?: Json | null
+          id?: string
+          master_lia_id?: string | null
+          minimisation_confirmed?: boolean
+          org_id?: string
+          purpose?: string
+          requires_approval?: boolean
+          retention_months?: number | null
+          sensitive_criminal_offence?: boolean
+          sensitive_special_category?: boolean
+        }
+        Relationships: [
+          {
+            foreignKeyName: "case_dp_declarations_case_id_fkey"
+            columns: ["case_id"]
+            isOneToOne: false
+            referencedRelation: "cases"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "case_dp_declarations_master_lia_id_fkey"
+            columns: ["master_lia_id"]
+            isOneToOne: false
+            referencedRelation: "master_lia_templates"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "case_dp_declarations_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organisations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       case_messages: {
         Row: {
           attachments: Json | null
@@ -777,6 +847,77 @@ export type Database = {
             columns: ["lia_id"]
             isOneToOne: false
             referencedRelation: "lia_assessments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      master_lia_templates: {
+        Row: {
+          approved_at: string | null
+          approved_by: string | null
+          balancing_fields: Json | null
+          conditions: string | null
+          created_at: string
+          id: string
+          lawful_basis: string
+          legitimate_interest: string | null
+          less_intrusive: string | null
+          name: string
+          necessity: string | null
+          org_id: string
+          outcome: string | null
+          purpose_category: string
+          retention_months: number | null
+          safeguards: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          approved_at?: string | null
+          approved_by?: string | null
+          balancing_fields?: Json | null
+          conditions?: string | null
+          created_at?: string
+          id?: string
+          lawful_basis?: string
+          legitimate_interest?: string | null
+          less_intrusive?: string | null
+          name: string
+          necessity?: string | null
+          org_id: string
+          outcome?: string | null
+          purpose_category?: string
+          retention_months?: number | null
+          safeguards?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          approved_at?: string | null
+          approved_by?: string | null
+          balancing_fields?: Json | null
+          conditions?: string | null
+          created_at?: string
+          id?: string
+          lawful_basis?: string
+          legitimate_interest?: string | null
+          less_intrusive?: string | null
+          name?: string
+          necessity?: string | null
+          org_id?: string
+          outcome?: string | null
+          purpose_category?: string
+          retention_months?: number | null
+          safeguards?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "master_lia_templates_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organisations"
             referencedColumns: ["id"]
           },
         ]

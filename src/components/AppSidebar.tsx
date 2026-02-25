@@ -44,7 +44,7 @@ export default function AppSidebar() {
     { label: "Deliverables", path: "/deliverables", icon: <FolderOpen size={18} /> },
     { label: "Monitoring", path: "/monitoring", icon: <Activity size={18} /> },
     { label: "Policies", path: "/policies", icon: <Shield size={18} /> },
-    { label: "Mini-LIA Library", path: "/lia-library", icon: <Scale size={18} /> },
+    { label: "Master LIA Templates", path: "/lia-library", icon: <Scale size={18} /> },
   ];
 
   if (hasRole("client_admin")) {
