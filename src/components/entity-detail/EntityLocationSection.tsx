@@ -4,6 +4,7 @@ import "leaflet/dist/leaflet.css";
 import { MapPin, Copy, ExternalLink } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
+import { useMapTheme, MapThemeToggle } from "@/hooks/use-map-theme";
 
 interface Props {
   entity: any;
@@ -15,8 +16,10 @@ function formatAddress(line1?: string, line2?: string, city?: string, region?: s
 
 export default function EntityLocationSection({ entity }: Props) {
   const { toast } = useToast();
+  const { tileUrl, theme: mapTheme, toggle: toggleMapTheme } = useMapTheme();
   const mapRef = useRef<HTMLDivElement>(null);
   const leafletMap = useRef<L.Map | null>(null);
+  const tileLayerRef = useRef<L.TileLayer | null>(null);
 
   const regAddress = formatAddress(entity.registered_address_line1, entity.registered_address_line2, entity.registered_city, entity.registered_region, entity.registered_postcode, entity.registered_country);
   const hqAddress = formatAddress(entity.head_office_address_line1, entity.head_office_address_line2, entity.head_office_city, entity.head_office_region, entity.head_office_postcode, entity.head_office_country);
@@ -38,7 +41,7 @@ export default function EntityLocationSection({ entity }: Props) {
       attributionControl: false,
       scrollWheelZoom: false,
     });
-    L.tileLayer("https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png", { maxZoom: 18 }).addTo(map);
+    tileLayerRef.current = L.tileLayer(tileUrl, { maxZoom: 18 }).addTo(map);
 
     if (hasReg) {
       L.circleMarker([entity.registered_lat, entity.registered_lng], {
@@ -61,8 +64,15 @@ export default function EntityLocationSection({ entity }: Props) {
     }
 
     leafletMap.current = map;
-    return () => { map.remove(); leafletMap.current = null; };
+    return () => { map.remove(); leafletMap.current = null; tileLayerRef.current = null; };
   }, [entity.id]);
+
+  // React to theme changes
+  useEffect(() => {
+    if (!leafletMap.current || !tileLayerRef.current) return;
+    leafletMap.current.removeLayer(tileLayerRef.current);
+    tileLayerRef.current = L.tileLayer(tileUrl, { maxZoom: 18 }).addTo(leafletMap.current);
+  }, [tileUrl]);
 
   if (!regAddress && !hqAddress) return null;
 
@@ -77,9 +87,12 @@ export default function EntityLocationSection({ entity }: Props) {
 
   return (
     <div className="fvc-card">
-      <div className="flex items-center gap-2 mb-4">
-        <MapPin size={16} className="text-accent" />
-        <h3 className="fvc-heading-3 text-foreground">Location</h3>
+      <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center gap-2">
+          <MapPin size={16} className="text-accent" />
+          <h3 className="fvc-heading-3 text-foreground">Location</h3>
+        </div>
+        {hasMap && <MapThemeToggle theme={mapTheme} onToggle={toggleMapTheme} />}
       </div>
 
       <div className="grid md:grid-cols-[1fr_1.5fr] gap-6">
@@ -119,7 +132,7 @@ export default function EntityLocationSection({ entity }: Props) {
         </div>
 
         {hasMap && (
-          <div ref={mapRef} className="aspect-square rounded-lg overflow-hidden border border-border" style={{ background: "hsl(220 30% 8%)" }} />
+          <div ref={mapRef} className="aspect-square rounded-lg overflow-hidden border border-border" style={{ background: mapTheme === "light" ? "hsl(0 0% 96%)" : "hsl(220 30% 8%)" }} />
         )}
       </div>
     </div>
