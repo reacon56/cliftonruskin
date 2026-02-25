@@ -82,7 +82,7 @@ export default function EntityLocationSection({ entity }: Props) {
         <h3 className="fvc-heading-3 text-foreground">Location</h3>
       </div>
 
-      <div className="grid md:grid-cols-2 gap-6">
+      <div className="grid md:grid-cols-[1fr_1.5fr] gap-6">
         <div className="space-y-4">
           {regAddress && (
             <div>
@@ -119,7 +119,7 @@ export default function EntityLocationSection({ entity }: Props) {
         </div>
 
         {hasMap && (
-          <div ref={mapRef} className="h-[200px] rounded-lg overflow-hidden border border-border" style={{ background: "hsl(220 30% 8%)" }} />
+          <div ref={mapRef} className="h-[340px] rounded-lg overflow-hidden border border-border" style={{ background: "hsl(220 30% 8%)" }} />
         )}
       </div>
     </div>
