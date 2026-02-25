@@ -39,7 +39,7 @@ export default function HomePage() {
               </Button>
             </Link>
             <Link to="/services">
-              <Button variant="outline" size="lg" className="border-white/50 text-white hover:bg-white/10 rounded-full px-8">
+              <Button variant="outline" size="lg" className="border-white/60 bg-white/10 text-white backdrop-blur-sm hover:bg-white/20 rounded-full px-8">
                 View Services
               </Button>
             </Link>
