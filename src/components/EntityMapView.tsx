@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
+import { useMapTheme, MapThemeToggle } from "@/hooks/use-map-theme";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
@@ -44,9 +45,11 @@ export default function EntityMapView({ entities, highlightId }: Props) {
   const mapRef = useRef<HTMLDivElement>(null);
   const leafletMap = useRef<L.Map | null>(null);
   const markersRef = useRef<L.CircleMarker[]>([]);
+  const tileLayerRef = useRef<L.TileLayer | null>(null);
   const navigate = useNavigate();
   const [pinType, setPinType] = useState<"registered" | "hq">("registered");
   const [selected, setSelected] = useState<Entity | null>(null);
+  const { theme, toggle, tileUrl } = useMapTheme();
 
   useEffect(() => {
     if (!mapRef.current || leafletMap.current) return;
@@ -57,9 +60,7 @@ export default function EntityMapView({ entities, highlightId }: Props) {
       attributionControl: false,
       scrollWheelZoom: true,
     });
-    L.tileLayer("https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png", {
-      maxZoom: 18,
-    }).addTo(map);
+    tileLayerRef.current = L.tileLayer(tileUrl, { maxZoom: 18 }).addTo(map);
     leafletMap.current = map;
     return () => { map.remove(); leafletMap.current = null; };
   }, []);
@@ -108,6 +109,14 @@ export default function EntityMapView({ entities, highlightId }: Props) {
     });
   }, [entities, pinType, highlightId]);
 
+  // Swap tile layer on theme change
+  useEffect(() => {
+    const map = leafletMap.current;
+    if (!map) return;
+    if (tileLayerRef.current) map.removeLayer(tileLayerRef.current);
+    tileLayerRef.current = L.tileLayer(tileUrl, { maxZoom: 18 }).addTo(map);
+  }, [tileUrl]);
+
   const todayStr = new Date().toISOString().split("T")[0];
   const getDueStatus = (e: Entity) => {
     if (!e.next_review_date) return { label: "No date", color: "bg-muted text-muted-foreground" };
@@ -120,32 +129,35 @@ export default function EntityMapView({ entities, highlightId }: Props) {
   return (
     <div className="relative">
       {/* Pin type control */}
-      <div className="flex items-center gap-2 mb-3">
-        <span className="text-[10px] uppercase tracking-[0.08em] text-muted-foreground font-semibold">Show pins:</span>
-        <div className="flex items-center rounded-md border border-border overflow-hidden">
-          <button
-            onClick={() => setPinType("registered")}
-            className={`px-2.5 py-1 text-[11px] font-medium transition-colors ${
-              pinType === "registered" ? "bg-accent/10 text-accent" : "text-muted-foreground hover:bg-muted/50"
-            }`}
-          >
-            Registered Office
-          </button>
-          <button
-            onClick={() => setPinType("hq")}
-            className={`px-2.5 py-1 text-[11px] font-medium transition-colors ${
-              pinType === "hq" ? "bg-accent/10 text-accent" : "text-muted-foreground hover:bg-muted/50"
-            }`}
-          >
-            Head Office
-          </button>
+      <div className="flex items-center justify-between mb-3">
+        <div className="flex items-center gap-2">
+          <span className="text-[10px] uppercase tracking-[0.08em] text-muted-foreground font-semibold">Show pins:</span>
+          <div className="flex items-center rounded-md border border-border overflow-hidden">
+            <button
+              onClick={() => setPinType("registered")}
+              className={`px-2.5 py-1 text-[11px] font-medium transition-colors ${
+                pinType === "registered" ? "bg-accent/10 text-accent" : "text-muted-foreground hover:bg-muted/50"
+              }`}
+            >
+              Registered Office
+            </button>
+            <button
+              onClick={() => setPinType("hq")}
+              className={`px-2.5 py-1 text-[11px] font-medium transition-colors ${
+                pinType === "hq" ? "bg-accent/10 text-accent" : "text-muted-foreground hover:bg-muted/50"
+              }`}
+            >
+              Head Office
+            </button>
+          </div>
         </div>
+        <MapThemeToggle theme={theme} onToggle={toggle} />
       </div>
 
       <div
         ref={mapRef}
         className="w-full h-[500px] rounded-lg overflow-hidden border border-border"
-        style={{ background: "hsl(0 0% 96%)" }}
+        style={{ background: theme === "light" ? "hsl(0 0% 96%)" : "hsl(220 30% 8%)" }}
       />
 
       {/* Popover for selected entity */}

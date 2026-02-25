@@ -1,6 +1,7 @@
 import { useEffect, useRef } from "react";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
+import { useMapTheme, MapThemeToggle } from "@/hooks/use-map-theme";
 
 // Country → approximate lat/lng for common countries
 const COUNTRY_COORDS: Record<string, [number, number]> = {
@@ -95,6 +96,8 @@ const tierMarkerColor = (tier: string) => {
 export default function EntityWorldMap({ entities }: Props) {
   const mapRef = useRef<HTMLDivElement>(null);
   const leafletMap = useRef<L.Map | null>(null);
+  const tileLayerRef = useRef<L.TileLayer | null>(null);
+  const { theme, toggle, tileUrl } = useMapTheme();
 
   useEffect(() => {
     if (!mapRef.current || leafletMap.current) return;
@@ -107,10 +110,7 @@ export default function EntityWorldMap({ entities }: Props) {
       scrollWheelZoom: true,
     });
 
-    // Bright tile layer — Positron (light)
-    L.tileLayer("https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png", {
-      maxZoom: 18,
-    }).addTo(map);
+    tileLayerRef.current = L.tileLayer(tileUrl, { maxZoom: 18 }).addTo(map);
 
     leafletMap.current = map;
 
@@ -168,11 +168,24 @@ export default function EntityWorldMap({ entities }: Props) {
     });
   }, [entities]);
 
+  // Swap tile layer on theme change
+  useEffect(() => {
+    const map = leafletMap.current;
+    if (!map) return;
+    if (tileLayerRef.current) map.removeLayer(tileLayerRef.current);
+    tileLayerRef.current = L.tileLayer(tileUrl, { maxZoom: 18 }).addTo(map);
+  }, [tileUrl]);
+
   return (
-    <div
-      ref={mapRef}
-      className="w-full h-[360px] rounded-lg overflow-hidden border border-border"
-      style={{ background: "hsl(0 0% 96%)" }}
-    />
+    <div className="relative">
+      <div className="absolute top-2 right-2 z-[500]">
+        <MapThemeToggle theme={theme} onToggle={toggle} />
+      </div>
+      <div
+        ref={mapRef}
+        className="w-full h-[360px] rounded-lg overflow-hidden border border-border"
+        style={{ background: theme === "light" ? "hsl(0 0% 96%)" : "hsl(220 30% 8%)" }}
+      />
+    </div>
   );
 }
