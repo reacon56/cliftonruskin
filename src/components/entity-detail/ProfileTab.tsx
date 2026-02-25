@@ -10,10 +10,10 @@ function formatAddress(line1?: string, line2?: string, city?: string, region?: s
 }
 
 export default function ProfileTab({ entity }: Props) {
-  const { hasRole } = useAuth();
+  const { hasRole, isInternal } = useAuth();
   const contacts: string[] = Array.isArray(entity.internal_contacts) ? entity.internal_contacts : [];
   
-  const canSeePoc = hasRole("client_admin") || hasRole("client_requester") || hasRole("fvc_analyst") || hasRole("fvc_ops_admin");
+  const canSeePoc = hasRole("client_admin") || hasRole("client_requester") || isInternal;
 
   const regAddress = formatAddress(entity.registered_address_line1, entity.registered_address_line2, entity.registered_city, entity.registered_region, entity.registered_postcode, entity.registered_country);
   const hqAddress = formatAddress(entity.head_office_address_line1, entity.head_office_address_line2, entity.head_office_city, entity.head_office_region, entity.head_office_postcode, entity.head_office_country);

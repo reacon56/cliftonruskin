@@ -2,6 +2,11 @@ import React, { createContext, useContext, useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import type { User } from "@supabase/supabase-js";
 import type { Database } from "@/integrations/supabase/types";
+import {
+  canQuoteAndScope, canAssignOfficers, canWorkCases,
+  canCreatePartnerTasks, canQcSignoff, canCloseCases,
+  canAdjustDueDates, getPrimaryRoleLabel,
+} from "@/lib/fvc-roles";
 
 type AppRole = Database["public"]["Enums"]["app_role"];
 
@@ -23,6 +28,15 @@ interface AuthContextType {
   isClient: boolean;
   isInternal: boolean;
   isPartner: boolean;
+  /** Granular FV&C permission helpers */
+  canQuote: boolean;
+  canAssign: boolean;
+  canWork: boolean;
+  canPartnerTask: boolean;
+  canQc: boolean;
+  canClose: boolean;
+  canAdjustDates: boolean;
+  primaryRoleLabel: string;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -76,17 +90,34 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   const hasRole = (role: AppRole) => roles.includes(role);
+  const roleStrings = roles as string[];
+
   const isClient = roles.some((r) =>
     ["client_admin", "client_requester", "client_auditor"].includes(r)
   );
   const isInternal = roles.some((r) =>
-    ["fvc_analyst", "fvc_ops_admin"].includes(r)
+    [
+      "fvc_analyst", "fvc_ops_admin",
+      "fvc_assurance_manager", "fvc_assurance_officer",
+      "fvc_assurance_lead", "fvc_quality_reviewer",
+    ].includes(r)
   );
   const isPartner = roles.includes("partner" as AppRole);
 
   return (
     <AuthContext.Provider
-      value={{ user, profile, roles, loading, signOut, hasRole, isClient, isInternal, isPartner }}
+      value={{
+        user, profile, roles, loading, signOut, hasRole,
+        isClient, isInternal, isPartner,
+        canQuote: canQuoteAndScope(roleStrings),
+        canAssign: canAssignOfficers(roleStrings),
+        canWork: canWorkCases(roleStrings),
+        canPartnerTask: canCreatePartnerTasks(roleStrings),
+        canQc: canQcSignoff(roleStrings),
+        canClose: canCloseCases(roleStrings),
+        canAdjustDates: canAdjustDueDates(roleStrings),
+        primaryRoleLabel: getPrimaryRoleLabel(roleStrings),
+      }}
     >
       {children}
     </AuthContext.Provider>

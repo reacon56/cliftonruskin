@@ -20,7 +20,7 @@ import EntityMapView from "@/components/EntityMapView";
 import EnhancementSuggestionPanel from "@/components/EnhancementSuggestionPanel";
 
 export default function EntitiesPage() {
-  const { profile, hasRole } = useAuth();
+  const { profile, hasRole, isInternal } = useAuth();
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const { toast } = useToast();
@@ -35,7 +35,7 @@ export default function EntitiesPage() {
   const [highlightEntityId, setHighlightEntityId] = useState<string | null>(null);
   const [postSaveEntity, setPostSaveEntity] = useState<{ id: string; name: string; country?: string; risk_tier?: string; data_access_level?: string } | null>(null);
 
-  const canSeePoc = hasRole("client_admin") || hasRole("client_requester") || hasRole("fvc_analyst") || hasRole("fvc_ops_admin");
+  const canSeePoc = hasRole("client_admin") || hasRole("client_requester") || isInternal;
 
   const [form, setForm] = useState({
     name: "", entity_type: "supplier", country: "", website: "",

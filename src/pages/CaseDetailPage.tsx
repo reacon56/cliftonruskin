@@ -36,7 +36,7 @@ const STATUS_ICONS: Record<CaseStatus, React.ElementType> = {
 export default function CaseDetailPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { user, profile, hasRole, isInternal } = useAuth();
+  const { user, profile, hasRole, isInternal, canQuote, canAssign, canWork, canQc, canClose, canAdjustDates, primaryRoleLabel } = useAuth();
   const { toast } = useToast();
   const [caseData, setCaseData] = useState<any>(null);
   const [messages, setMessages] = useState<any[]>([]);
@@ -352,7 +352,7 @@ export default function CaseDetailPage() {
                   return (
                     <div key={m.id} className={`border rounded-lg p-3 ${isMe ? "border-accent/20 bg-accent/5" : ""}`}>
                       <div className="flex items-center justify-between mb-1">
-                        <span className="text-xs font-medium text-foreground">{isMe ? "You" : "Analyst"}</span>
+                        <span className="text-xs font-medium text-foreground">{isMe ? "You" : primaryRoleLabel}</span>
                         <span className="text-[10px] text-muted-foreground">{new Date(m.created_at).toLocaleString()}</span>
                       </div>
                       <p className="text-sm text-foreground">{m.message}</p>
@@ -404,8 +404,8 @@ export default function CaseDetailPage() {
             </div>
           )}
 
-          {/* Analyst: Assign */}
-          {isInternal && currentStatus === "approved" && (
+          {/* Manager: Assign */}
+          {canAssign && currentStatus === "approved" && (
             <div className="fvc-card">
               <h3 className="fvc-heading-3 text-foreground mb-3">Assign</h3>
               <Button className="w-full" onClick={() => transitionTo("assigned", { assigned_to: user?.id })}>
@@ -414,8 +414,8 @@ export default function CaseDetailPage() {
             </div>
           )}
 
-          {/* Analyst: Begin Work */}
-          {isInternal && currentStatus === "assigned" && (
+          {/* Officer: Begin Work */}
+          {canWork && currentStatus === "assigned" && (
             <div className="fvc-card">
               <h3 className="fvc-heading-3 text-foreground mb-3">Actions</h3>
               <Button className="w-full" onClick={() => transitionTo("in_progress")}>
@@ -424,8 +424,8 @@ export default function CaseDetailPage() {
             </div>
           )}
 
-          {/* Analyst: In Progress actions */}
-          {isInternal && currentStatus === "in_progress" && (
+          {/* Officer: In Progress actions */}
+          {canWork && currentStatus === "in_progress" && (
             <div className="fvc-card">
               <h3 className="fvc-heading-3 text-foreground mb-3">Actions</h3>
               <div className="space-y-2">
@@ -448,8 +448,8 @@ export default function CaseDetailPage() {
             </div>
           )}
 
-          {/* Analyst: QC actions */}
-          {isInternal && currentStatus === "qc" && (
+          {/* Lead/QC Reviewer: QC actions */}
+          {canQc && currentStatus === "qc" && (
             <div className="fvc-card">
               <h3 className="fvc-heading-3 text-foreground mb-3">QC Review</h3>
               <div className="space-y-2">
@@ -457,14 +457,14 @@ export default function CaseDetailPage() {
                   <FileText size={14} className="mr-1" /> {simulating ? "Delivering…" : "Approve & Deliver"}
                 </Button>
                 <Button variant="outline" className="w-full" onClick={() => transitionTo("in_progress")}>
-                  <X size={14} className="mr-1" /> Return to Analyst
+                  <X size={14} className="mr-1" /> Return to Officer
                 </Button>
               </div>
             </div>
           )}
 
-          {/* Analyst: Awaiting client → resume */}
-          {isInternal && currentStatus === "awaiting_client" && (
+          {/* Officer: Awaiting client → resume */}
+          {canWork && currentStatus === "awaiting_client" && (
             <div className="fvc-card">
               <h3 className="fvc-heading-3 text-foreground mb-3">Actions</h3>
               <Button className="w-full" onClick={() => transitionTo("in_progress")}>
@@ -473,8 +473,8 @@ export default function CaseDetailPage() {
             </div>
           )}
 
-          {/* Delivered → Close */}
-          {(hasRole("client_admin") || isInternal) && currentStatus === "delivered" && (
+          {/* Manager/Admin: Close — or Client Admin */}
+          {(hasRole("client_admin") || canClose) && currentStatus === "delivered" && (
             <div className="fvc-card">
               <h3 className="fvc-heading-3 text-foreground mb-3">Close Case</h3>
               <Button className="w-full" onClick={() => transitionTo("closed")}>
