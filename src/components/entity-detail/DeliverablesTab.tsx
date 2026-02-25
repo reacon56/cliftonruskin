@@ -3,6 +3,8 @@ import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useNavigate } from "react-router-dom";
 import { FileText, Download } from "lucide-react";
+import { getSignedFileUrl } from "@/lib/signed-urls";
+import { useToast } from "@/hooks/use-toast";
 
 interface Props {
   deliverables: any[];
@@ -12,7 +14,23 @@ interface Props {
 
 export default function DeliverablesTab({ deliverables, changeLogs, cases }: Props) {
   const navigate = useNavigate();
+  const { toast } = useToast();
   const [typeFilter, setTypeFilter] = useState("all");
+
+  const openSignedFile = async (fileUrl: string) => {
+    // If it looks like a relative storage path, get signed URL
+    // Otherwise fall back to direct link (legacy)
+    if (fileUrl.startsWith("http")) {
+      window.open(fileUrl, "_blank");
+      return;
+    }
+    const url = await getSignedFileUrl("deliverables", fileUrl);
+    if (url) {
+      window.open(url, "_blank");
+    } else {
+      toast({ title: "Access denied", description: "Could not retrieve file.", variant: "destructive" });
+    }
+  };
 
   const allItems = [
     ...deliverables.map((d) => ({ ...d, _kind: "deliverable" as const })),
@@ -81,9 +99,9 @@ export default function DeliverablesTab({ deliverables, changeLogs, cases }: Pro
                   </Badge>
                 )}
                 {item.file_url && (
-                  <a href={item.file_url} target="_blank" rel="noreferrer" className="text-accent hover:text-accent/80" onClick={(e) => e.stopPropagation()}>
+                  <button onClick={() => openSignedFile(item.file_url)} className="text-accent hover:text-accent/80" title="Download">
                     <Download size={14} />
-                  </a>
+                  </button>
                 )}
               </div>
             </div>

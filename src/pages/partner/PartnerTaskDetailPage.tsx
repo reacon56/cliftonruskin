@@ -14,6 +14,7 @@ import {
   ArrowLeft, CheckCircle2, Upload, MapPin, MessageSquare,
   Send, FileText, Clock, Play, AlertTriangle, Eye, EyeOff,
 } from "lucide-react";
+import { getSignedFileUrl } from "@/lib/signed-urls";
 import {
   PARTNER_STATUS_LABELS, PARTNER_STATUS_COLORS,
   type PartnerTaskStatus,
@@ -112,10 +113,9 @@ export default function PartnerTaskDetailPage() {
       return;
     }
 
-    const { data: urlData } = supabase.storage.from("partner-evidence").getPublicUrl(path);
-
+    // Store the relative path, not a public URL — files are accessed via signed URLs
     await supabase.from("partner_task_items" as any).update({
-      file_url: urlData.publicUrl,
+      file_url: path,
       file_name: file.name,
       updated_at: new Date().toISOString(),
     }).eq("id", itemId);
@@ -123,6 +123,15 @@ export default function PartnerTaskDetailPage() {
     setUploading(null);
     toast({ title: "File uploaded", description: file.name });
     load();
+  };
+
+  const openSignedFile = async (bucket: string, path: string) => {
+    const url = await getSignedFileUrl(bucket, path);
+    if (url) {
+      window.open(url, "_blank");
+    } else {
+      toast({ title: "Access denied", description: "Could not retrieve file.", variant: "destructive" });
+    }
   };
 
   const addGeoToItem = async (itemId: string) => {
@@ -316,9 +325,9 @@ export default function PartnerTaskDetailPage() {
                     {item.file_url && (
                       <div className="mt-2 flex items-center gap-2 text-xs">
                         <FileText size={11} className="text-accent" />
-                        <a href={item.file_url} target="_blank" rel="noopener noreferrer" className="text-accent hover:underline">
+                        <button onClick={() => openSignedFile("partner-evidence", item.file_url!)} className="text-accent hover:underline">
                           {item.file_name || "Attached file"}
-                        </a>
+                        </button>
                       </div>
                     )}
                     {item.geo_label && (
