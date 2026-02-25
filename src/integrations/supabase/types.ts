@@ -681,6 +681,8 @@ export type Database = {
       organisations: {
         Row: {
           approval_price_threshold: number | null
+          auto_suggest_benchmark: boolean
+          auto_suggest_posture: boolean
           created_at: string
           id: string
           industry: string | null
@@ -689,6 +691,8 @@ export type Database = {
         }
         Insert: {
           approval_price_threshold?: number | null
+          auto_suggest_benchmark?: boolean
+          auto_suggest_posture?: boolean
           created_at?: string
           id?: string
           industry?: string | null
@@ -697,6 +701,8 @@ export type Database = {
         }
         Update: {
           approval_price_threshold?: number | null
+          auto_suggest_benchmark?: boolean
+          auto_suggest_posture?: boolean
           created_at?: string
           id?: string
           industry?: string | null

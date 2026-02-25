@@ -12,6 +12,7 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import { ChevronRight, Check, AlertTriangle, Sparkles } from "lucide-react";
 import { requiresApproval } from "@/lib/approval-utils";
+import EnhancementSuggestionPanel from "@/components/EnhancementSuggestionPanel";
 
 const STEPS = ["Select Entity", "Product", "Priority", "Enhancements", "Scope Notes", "Estimate", "Review & Submit"];
 
@@ -298,6 +299,21 @@ export default function CommissionPage() {
               <Sparkles size={16} className="text-accent" />
               <p className="text-sm text-muted-foreground">Optional EDD+ modules that produce additional deliverables.</p>
             </div>
+
+            {/* Intelligent suggestions */}
+            {(() => {
+              const selectedEntity = entities.find((e: any) => e.id === form.entity_id);
+              return selectedEntity ? (
+                <EnhancementSuggestionPanel
+                  entityCountry={selectedEntity.country}
+                  riskTier={selectedEntity.risk_tier}
+                  dataAccessLevel={selectedEntity.data_access_level}
+                  selectedModules={form.selectedModules}
+                  onAddModule={(code) => toggleModule(code)}
+                />
+              ) : null;
+            })()}
+
             {moduleTypes.map((mt) => {
               const isSelected = form.selectedModules.includes(mt.code);
               return (
