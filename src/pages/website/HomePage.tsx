@@ -9,7 +9,7 @@ const GoldRule = ({ className = "" }: { className?: string }) => (
 
 export default function HomePage() {
   return (
-    <div className="overflow-hidden">
+    <div>
       {/* ═══════════════════ HERO ═══════════════════ */}
       <section className="relative isolate min-h-[90vh] flex items-center">
         {/* Skyline BG */}
@@ -19,7 +19,7 @@ export default function HomePage() {
             alt=""
             className="h-full w-full object-cover object-bottom"
           />
-          <div className="absolute inset-0 bg-gradient-to-b from-[#1a1a2e]/80 via-[#1a1a2e]/70 to-[#1a1a2e]/90" />
+          <div className="absolute inset-0 bg-gradient-to-b from-[#1a1a2e]/50 via-[#1a1a2e]/40 to-[#1a1a2e]/75" />
         </div>
 
         <div className="mx-auto max-w-7xl px-6 py-32 text-center">
@@ -39,7 +39,7 @@ export default function HomePage() {
               </Button>
             </Link>
             <Link to="/services">
-              <Button variant="outline" size="lg" className="border-white/30 text-white hover:bg-white/10 rounded-full px-8">
+              <Button variant="outline" size="lg" className="border-white/50 text-white hover:bg-white/10 rounded-full px-8">
                 View Services
               </Button>
             </Link>
