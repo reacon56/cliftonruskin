@@ -6,7 +6,8 @@ import {
   Settings, FileText, LogOut, ChevronLeft, ChevronRight, Moon, Sun,
   ArrowLeftRight, CheckCircle2,
 } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { useTheme } from "@/hooks/use-theme";
@@ -24,6 +25,17 @@ export default function AppSidebar() {
   const [collapsed, setCollapsed] = useState(false);
   const hasBothRoles = isClient && isInternal;
   const [viewAs, setViewAs] = useState<"client" | "internal">(isInternal ? "internal" : "client");
+  const [pendingApprovals, setPendingApprovals] = useState(0);
+
+  useEffect(() => {
+    if (!profile?.org_id || !hasRole("client_admin")) return;
+    supabase
+      .from("cases")
+      .select("id", { count: "exact", head: true })
+      .eq("org_id", profile.org_id)
+      .eq("status", "submitted")
+      .then(({ count }) => setPendingApprovals(count ?? 0));
+  }, [profile?.org_id]);
 
   const clientNav: NavItem[] = [
     { label: "Dashboard", path: "/dashboard", icon: <LayoutDashboard size={18} /> },
@@ -114,7 +126,17 @@ export default function AppSidebar() {
                 {item.icon}
               </span>
               {!collapsed && (
-                <span className="font-medium">{item.label}</span>
+                <span className="font-medium flex-1">{item.label}</span>
+              )}
+              {!collapsed && item.label === "Approvals" && pendingApprovals > 0 && (
+                <span className="ml-auto inline-flex items-center justify-center min-w-[18px] h-[18px] rounded-full bg-sidebar-primary text-sidebar-primary-foreground text-[10px] font-semibold px-1">
+                  {pendingApprovals}
+                </span>
+              )}
+              {collapsed && item.label === "Approvals" && pendingApprovals > 0 && (
+                <span className="absolute -top-0.5 -right-0.5 inline-flex items-center justify-center min-w-[14px] h-[14px] rounded-full bg-sidebar-primary text-sidebar-primary-foreground text-[8px] font-bold px-0.5">
+                  {pendingApprovals}
+                </span>
               )}
             </NavLink>
           );
