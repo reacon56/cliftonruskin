@@ -93,6 +93,7 @@ export default function CommissionPage() {
     const selectedEntity = entities.find((e: any) => e.id === form.entity_id);
     const dpApprovalRequired = dpRisk.requiresApproval;
 
+    // Commission creates a Scheduled case — FV&C will then generate a Quote
     const { data: insertedCase, error } = await supabase.from("cases").insert({
       org_id: profile.org_id,
       entity_id: form.entity_id,
@@ -100,7 +101,7 @@ export default function CommissionPage() {
       product_type: form.product_type,
       priority: form.priority,
       scope_notes: form.scope_notes,
-      status: "submitted",
+      status: "scheduled",
       price_estimate: estimate,
       sla_days: form.priority === "rush" ? 5 : 10,
       requires_personal_data: true,
@@ -189,11 +190,11 @@ export default function CommissionPage() {
       });
     }
 
-    // Write audit event for submission
+    // Write audit event for scheduling
     await supabase.from("audit_events").insert({
       user_id: user.id,
       org_id: profile.org_id,
-      action_type: "CASE_SUBMITTED",
+      action_type: "CASE_SCHEDULED",
       object_type: "case",
       object_id: insertedCase?.id,
       metadata: {
@@ -209,15 +210,9 @@ export default function CommissionPage() {
       },
     });
 
-    const needsApproval = approvalInfo?.required || dpApprovalRequired;
-
     toast({
-      title: needsApproval ? "⏳ Submitted for approval" : "✓ Commission submitted",
-      description: needsApproval
-        ? `${form.product_type} for ${selectedEntity?.name ?? "entity"} requires approval before processing begins.`
-        : `${form.product_type} for ${selectedEntity?.name ?? "entity"} has been submitted. ${
-            form.priority === "rush" ? "Rush — 5 day SLA." : "Standard — 10 day SLA."
-          }`,
+      title: "✓ Case scheduled",
+      description: `${form.product_type} for ${selectedEntity?.name ?? "entity"} has been scheduled. FV&C will generate a formal quote.`,
     });
 
     if (insertedCase?.id) {
