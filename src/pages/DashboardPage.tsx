@@ -9,6 +9,7 @@ import ReviewTimeline from "@/components/ReviewTimeline";
 import ActionsRequired from "@/components/dashboard/ActionsRequired";
 import ActionsDrawer from "@/components/dashboard/ActionsDrawer";
 import WhatChangedCard from "@/components/dashboard/WhatChangedCard";
+import ActiveCasesCard from "@/components/dashboard/ActiveCasesCard";
 import { MessageSquare, Shield } from "lucide-react";
 
 interface DashboardStats {
@@ -342,36 +343,8 @@ export default function DashboardPage() {
           )}
         </div>
 
-        {/* Recent cases */}
-        <div className="fvc-card">
-          <div className="flex items-center justify-between mb-5">
-            <h2 className="fvc-heading-3 text-foreground">Active Cases</h2>
-            <button onClick={() => navigate("/commission")} className="fvc-link text-xs">View all</button>
-          </div>
-          {recentCases.length === 0 ? (
-            <p className="text-sm text-muted-foreground py-4">No cases commissioned yet.</p>
-          ) : (
-            <div className="space-y-0">
-              {recentCases.map((c) => (
-                <div
-                  key={c.id}
-                  className="flex items-center justify-between py-3 border-b border-border/60 last:border-0 cursor-pointer transition-colors hover:bg-muted/30 -mx-2 px-2 rounded"
-                  onClick={() => navigate(`/cases/${c.id}`)}
-                >
-                  <div>
-                    <div className="text-sm font-medium text-foreground">
-                      {(c as any).entities?.name ?? "Entity"}
-                    </div>
-                    <div className="text-[11px] text-muted-foreground mt-0.5">{c.product_type} · {c.priority}</div>
-                  </div>
-                  <Badge className={`fvc-status-badge ${statusColor(c.status)}`}>
-                    {c.status.replace(/_/g, " ")}
-                  </Badge>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
+        {/* Active Cases - Enhanced */}
+        <ActiveCasesCard cases={recentCases} />
 
         {/* Monitoring alerts */}
         <div className="fvc-card lg:col-span-2">
