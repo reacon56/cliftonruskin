@@ -23,24 +23,24 @@ export default function HomePage() {
         </div>
 
         <div className="mx-auto max-w-7xl px-6 py-32 text-center">
-          <p className="text-[#c9a962] text-xs font-semibold uppercase tracking-[0.2em] mb-6 animate-fade-in">
-            Est. London 2026
+          <p className="text-[#c9a962] text-xs font-semibold uppercase tracking-[0.25em] mb-6 animate-fade-in">
+            Discreet. Thorough. Decisive.
           </p>
           <h1 className="font-display text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-semibold text-white leading-[1.1] tracking-tight animate-fade-in" style={{ animationDelay: "100ms" }}>
-            Assurance for<br />consequential decisions.
+            Assurance you can<br />stand behind.
           </h1>
           <p className="mt-6 max-w-2xl mx-auto text-lg text-white/70 leading-relaxed animate-fade-in" style={{ animationDelay: "200ms" }}>
-            Analyst-led due diligence on companies, owners, and third parties — delivered with a clear audit trail.
+            Analyst-led diligence for investors, boards, and procurement teams — proportionate, practical, and defensible.
           </p>
           <div className="mt-10 flex flex-wrap justify-center gap-4 animate-fade-in" style={{ animationDelay: "300ms" }}>
             <Link to="/contact">
               <Button size="lg" className="bg-[#c9a962] hover:bg-[#c9a962]/90 text-[#1a1a2e] font-semibold rounded-full px-8">
-                Request a Consultation
+                Request a Call
               </Button>
             </Link>
-            <Link to="/services">
+            <Link to="/about">
               <Button variant="outline" size="lg" className="border-white/60 bg-white/10 text-white backdrop-blur-sm hover:bg-white/20 rounded-full px-8">
-                View Services
+                Our Standards
               </Button>
             </Link>
           </div>
