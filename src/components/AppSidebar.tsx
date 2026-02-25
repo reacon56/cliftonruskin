@@ -33,7 +33,7 @@ export default function AppSidebar() {
       .from("cases")
       .select("id", { count: "exact", head: true })
       .eq("org_id", profile.org_id)
-      .eq("status", "submitted")
+      .in("status", ["submitted", "quoted"])
       .then(({ count }) => setPendingApprovals(count ?? 0));
   }, [profile?.org_id]);
 
@@ -53,6 +53,7 @@ export default function AppSidebar() {
 
   if (hasRole("client_admin")) {
     clientNav.push({ label: "Users & Roles", path: "/users", icon: <Users size={18} /> });
+    clientNav.push({ label: "Approval Settings", path: "/approval-settings", icon: <Settings size={18} /> });
   }
 
   clientNav.push(

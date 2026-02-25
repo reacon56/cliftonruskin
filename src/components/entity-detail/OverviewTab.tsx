@@ -18,7 +18,7 @@ export default function OverviewTab({ entity, cases, changeLogs, monitoringEvent
   const navigate = useNavigate();
   const todayStr = new Date().toISOString().split("T")[0];
 
-  const latestComplete = cases.find((c) => c.status === "complete");
+  const latestComplete = cases.find((c) => c.status === "delivered" || c.status === "closed");
   const latestDeliverable = deliverables[0];
   const latestChangeLog = changeLogs[0];
 

@@ -30,7 +30,7 @@ export default function ReviewCycleTab({ entity, cases, policyRule, canEdit, onR
   const [saving, setSaving] = useState(false);
 
   const completedCases = cases
-    .filter((c) => c.status === "complete")
+    .filter((c) => c.status === "delivered" || c.status === "closed")
     .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
 
   const cadence = policyRule?.review_frequency_months

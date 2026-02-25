@@ -51,8 +51,8 @@ export default function ApprovalsPage() {
     setLoading(true);
     const { data: pendingCases } = await supabase
       .from("cases")
-      .select("id, product_type, priority, price_estimate, scope_notes, created_at, requested_by, entity_id")
-      .eq("status", "submitted")
+      .select("id, product_type, priority, price_estimate, scope_notes, created_at, requested_by, entity_id, status")
+      .in("status", ["submitted", "quoted"])
       .order("created_at", { ascending: false });
 
     if (!pendingCases?.length) {
