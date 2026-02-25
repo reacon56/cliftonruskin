@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
-import { Building2, AlertTriangle, FileCheck, Activity, Clock, TrendingUp, MapPin, CalendarClock, ShieldCheck, CalendarDays } from "lucide-react";
+import { Building2, AlertTriangle, FileCheck, Activity, Clock, TrendingUp, MapPin, CalendarClock, ShieldCheck, CalendarDays, BarChart3, Globe } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { useNavigate } from "react-router-dom";
 import EntityWorldMap from "@/components/EntityWorldMap";
@@ -10,6 +10,8 @@ import ActionsRequired from "@/components/dashboard/ActionsRequired";
 import ActionsDrawer from "@/components/dashboard/ActionsDrawer";
 import WhatChangedCard from "@/components/dashboard/WhatChangedCard";
 import ActiveCasesCard from "@/components/dashboard/ActiveCasesCard";
+import RiskCoverageView from "@/components/dashboard/RiskCoverageView";
+import SavedViewsDropdown from "@/components/dashboard/SavedViewsDropdown";
 import { MessageSquare, Shield } from "lucide-react";
 
 interface DashboardStats {
@@ -36,6 +38,7 @@ export default function DashboardPage() {
   const [allEntities, setAllEntities] = useState<any[]>([]);
   const [recentCases, setRecentCases] = useState<any[]>([]);
   const [alerts, setAlerts] = useState<any[]>([]);
+  const [mapView, setMapView] = useState<"map" | "risk">("map");
   const [drawerOpen, setDrawerOpen] = useState(false);
 
   // Drawer detail data
@@ -244,12 +247,15 @@ export default function DashboardPage() {
   return (
     <div>
       {/* Header */}
-      <div className="mb-10">
-        <h1 className="fvc-heading-1 text-foreground">Dashboard</h1>
-        <div className="fvc-gold-rule mt-3 mb-2" />
-        <p className="text-sm text-muted-foreground">
-          Overview of your assurance programme
-        </p>
+      <div className="mb-10 flex items-start justify-between">
+        <div>
+          <h1 className="fvc-heading-1 text-foreground">Dashboard</h1>
+          <div className="fvc-gold-rule mt-3 mb-2" />
+          <p className="text-sm text-muted-foreground">
+            Overview of your assurance programme
+          </p>
+        </div>
+        <SavedViewsDropdown />
       </div>
 
       {/* Actions Required strip */}
@@ -285,15 +291,49 @@ export default function DashboardPage() {
         ))}
       </div>
 
-      {/* Map & Review Timeline */}
+      {/* Map / Risk & Coverage + Review Timeline */}
       <div className="grid lg:grid-cols-2 gap-6 mb-10 fvc-stagger">
         <div className="fvc-card">
-          <div className="flex items-center gap-2 mb-4">
-            <MapPin size={16} className="text-accent" />
-            <h2 className="fvc-heading-3 text-foreground">Entity Locations</h2>
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-2">
+              {mapView === "map" ? <MapPin size={16} className="text-accent" /> : <BarChart3 size={16} className="text-accent" />}
+              <h2 className="fvc-heading-3 text-foreground">
+                {mapView === "map" ? "Entity Locations" : "Risk & Coverage"}
+              </h2>
+            </div>
+            <div className="flex items-center rounded-md border border-border overflow-hidden">
+              <button
+                onClick={() => setMapView("map")}
+                className={`flex items-center gap-1 px-2.5 py-1 text-[11px] font-medium transition-colors ${
+                  mapView === "map"
+                    ? "bg-accent/10 text-accent"
+                    : "text-muted-foreground hover:bg-muted/50"
+                }`}
+              >
+                <Globe size={11} /> Map
+              </button>
+              <button
+                onClick={() => setMapView("risk")}
+                className={`flex items-center gap-1 px-2.5 py-1 text-[11px] font-medium transition-colors ${
+                  mapView === "risk"
+                    ? "bg-accent/10 text-accent"
+                    : "text-muted-foreground hover:bg-muted/50"
+                }`}
+              >
+                <BarChart3 size={11} /> Risk & Coverage
+              </button>
+            </div>
           </div>
-          <p className="text-[11px] text-muted-foreground mb-4">Head office locations of registered entities</p>
-          <EntityWorldMap entities={allEntities} />
+          <p className="text-[11px] text-muted-foreground mb-4">
+            {mapView === "map"
+              ? "Head office locations of registered entities"
+              : "Entities in-date vs overdue by risk tier and upcoming workload"}
+          </p>
+          {mapView === "map" ? (
+            <EntityWorldMap entities={allEntities} />
+          ) : (
+            <RiskCoverageView entities={allEntities} />
+          )}
         </div>
         <div className="fvc-card">
           <div className="flex items-center gap-2 mb-4">
