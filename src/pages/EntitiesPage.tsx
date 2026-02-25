@@ -115,7 +115,7 @@ export default function EntitiesPage() {
       }
     }
 
-    const { error } = await supabase.from("entities").insert(insertData);
+    const { data: inserted, error } = await supabase.from("entities").insert(insertData).select("id").single();
     if (error) {
       toast({ title: "Error", description: error.message, variant: "destructive" });
     } else {
@@ -131,6 +131,12 @@ export default function EntitiesPage() {
         poc_name: "", poc_email: "", poc_phone: "",
         location_type: "registered", same_as_registered: false,
       });
+      // Fire-and-forget geocoding
+      if (inserted?.id) {
+        supabase.functions.invoke("geocode", { body: { entity_id: inserted.id } })
+          .then(() => loadEntities())
+          .catch(() => {});
+      }
       loadEntities();
     }
   };
