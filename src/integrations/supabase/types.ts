@@ -247,47 +247,65 @@ export type Database = {
       }
       entities: {
         Row: {
+          business_unit: string | null
+          contract_renewal_date: string | null
           country: string | null
           created_at: string
+          criticality: string
           entity_type: string
           id: string
+          internal_contacts: Json | null
           last_review_date: string | null
           name: string
           next_review_date: string | null
+          onboarded_date: string | null
           org_id: string
           owner_user_id: string | null
           registration_number: string | null
           risk_tier: string
+          service_provided: string | null
           status: string
           website: string | null
         }
         Insert: {
+          business_unit?: string | null
+          contract_renewal_date?: string | null
           country?: string | null
           created_at?: string
+          criticality?: string
           entity_type?: string
           id?: string
+          internal_contacts?: Json | null
           last_review_date?: string | null
           name: string
           next_review_date?: string | null
+          onboarded_date?: string | null
           org_id: string
           owner_user_id?: string | null
           registration_number?: string | null
           risk_tier?: string
+          service_provided?: string | null
           status?: string
           website?: string | null
         }
         Update: {
+          business_unit?: string | null
+          contract_renewal_date?: string | null
           country?: string | null
           created_at?: string
+          criticality?: string
           entity_type?: string
           id?: string
+          internal_contacts?: Json | null
           last_review_date?: string | null
           name?: string
           next_review_date?: string | null
+          onboarded_date?: string | null
           org_id?: string
           owner_user_id?: string | null
           registration_number?: string | null
           risk_tier?: string
+          service_provided?: string | null
           status?: string
           website?: string | null
         }
