@@ -90,6 +90,54 @@ export type Database = {
           },
         ]
       }
+      case_modules: {
+        Row: {
+          approved_by: string | null
+          case_id: string
+          created_at: string
+          id: string
+          module_type_id: string
+          price_estimate: number | null
+          requested_by: string | null
+          status: string
+        }
+        Insert: {
+          approved_by?: string | null
+          case_id: string
+          created_at?: string
+          id?: string
+          module_type_id: string
+          price_estimate?: number | null
+          requested_by?: string | null
+          status?: string
+        }
+        Update: {
+          approved_by?: string | null
+          case_id?: string
+          created_at?: string
+          id?: string
+          module_type_id?: string
+          price_estimate?: number | null
+          requested_by?: string | null
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "case_modules_case_id_fkey"
+            columns: ["case_id"]
+            isOneToOne: false
+            referencedRelation: "cases"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "case_modules_module_type_id_fkey"
+            columns: ["module_type_id"]
+            isOneToOne: false
+            referencedRelation: "module_types"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       cases: {
         Row: {
           approved_by: string | null
@@ -207,6 +255,50 @@ export type Database = {
           },
         ]
       }
+      commercial_posture_inputs: {
+        Row: {
+          attachment_url: string | null
+          case_module_id: string
+          confidence: string
+          created_at: string
+          id: string
+          is_anonymised: boolean
+          note_text: string | null
+          reference_type: string
+          source_category: string
+        }
+        Insert: {
+          attachment_url?: string | null
+          case_module_id: string
+          confidence?: string
+          created_at?: string
+          id?: string
+          is_anonymised?: boolean
+          note_text?: string | null
+          reference_type: string
+          source_category?: string
+        }
+        Update: {
+          attachment_url?: string | null
+          case_module_id?: string
+          confidence?: string
+          created_at?: string
+          id?: string
+          is_anonymised?: boolean
+          note_text?: string | null
+          reference_type?: string
+          source_category?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "commercial_posture_inputs_case_module_id_fkey"
+            columns: ["case_module_id"]
+            isOneToOne: false
+            referencedRelation: "case_modules"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       deliverables: {
         Row: {
           case_id: string
@@ -252,6 +344,7 @@ export type Database = {
           country: string | null
           created_at: string
           criticality: string
+          data_access_level: string | null
           entity_type: string
           head_office_address_line1: string | null
           head_office_address_line2: string | null
@@ -269,6 +362,7 @@ export type Database = {
           onboarded_date: string | null
           org_id: string
           owner_user_id: string | null
+          payment_terms: string | null
           poc_email: string | null
           poc_name: string | null
           poc_phone: string | null
@@ -292,6 +386,7 @@ export type Database = {
           country?: string | null
           created_at?: string
           criticality?: string
+          data_access_level?: string | null
           entity_type?: string
           head_office_address_line1?: string | null
           head_office_address_line2?: string | null
@@ -309,6 +404,7 @@ export type Database = {
           onboarded_date?: string | null
           org_id: string
           owner_user_id?: string | null
+          payment_terms?: string | null
           poc_email?: string | null
           poc_name?: string | null
           poc_phone?: string | null
@@ -332,6 +428,7 @@ export type Database = {
           country?: string | null
           created_at?: string
           criticality?: string
+          data_access_level?: string | null
           entity_type?: string
           head_office_address_line1?: string | null
           head_office_address_line2?: string | null
@@ -349,6 +446,7 @@ export type Database = {
           onboarded_date?: string | null
           org_id?: string
           owner_user_id?: string | null
+          payment_terms?: string | null
           poc_email?: string | null
           poc_name?: string | null
           poc_phone?: string | null
@@ -375,6 +473,128 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      jurisdiction_benchmark_inputs: {
+        Row: {
+          abnormal_patterns: string | null
+          case_module_id: string
+          confidence: string
+          created_at: string
+          enforcement_reality_notes: string | null
+          id: string
+          indices_used: Json | null
+          jurisdiction_country: string
+          normal_patterns: string | null
+          practical_guidance: string | null
+          sector: string | null
+        }
+        Insert: {
+          abnormal_patterns?: string | null
+          case_module_id: string
+          confidence?: string
+          created_at?: string
+          enforcement_reality_notes?: string | null
+          id?: string
+          indices_used?: Json | null
+          jurisdiction_country: string
+          normal_patterns?: string | null
+          practical_guidance?: string | null
+          sector?: string | null
+        }
+        Update: {
+          abnormal_patterns?: string | null
+          case_module_id?: string
+          confidence?: string
+          created_at?: string
+          enforcement_reality_notes?: string | null
+          id?: string
+          indices_used?: Json | null
+          jurisdiction_country?: string
+          normal_patterns?: string | null
+          practical_guidance?: string | null
+          sector?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "jurisdiction_benchmark_inputs_case_module_id_fkey"
+            columns: ["case_module_id"]
+            isOneToOne: false
+            referencedRelation: "case_modules"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      module_outputs: {
+        Row: {
+          case_module_id: string
+          confidence_level: string
+          created_at: string
+          deliverable_id: string | null
+          executive_summary: string | null
+          id: string
+          limitations: string | null
+        }
+        Insert: {
+          case_module_id: string
+          confidence_level?: string
+          created_at?: string
+          deliverable_id?: string | null
+          executive_summary?: string | null
+          id?: string
+          limitations?: string | null
+        }
+        Update: {
+          case_module_id?: string
+          confidence_level?: string
+          created_at?: string
+          deliverable_id?: string | null
+          executive_summary?: string | null
+          id?: string
+          limitations?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "module_outputs_case_module_id_fkey"
+            columns: ["case_module_id"]
+            isOneToOne: false
+            referencedRelation: "case_modules"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "module_outputs_deliverable_id_fkey"
+            columns: ["deliverable_id"]
+            isOneToOne: false
+            referencedRelation: "deliverables"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      module_types: {
+        Row: {
+          code: string
+          created_at: string
+          default_enabled: boolean
+          description: string | null
+          id: string
+          name: string
+        }
+        Insert: {
+          code: string
+          created_at?: string
+          default_enabled?: boolean
+          description?: string | null
+          id?: string
+          name: string
+        }
+        Update: {
+          code?: string
+          created_at?: string
+          default_enabled?: boolean
+          description?: string | null
+          id?: string
+          name?: string
+        }
+        Relationships: []
       }
       monitoring_events: {
         Row: {
