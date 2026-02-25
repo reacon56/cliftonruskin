@@ -4,7 +4,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Search, Building2 } from "lucide-react";
+import { Plus, Search, Building2, List, Map, Globe, MapPin, ExternalLink, User } from "lucide-react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger,
@@ -13,13 +13,15 @@ import { Label } from "@/components/ui/label";
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
+import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/hooks/use-toast";
 import SavedViewsDropdown, { type FilterState } from "@/components/SavedViewsDropdown";
+import EntityMapView from "@/components/EntityMapView";
 
 export default function EntitiesPage() {
   const { profile, hasRole } = useAuth();
   const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
+  const [searchParams, setSearchParams] = useSearchParams();
   const { toast } = useToast();
   const [entities, setEntities] = useState<any[]>([]);
   const [search, setSearch] = useState("");
@@ -28,27 +30,36 @@ export default function EntitiesPage() {
   const [filterStatus, setFilterStatus] = useState<string>("all");
   const [activeViewName, setActiveViewName] = useState<string | undefined>();
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [viewMode, setViewMode] = useState<"list" | "map">("list");
+  const [highlightEntityId, setHighlightEntityId] = useState<string | null>(null);
+
+  const canSeePoc = hasRole("client_admin") || hasRole("client_requester") || hasRole("fvc_analyst") || hasRole("fvc_ops_admin");
+
   const [form, setForm] = useState({
     name: "", entity_type: "supplier", country: "", website: "",
     registration_number: "", risk_tier: "B",
+    registered_address_line1: "", registered_address_line2: "", registered_city: "",
+    registered_region: "", registered_postcode: "", registered_country: "",
+    head_office_address_line1: "", head_office_address_line2: "", head_office_city: "",
+    head_office_region: "", head_office_postcode: "", head_office_country: "",
+    poc_name: "", poc_email: "", poc_phone: "",
+    location_type: "registered" as "registered" | "hq" | "both",
+    same_as_registered: false,
   });
 
   // Sync query params to filter state
   useEffect(() => {
     const tier = searchParams.get("tier");
     const filter = searchParams.get("filter");
+    const view = searchParams.get("view");
+    const highlight = searchParams.get("highlight");
 
     if (tier) setFilterTier(tier);
-
-    if (filter === "overdue" || filter === "due_soon" || filter === "due_60") {
-      setFilterStatus(filter);
-    }
-    if (filter === "mine") {
-      setFilterStatus("mine");
-    }
-    if (filter === "high_alerts") {
-      setFilterStatus("high_alerts");
-    }
+    if (filter === "overdue" || filter === "due_soon" || filter === "due_60") setFilterStatus(filter);
+    if (filter === "mine") setFilterStatus("mine");
+    if (filter === "high_alerts") setFilterStatus("high_alerts");
+    if (view === "map") setViewMode("map");
+    if (highlight) setHighlightEntityId(highlight);
   }, [searchParams]);
 
   useEffect(() => {
@@ -56,23 +67,70 @@ export default function EntitiesPage() {
   }, [profile?.org_id]);
 
   const loadEntities = async () => {
-    let query = supabase.from("entities").select("*").eq("org_id", profile!.org_id!).order("name");
-    const { data } = await query;
+    const { data } = await supabase.from("entities").select("*").eq("org_id", profile!.org_id!).order("name");
     setEntities(data ?? []);
   };
 
   const handleAdd = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!profile?.org_id) return;
-    const { error } = await supabase.from("entities").insert({
-      ...form, org_id: profile.org_id, owner_user_id: profile.user_id,
-    });
+
+    // Validate poc_email if provided
+    if (form.poc_email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.poc_email)) {
+      toast({ title: "Invalid email", description: "Please enter a valid PoC email address.", variant: "destructive" });
+      return;
+    }
+
+    const insertData: any = {
+      name: form.name, entity_type: form.entity_type, country: form.country || form.registered_country,
+      website: form.website, registration_number: form.registration_number, risk_tier: form.risk_tier,
+      org_id: profile.org_id, owner_user_id: profile.user_id,
+      poc_name: form.poc_name || null, poc_email: form.poc_email || null, poc_phone: form.poc_phone || null,
+    };
+
+    if (form.location_type === "registered" || form.location_type === "both") {
+      insertData.registered_address_line1 = form.registered_address_line1 || null;
+      insertData.registered_address_line2 = form.registered_address_line2 || null;
+      insertData.registered_city = form.registered_city || null;
+      insertData.registered_region = form.registered_region || null;
+      insertData.registered_postcode = form.registered_postcode || null;
+      insertData.registered_country = form.registered_country || null;
+    }
+
+    if (form.location_type === "hq" || form.location_type === "both") {
+      if (form.same_as_registered) {
+        insertData.head_office_address_line1 = form.registered_address_line1 || null;
+        insertData.head_office_address_line2 = form.registered_address_line2 || null;
+        insertData.head_office_city = form.registered_city || null;
+        insertData.head_office_region = form.registered_region || null;
+        insertData.head_office_postcode = form.registered_postcode || null;
+        insertData.head_office_country = form.registered_country || null;
+      } else {
+        insertData.head_office_address_line1 = form.head_office_address_line1 || null;
+        insertData.head_office_address_line2 = form.head_office_address_line2 || null;
+        insertData.head_office_city = form.head_office_city || null;
+        insertData.head_office_region = form.head_office_region || null;
+        insertData.head_office_postcode = form.head_office_postcode || null;
+        insertData.head_office_country = form.head_office_country || null;
+      }
+    }
+
+    const { error } = await supabase.from("entities").insert(insertData);
     if (error) {
       toast({ title: "Error", description: error.message, variant: "destructive" });
     } else {
       toast({ title: "Entity added" });
       setDialogOpen(false);
-      setForm({ name: "", entity_type: "supplier", country: "", website: "", registration_number: "", risk_tier: "B" });
+      setForm({
+        name: "", entity_type: "supplier", country: "", website: "",
+        registration_number: "", risk_tier: "B",
+        registered_address_line1: "", registered_address_line2: "", registered_city: "",
+        registered_region: "", registered_postcode: "", registered_country: "",
+        head_office_address_line1: "", head_office_address_line2: "", head_office_city: "",
+        head_office_region: "", head_office_postcode: "", head_office_country: "",
+        poc_name: "", poc_email: "", poc_phone: "",
+        location_type: "registered", same_as_registered: false,
+      });
       loadEntities();
     }
   };
@@ -81,14 +139,10 @@ export default function EntitiesPage() {
     setFilterTier(filters.tier || "all");
     setFilterType(filters.type || "all");
     setFilterStatus(filters.status || "all");
-    setActiveViewName(undefined); // will be set by the dropdown label logic
+    setActiveViewName(undefined);
   };
 
-  const currentFilters: FilterState = {
-    tier: filterTier,
-    type: filterType,
-    status: filterStatus,
-  };
+  const currentFilters: FilterState = { tier: filterTier, type: filterType, status: filterStatus };
 
   const todayStr = new Date().toISOString().split("T")[0];
   const in30Str = new Date(Date.now() + 30 * 86400000).toISOString().split("T")[0];
@@ -96,7 +150,9 @@ export default function EntitiesPage() {
 
   const filtered = entities.filter((e) => {
     const matchSearch = e.name.toLowerCase().includes(search.toLowerCase()) ||
-      (e.country || "").toLowerCase().includes(search.toLowerCase());
+      (e.country || "").toLowerCase().includes(search.toLowerCase()) ||
+      (e.registered_city || "").toLowerCase().includes(search.toLowerCase()) ||
+      (e.head_office_city || "").toLowerCase().includes(search.toLowerCase());
     const matchTier = filterTier === "all" || e.risk_tier === filterTier;
     const matchType = filterType === "all" || e.entity_type === filterType;
 
@@ -120,7 +176,29 @@ export default function EntitiesPage() {
     return "bg-success/10 text-success";
   };
 
+  const getDueStatus = (e: any) => {
+    if (!e.next_review_date) return { label: "No date set", color: "bg-muted text-muted-foreground" };
+    const days = Math.ceil((new Date(e.next_review_date).getTime() - Date.now()) / 86400000);
+    if (days < 0) return { label: "Overdue", color: "bg-destructive/10 text-destructive" };
+    if (days <= 30) return { label: "Due soon", color: "bg-warning/10 text-warning" };
+    return { label: "In-date", color: "bg-success/10 text-success" };
+  };
+
+  const getLocation = (e: any) => {
+    if (e.head_office_city && e.head_office_country) return `${e.head_office_city}, ${e.head_office_country}`;
+    if (e.registered_city && e.registered_country) return `${e.registered_city}, ${e.registered_country}`;
+    return e.country || "—";
+  };
+
+  const getAddress = (e: any) => {
+    const parts = [e.registered_address_line1, e.registered_city, e.registered_country || e.country].filter(Boolean);
+    return parts.length > 0 ? parts.join(", ") : null;
+  };
+
   const canAdd = hasRole("client_admin") || hasRole("client_requester");
+
+  const showHqFields = form.location_type === "hq" || form.location_type === "both";
+  const showRegFields = form.location_type === "registered" || form.location_type === "both";
 
   return (
     <div>
@@ -131,23 +209,39 @@ export default function EntitiesPage() {
           <p className="text-sm text-muted-foreground">Third parties under due diligence</p>
         </div>
         <div className="flex items-center gap-3">
-          <SavedViewsDropdown
-            pageType="entities"
-            currentFilters={currentFilters}
-            onApplyFilters={handleApplyFilters}
-          />
+          {/* View mode toggle */}
+          <div className="flex items-center rounded-md border border-border overflow-hidden">
+            <button
+              onClick={() => setViewMode("list")}
+              className={`flex items-center gap-1 px-2.5 py-1.5 text-[11px] font-medium transition-colors ${
+                viewMode === "list" ? "bg-accent/10 text-accent" : "text-muted-foreground hover:bg-muted/50"
+              }`}
+            >
+              <List size={12} /> List
+            </button>
+            <button
+              onClick={() => setViewMode("map")}
+              className={`flex items-center gap-1 px-2.5 py-1.5 text-[11px] font-medium transition-colors ${
+                viewMode === "map" ? "bg-accent/10 text-accent" : "text-muted-foreground hover:bg-muted/50"
+              }`}
+            >
+              <Map size={12} /> Map
+            </button>
+          </div>
+          <SavedViewsDropdown pageType="entities" currentFilters={currentFilters} onApplyFilters={handleApplyFilters} />
           {canAdd && (
             <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
               <DialogTrigger asChild>
                 <Button><Plus size={15} className="mr-2" />Add Entity</Button>
               </DialogTrigger>
-              <DialogContent>
+              <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto">
                 <DialogHeader>
                   <DialogTitle className="font-display text-xl">Add Entity</DialogTitle>
                 </DialogHeader>
-                <form onSubmit={handleAdd} className="space-y-4 mt-2">
+                <form onSubmit={handleAdd} className="space-y-5 mt-2">
+                  {/* Basic info */}
                   <div className="space-y-2">
-                    <Label>Name</Label>
+                    <Label>Name *</Label>
                     <Input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} required />
                   </div>
                   <div className="grid grid-cols-2 gap-4">
@@ -180,14 +274,91 @@ export default function EntitiesPage() {
                       <Input value={form.country} onChange={(e) => setForm({ ...form, country: e.target.value })} />
                     </div>
                     <div className="space-y-2">
-                      <Label>Website</Label>
-                      <Input value={form.website} onChange={(e) => setForm({ ...form, website: e.target.value })} />
+                      <Label>Registration Number</Label>
+                      <Input value={form.registration_number} onChange={(e) => setForm({ ...form, registration_number: e.target.value })} />
                     </div>
                   </div>
-                  <div className="space-y-2">
-                    <Label>Registration number</Label>
-                    <Input value={form.registration_number} onChange={(e) => setForm({ ...form, registration_number: e.target.value })} />
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label>Website</Label>
+                      <Input value={form.website} onChange={(e) => setForm({ ...form, website: e.target.value })} placeholder="https://…" />
+                    </div>
                   </div>
+
+                  {/* Divider */}
+                  <div className="border-t border-border pt-4">
+                    <p className="text-[10px] uppercase tracking-[0.08em] text-muted-foreground font-semibold mb-3">Location</p>
+                    <div className="space-y-2 mb-4">
+                      <Label>Location Type</Label>
+                      <Select value={form.location_type} onValueChange={(v: any) => setForm({ ...form, location_type: v })}>
+                        <SelectTrigger><SelectValue /></SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="registered">Registered Office</SelectItem>
+                          <SelectItem value="hq">Head Office</SelectItem>
+                          <SelectItem value="both">Both</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    {showRegFields && (
+                      <div className="space-y-3 mb-4">
+                        <p className="text-xs font-medium text-foreground">Registered Office</p>
+                        <Input placeholder="Address line 1" value={form.registered_address_line1} onChange={(e) => setForm({ ...form, registered_address_line1: e.target.value })} />
+                        <Input placeholder="Address line 2 (optional)" value={form.registered_address_line2} onChange={(e) => setForm({ ...form, registered_address_line2: e.target.value })} />
+                        <div className="grid grid-cols-3 gap-3">
+                          <Input placeholder="City" value={form.registered_city} onChange={(e) => setForm({ ...form, registered_city: e.target.value })} />
+                          <Input placeholder="Region" value={form.registered_region} onChange={(e) => setForm({ ...form, registered_region: e.target.value })} />
+                          <Input placeholder="Postcode" value={form.registered_postcode} onChange={(e) => setForm({ ...form, registered_postcode: e.target.value })} />
+                        </div>
+                        <Input placeholder="Country" value={form.registered_country} onChange={(e) => setForm({ ...form, registered_country: e.target.value })} />
+                      </div>
+                    )}
+
+                    {showHqFields && form.location_type === "both" && (
+                      <div className="flex items-center gap-2 mb-3">
+                        <Checkbox
+                          checked={form.same_as_registered}
+                          onCheckedChange={(c) => setForm({ ...form, same_as_registered: !!c })}
+                          id="same-addr"
+                        />
+                        <label htmlFor="same-addr" className="text-sm text-muted-foreground cursor-pointer">Same as registered address</label>
+                      </div>
+                    )}
+
+                    {showHqFields && !form.same_as_registered && (
+                      <div className="space-y-3">
+                        <p className="text-xs font-medium text-foreground">Head Office</p>
+                        <Input placeholder="Address line 1" value={form.head_office_address_line1} onChange={(e) => setForm({ ...form, head_office_address_line1: e.target.value })} />
+                        <Input placeholder="Address line 2 (optional)" value={form.head_office_address_line2} onChange={(e) => setForm({ ...form, head_office_address_line2: e.target.value })} />
+                        <div className="grid grid-cols-3 gap-3">
+                          <Input placeholder="City" value={form.head_office_city} onChange={(e) => setForm({ ...form, head_office_city: e.target.value })} />
+                          <Input placeholder="Region" value={form.head_office_region} onChange={(e) => setForm({ ...form, head_office_region: e.target.value })} />
+                          <Input placeholder="Postcode" value={form.head_office_postcode} onChange={(e) => setForm({ ...form, head_office_postcode: e.target.value })} />
+                        </div>
+                        <Input placeholder="Country" value={form.head_office_country} onChange={(e) => setForm({ ...form, head_office_country: e.target.value })} />
+                      </div>
+                    )}
+                  </div>
+
+                  {/* PoC */}
+                  <div className="border-t border-border pt-4">
+                    <p className="text-[10px] uppercase tracking-[0.08em] text-muted-foreground font-semibold mb-3">Point of Contact</p>
+                    <div className="grid grid-cols-3 gap-3">
+                      <div className="space-y-2">
+                        <Label>Name</Label>
+                        <Input value={form.poc_name} onChange={(e) => setForm({ ...form, poc_name: e.target.value })} />
+                      </div>
+                      <div className="space-y-2">
+                        <Label>Email</Label>
+                        <Input type="email" value={form.poc_email} onChange={(e) => setForm({ ...form, poc_email: e.target.value })} />
+                      </div>
+                      <div className="space-y-2">
+                        <Label>Phone</Label>
+                        <Input value={form.poc_phone} onChange={(e) => setForm({ ...form, poc_phone: e.target.value })} />
+                      </div>
+                    </div>
+                  </div>
+
                   <Button type="submit" className="w-full">Add Entity</Button>
                 </form>
               </DialogContent>
@@ -232,47 +403,108 @@ export default function EntitiesPage() {
         </Select>
       </div>
 
-      {/* Table */}
-      {filtered.length === 0 ? (
-        <div className="fvc-card text-center py-16">
-          <Building2 size={36} className="mx-auto text-muted-foreground/30 mb-4" />
-          <p className="text-sm text-muted-foreground">No entities found. Add your first third party to begin.</p>
+      {/* Content */}
+      {viewMode === "map" ? (
+        <div className="fvc-card">
+          <EntityMapView entities={filtered} highlightId={highlightEntityId} />
         </div>
       ) : (
-        <div className="border rounded-lg overflow-hidden bg-card" style={{ boxShadow: "var(--shadow-card)" }}>
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="border-b bg-muted/40">
-                <th className="text-left px-5 py-3 fvc-label">Name</th>
-                <th className="text-left px-5 py-3 fvc-label">Type</th>
-                <th className="text-left px-5 py-3 fvc-label">Country</th>
-                <th className="text-left px-5 py-3 fvc-label">Risk</th>
-                <th className="text-left px-5 py-3 fvc-label">Status</th>
-                <th className="text-left px-5 py-3 fvc-label">Next Review</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filtered.map((e) => (
-                <tr
-                  key={e.id}
-                  className="fvc-table-row"
-                  onClick={() => navigate(`/entities/${e.id}`)}
-                >
-                  <td className="px-5 py-3.5 font-medium text-foreground">{e.name}</td>
-                  <td className="px-5 py-3.5 capitalize text-muted-foreground">{e.entity_type}</td>
-                  <td className="px-5 py-3.5 text-muted-foreground">{e.country || "—"}</td>
-                  <td className="px-5 py-3.5">
-                    <Badge className={`fvc-status-badge ${tierColor(e.risk_tier)}`}>Tier {e.risk_tier}</Badge>
-                  </td>
-                  <td className="px-5 py-3.5 capitalize text-muted-foreground">{e.status}</td>
-                  <td className="px-5 py-3.5 text-muted-foreground">
-                    {e.next_review_date ? new Date(e.next_review_date).toLocaleDateString() : "—"}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+        <>
+          {filtered.length === 0 ? (
+            <div className="fvc-card text-center py-16">
+              <Building2 size={36} className="mx-auto text-muted-foreground/30 mb-4" />
+              <p className="text-sm text-muted-foreground">No entities found. Add your first third party to begin.</p>
+            </div>
+          ) : (
+            <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+              {filtered.map((e) => {
+                const dueStatus = getDueStatus(e);
+                const location = getLocation(e);
+                const address = getAddress(e);
+                return (
+                  <div
+                    key={e.id}
+                    className="fvc-card-interactive group"
+                    onClick={() => navigate(`/entities/${e.id}`)}
+                  >
+                    {/* Top line */}
+                    <div className="flex items-start justify-between mb-3">
+                      <div className="min-w-0 flex-1 mr-3">
+                        <div className="flex items-center gap-2">
+                          <h3 className="text-sm font-semibold text-foreground truncate">{e.name}</h3>
+                          <span className="text-[10px] text-muted-foreground capitalize shrink-0">{e.entity_type}</span>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-1.5 shrink-0">
+                        <Badge className={`fvc-status-badge ${tierColor(e.risk_tier)}`}>Tier {e.risk_tier}</Badge>
+                        <Badge className={`fvc-status-badge ${dueStatus.color}`}>{dueStatus.label}</Badge>
+                      </div>
+                    </div>
+
+                    {/* Profile section — 2 columns */}
+                    <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-[11px] mb-3">
+                      <div>
+                        <span className="text-muted-foreground flex items-center gap-1">
+                          <MapPin size={10} /> {location}
+                        </span>
+                        {address && (
+                          <span className="text-muted-foreground/70 block truncate mt-0.5">{address}</span>
+                        )}
+                      </div>
+                      <div>
+                        {e.website && (
+                          <a
+                            href={e.website.startsWith("http") ? e.website : `https://${e.website}`}
+                            target="_blank" rel="noopener noreferrer"
+                            className="text-accent hover:underline flex items-center gap-1"
+                            onClick={(ev) => ev.stopPropagation()}
+                          >
+                            <Globe size={10} /> {e.website.replace(/^https?:\/\//, "").replace(/\/$/, "")}
+                          </a>
+                        )}
+                        {canSeePoc && e.poc_name && (
+                          <span className="text-muted-foreground flex items-center gap-1 mt-0.5">
+                            <User size={10} /> {e.poc_name}
+                            {e.poc_email && <span className="text-muted-foreground/60 truncate ml-0.5">· {e.poc_email}</span>}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Bottom meta */}
+                    {(e.business_unit || e.service_provided) && (
+                      <div className="text-[10px] text-muted-foreground/60 truncate mb-3">
+                        {[e.business_unit, e.service_provided].filter(Boolean).join(" · ")}
+                      </div>
+                    )}
+
+                    {/* Actions */}
+                    <div className="flex items-center gap-2 pt-2 border-t border-border/50">
+                      <Button size="sm" variant="ghost" className="h-7 text-xs text-muted-foreground flex-1"
+                        onClick={(ev) => { ev.stopPropagation(); navigate(`/entities/${e.id}`); }}>
+                        Open
+                      </Button>
+                      <Button size="sm" variant="ghost" className="h-7 text-xs text-muted-foreground flex-1"
+                        onClick={(ev) => { ev.stopPropagation(); navigate(`/commission?entity=${e.id}`); }}>
+                        Commission
+                      </Button>
+                      <button
+                        className="text-[10px] text-accent hover:underline"
+                        onClick={(ev) => {
+                          ev.stopPropagation();
+                          setHighlightEntityId(e.id);
+                          setViewMode("map");
+                        }}
+                      >
+                        View on map
+                      </button>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </>
       )}
     </div>
   );

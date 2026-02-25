@@ -1,6 +1,7 @@
 import { Badge } from "@/components/ui/badge";
 import { useNavigate } from "react-router-dom";
-import { AlertTriangle, FileText, Clock, MapPin, Calendar } from "lucide-react";
+import { AlertTriangle, FileText, Clock } from "lucide-react";
+import EntityLocationSection from "./EntityLocationSection";
 
 interface Props {
   entity: any;
@@ -14,12 +15,10 @@ export default function OverviewTab({ entity, cases, changeLogs, monitoringEvent
   const navigate = useNavigate();
   const todayStr = new Date().toISOString().split("T")[0];
 
-  // Latest completed case
   const latestComplete = cases.find((c) => c.status === "complete");
   const latestDeliverable = deliverables[0];
   const latestChangeLog = changeLogs[0];
 
-  // Open items
   const isOverdue = entity.next_review_date && entity.next_review_date < todayStr;
   const highAlerts = monitoringEvents.filter((m) => m.severity === "high" && m.status === "new");
   const awaitingCases = cases.filter((c) => c.status === "awaiting_client" || c.status === "submitted");
@@ -78,6 +77,9 @@ export default function OverviewTab({ entity, cases, changeLogs, monitoringEvent
           )}
         </div>
       </div>
+
+      {/* Location Section */}
+      <EntityLocationSection entity={entity} />
 
       {/* Quick Details */}
       <div className="fvc-card">
