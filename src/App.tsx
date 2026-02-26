@@ -32,6 +32,16 @@ import MarketLessonsAdminPage from "@/pages/MarketLessonsAdminPage";
 import PartnerTaskListPage from "@/pages/partner/PartnerTaskListPage";
 import PartnerTaskDetailPage from "@/pages/partner/PartnerTaskDetailPage";
 import NotFound from "@/pages/NotFound";
+import WorkloadPage from "@/pages/WorkloadPage";
+import MasterEntitiesPage from "@/pages/MasterEntitiesPage";
+import ProgrammeSettingsPage from "@/pages/ProgrammeSettingsPage";
+import PartnerDirectoryPage from "@/pages/PartnerDirectoryPage";
+import ReconciliationPage from "@/pages/ReconciliationPage";
+import RiskModelPage from "@/pages/RiskModelPage";
+import QaQueuePage from "@/pages/QaQueuePage";
+import MyTasksPage from "@/pages/MyTasksPage";
+import PartnerRequestsPage from "@/pages/PartnerRequestsPage";
+import KnowledgeBasePage from "@/pages/KnowledgeBasePage";
 
 // Website pages
 import WebsiteLayout from "@/components/website/WebsiteLayout";
