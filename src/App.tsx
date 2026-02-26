@@ -42,6 +42,7 @@ import QaQueuePage from "@/pages/QaQueuePage";
 import MyTasksPage from "@/pages/MyTasksPage";
 import PartnerRequestsPage from "@/pages/PartnerRequestsPage";
 import KnowledgeBasePage from "@/pages/KnowledgeBasePage";
+import MasterEntityDetailPage from "@/pages/MasterEntityDetailPage";
 
 // Website pages
 import WebsiteLayout from "@/components/website/WebsiteLayout";
