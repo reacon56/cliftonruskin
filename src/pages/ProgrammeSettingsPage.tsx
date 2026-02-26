@@ -491,6 +491,7 @@ export default function ProgrammeSettingsPage() {
             </CardContent>
           </Card>
 
+          {!canEdit && (
             <Card className="border-dashed border-muted-foreground/30">
               <CardContent className="py-4">
                 <p className="text-sm text-muted-foreground text-center">
