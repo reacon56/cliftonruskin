@@ -22,6 +22,7 @@ import EntityMapView from "@/components/EntityMapView";
 import EnhancementSuggestionPanel from "@/components/EnhancementSuggestionPanel";
 import { CountryFlagBadge, FlagBadgesInfo } from "@/components/CountryFlagBadge";
 import { OperatingCountryChips, type OperatingCountry } from "@/components/OperatingCountries";
+import { findMasterMatches } from "@/lib/entity-matching";
 
 export default function EntitiesPage() {
   const { profile, hasRole, isInternal } = useAuth();
