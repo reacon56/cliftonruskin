@@ -315,6 +315,7 @@ export type Database = {
       }
       cases: {
         Row: {
+          active_lia_id: string | null
           approved_by: string | null
           assigned_to: string | null
           case_type: string
@@ -340,12 +341,15 @@ export type Database = {
           requested_by: string | null
           requires_personal_data: boolean
           retention_months: number | null
+          scope_change_flag: boolean
+          scope_change_resolved: boolean
           scope_notes: string | null
           sla_days: number | null
           status: string
           structured_source_log: Json | null
         }
         Insert: {
+          active_lia_id?: string | null
           approved_by?: string | null
           assigned_to?: string | null
           case_type?: string
@@ -371,12 +375,15 @@ export type Database = {
           requested_by?: string | null
           requires_personal_data?: boolean
           retention_months?: number | null
+          scope_change_flag?: boolean
+          scope_change_resolved?: boolean
           scope_notes?: string | null
           sla_days?: number | null
           status?: string
           structured_source_log?: Json | null
         }
         Update: {
+          active_lia_id?: string | null
           approved_by?: string | null
           assigned_to?: string | null
           case_type?: string
@@ -402,12 +409,21 @@ export type Database = {
           requested_by?: string | null
           requires_personal_data?: boolean
           retention_months?: number | null
+          scope_change_flag?: boolean
+          scope_change_resolved?: boolean
           scope_notes?: string | null
           sla_days?: number | null
           status?: string
           structured_source_log?: Json | null
         }
         Relationships: [
+          {
+            foreignKeyName: "cases_active_lia_id_fkey"
+            columns: ["active_lia_id"]
+            isOneToOne: false
+            referencedRelation: "master_lia_templates"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "cases_entity_id_fkey"
             columns: ["entity_id"]
@@ -1244,9 +1260,12 @@ export type Database = {
         Row: {
           approved_at: string | null
           approved_by: string | null
+          approved_by_name: string | null
           balancing_fields: Json | null
           conditions: string | null
           created_at: string
+          document_url: string | null
+          effective_date: string | null
           id: string
           lawful_basis: string
           legitimate_interest: string | null
@@ -1258,15 +1277,21 @@ export type Database = {
           purpose_category: string
           retention_months: number | null
           safeguards: string | null
+          scope_summary: string | null
           status: string
+          superseded_by: string | null
           updated_at: string
+          version_number: number
         }
         Insert: {
           approved_at?: string | null
           approved_by?: string | null
+          approved_by_name?: string | null
           balancing_fields?: Json | null
           conditions?: string | null
           created_at?: string
+          document_url?: string | null
+          effective_date?: string | null
           id?: string
           lawful_basis?: string
           legitimate_interest?: string | null
@@ -1278,15 +1303,21 @@ export type Database = {
           purpose_category?: string
           retention_months?: number | null
           safeguards?: string | null
+          scope_summary?: string | null
           status?: string
+          superseded_by?: string | null
           updated_at?: string
+          version_number?: number
         }
         Update: {
           approved_at?: string | null
           approved_by?: string | null
+          approved_by_name?: string | null
           balancing_fields?: Json | null
           conditions?: string | null
           created_at?: string
+          document_url?: string | null
+          effective_date?: string | null
           id?: string
           lawful_basis?: string
           legitimate_interest?: string | null
@@ -1298,8 +1329,11 @@ export type Database = {
           purpose_category?: string
           retention_months?: number | null
           safeguards?: string | null
+          scope_summary?: string | null
           status?: string
+          superseded_by?: string | null
           updated_at?: string
+          version_number?: number
         }
         Relationships: [
           {
@@ -1307,6 +1341,13 @@ export type Database = {
             columns: ["org_id"]
             isOneToOne: false
             referencedRelation: "organisations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "master_lia_templates_superseded_by_fkey"
+            columns: ["superseded_by"]
+            isOneToOne: false
+            referencedRelation: "master_lia_templates"
             referencedColumns: ["id"]
           },
         ]
