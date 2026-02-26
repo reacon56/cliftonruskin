@@ -30,15 +30,16 @@ export default function MasterEntityDetailPage() {
   useEffect(() => { if (id) load(); }, [id]);
 
   const load = async () => {
-    const { data } = await supabase
-      .from("master_entities" as any)
+    const { data } = await (supabase as any)
+      .from("master_entities")
       .select("*")
       .eq("id", id!)
       .single();
 
     if (!data) return;
-    setEntity(data);
-    setForm({ ...data });
+    const d = data as any;
+    setEntity(d);
+    setForm({ ...d });
 
     // Load linked client entities
     const { data: linkedData } = await supabase
