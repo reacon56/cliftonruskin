@@ -32,6 +32,10 @@ export default function AppSidebar() {
   const isManager = hasRole("fvc_assurance_manager" as any) || hasRole("fvc_ops_admin" as any);
   const isOfficer = hasRole("fvc_assurance_officer" as any) || hasRole("fvc_analyst" as any);
 
+  // Dev-mode: allow switching between manager and officer views
+  const [devRoleOverride, setDevRoleOverride] = useState<"manager" | "officer" | null>(null);
+  const effectiveIsManager = devRoleOverride === "manager" ? true : devRoleOverride === "officer" ? false : isManager;
+
   useEffect(() => {
     if (!profile?.org_id || !hasRole("client_admin")) return;
     supabase
@@ -97,7 +101,7 @@ export default function AppSidebar() {
   ];
 
   // Determine which internal nav to show
-  const internalNav: NavItem[] = isManager ? managerNav : officerNav;
+  const internalNav: NavItem[] = effectiveIsManager ? managerNav : officerNav;
 
   const activeView = hasBothRoles ? viewAs : (isInternal ? "internal" : "client");
   const navItems = activeView === "internal" ? internalNav : clientNav;
@@ -181,6 +185,35 @@ export default function AppSidebar() {
 
       {/* Theme Toggle & User / Sign Out */}
       <div className="border-t border-sidebar-border p-3 space-y-2">
+        {/* Dev-mode internal role switcher */}
+        {isInternal && activeView === "internal" && (
+          <div className={`flex ${collapsed ? "flex-col" : ""} gap-1`}>
+            <Button
+              variant={effectiveIsManager ? "default" : "ghost"}
+              size="sm"
+              onClick={() => {
+                setDevRoleOverride("manager");
+                navigate("/cases");
+              }}
+              className={`flex-1 text-[11px] ${collapsed ? "px-1" : ""} ${effectiveIsManager ? "bg-sidebar-primary text-sidebar-primary-foreground" : "text-sidebar-foreground/50"}`}
+              title="View as Manager"
+            >
+              {collapsed ? "M" : "Manager"}
+            </Button>
+            <Button
+              variant={!effectiveIsManager ? "default" : "ghost"}
+              size="sm"
+              onClick={() => {
+                setDevRoleOverride("officer");
+                navigate("/cases");
+              }}
+              className={`flex-1 text-[11px] ${collapsed ? "px-1" : ""} ${!effectiveIsManager ? "bg-sidebar-primary text-sidebar-primary-foreground" : "text-sidebar-foreground/50"}`}
+              title="View as Officer"
+            >
+              {collapsed ? "O" : "Officer"}
+            </Button>
+          </div>
+        )}
         {hasBothRoles && (
           <Button
             variant="ghost"
