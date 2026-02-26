@@ -42,10 +42,10 @@ export default function MasterEntityDetailPage() {
     setForm({ ...d });
 
     // Load linked client entities
-    const { data: linkedData } = await supabase
+    const { data: linkedData } = await (supabase as any)
       .from("entities")
       .select("id, name, has_master_conflict, country, org_id")
-      .eq("master_entity_id" as any, id!);
+      .eq("master_entity_id", id!);
 
     if (linkedData) {
       // Get org names

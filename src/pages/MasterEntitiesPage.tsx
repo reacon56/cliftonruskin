@@ -44,7 +44,7 @@ export default function MasterEntitiesPage() {
     // Get linked entity counts + conflict counts
     const ids = (data as any[]).map((d: any) => d.id);
     const { data: linked } = ids.length > 0
-      ? await supabase.from("entities").select("master_entity_id, has_master_conflict").in("master_entity_id" as any, ids)
+      ? await (supabase as any).from("entities").select("master_entity_id, has_master_conflict").in("master_entity_id", ids)
       : { data: [] as any[] };
 
     const countMap: Record<string, { linked: number; conflicts: number }> = {};
