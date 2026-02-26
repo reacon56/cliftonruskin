@@ -64,14 +64,14 @@
     --info-foreground: 40 25% 97%;
 
     /* Gradients */
-    --gradient-navy: linear-gradient(135deg, hsl(220 40% 10%), hsl(220 35% 18%));
-    --gradient-gold: linear-gradient(135deg, hsl(38 55% 52%), hsl(38 40% 62%));
-    --gradient-ivory: linear-gradient(180deg, hsl(40 25% 97%), hsl(40 20% 93%));
+    --gradient-navy: linear-gradient(135deg, hsl(209 70% 10%), hsl(209 63% 16%));
+    --gradient-gold: linear-gradient(135deg, hsl(41 39% 54%), hsl(41 30% 62%));
+    --gradient-ivory: linear-gradient(180deg, hsl(0 0% 100%), hsl(207 26% 93%));
 
     /* Shadows */
-    --shadow-subtle: 0 1px 2px hsl(220 30% 15% / 0.03), 0 1px 3px hsl(220 30% 15% / 0.04);
-    --shadow-card: 0 1px 3px hsl(220 30% 15% / 0.04), 0 4px 12px hsl(220 30% 15% / 0.03);
-    --shadow-elevated: 0 4px 6px hsl(220 30% 15% / 0.04), 0 12px 32px hsl(220 30% 15% / 0.06);
+    --shadow-subtle: 0 1px 2px hsl(209 63% 16% / 0.03), 0 1px 3px hsl(209 63% 16% / 0.04);
+    --shadow-card: 0 1px 3px hsl(209 63% 16% / 0.04), 0 4px 12px hsl(209 63% 16% / 0.03);
+    --shadow-elevated: 0 4px 6px hsl(209 63% 16% / 0.04), 0 12px 32px hsl(209 63% 16% / 0.06);
     --shadow-gold-glow: 0 0 0 1px hsl(38 55% 52% / 0.15), 0 4px 16px hsl(38 55% 52% / 0.08);
 
     /* Fonts */
