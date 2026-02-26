@@ -317,6 +317,7 @@ export type Database = {
         Row: {
           approved_by: string | null
           assigned_to: string | null
+          case_type: string
           created_at: string
           data_categories: Json | null
           dp_review_required: boolean
@@ -324,6 +325,7 @@ export type Database = {
           due_date: string | null
           entity_id: string
           id: string
+          internal_notes: string | null
           lawful_basis: string | null
           lia_summary: string | null
           minimisation_confirmed: boolean
@@ -333,16 +335,20 @@ export type Database = {
           processing_purpose: string | null
           processing_purpose_detail: string | null
           product_type: string
+          qa_owner: string | null
+          report_tier: string
           requested_by: string | null
           requires_personal_data: boolean
           retention_months: number | null
           scope_notes: string | null
           sla_days: number | null
           status: string
+          structured_source_log: Json | null
         }
         Insert: {
           approved_by?: string | null
           assigned_to?: string | null
+          case_type?: string
           created_at?: string
           data_categories?: Json | null
           dp_review_required?: boolean
@@ -350,6 +356,7 @@ export type Database = {
           due_date?: string | null
           entity_id: string
           id?: string
+          internal_notes?: string | null
           lawful_basis?: string | null
           lia_summary?: string | null
           minimisation_confirmed?: boolean
@@ -359,16 +366,20 @@ export type Database = {
           processing_purpose?: string | null
           processing_purpose_detail?: string | null
           product_type?: string
+          qa_owner?: string | null
+          report_tier?: string
           requested_by?: string | null
           requires_personal_data?: boolean
           retention_months?: number | null
           scope_notes?: string | null
           sla_days?: number | null
           status?: string
+          structured_source_log?: Json | null
         }
         Update: {
           approved_by?: string | null
           assigned_to?: string | null
+          case_type?: string
           created_at?: string
           data_categories?: Json | null
           dp_review_required?: boolean
@@ -376,6 +387,7 @@ export type Database = {
           due_date?: string | null
           entity_id?: string
           id?: string
+          internal_notes?: string | null
           lawful_basis?: string | null
           lia_summary?: string | null
           minimisation_confirmed?: boolean
@@ -385,12 +397,15 @@ export type Database = {
           processing_purpose?: string | null
           processing_purpose_detail?: string | null
           product_type?: string
+          qa_owner?: string | null
+          report_tier?: string
           requested_by?: string | null
           requires_personal_data?: boolean
           retention_months?: number | null
           scope_notes?: string | null
           sla_days?: number | null
           status?: string
+          structured_source_log?: Json | null
         }
         Relationships: [
           {

@@ -3,57 +3,69 @@
  * Order matters — it drives the visual timeline.
  */
 export const CASE_STATUSES = [
+  "new",
   "scheduled",
   "quoted",
-  "submitted",
   "approved",
   "assigned",
   "in_progress",
-  "awaiting_client",
+  "with_partner",
   "qc",
-  "delivered",
-  "closed",
+  "released",
+  "archived",
 ] as const;
 
 export type CaseStatus = (typeof CASE_STATUSES)[number];
 
 export const STATUS_LABELS: Record<CaseStatus, string> = {
+  new: "New",
   scheduled: "Scheduled",
   quoted: "Quoted",
-  submitted: "Submitted",
   approved: "Approved",
   assigned: "Assigned",
   in_progress: "In Progress",
-  awaiting_client: "Awaiting Client",
+  with_partner: "With Partner",
   qc: "QC",
-  delivered: "Delivered",
-  closed: "Closed",
+  released: "Released",
+  archived: "Archived",
 };
 
 export const STATUS_COLORS: Record<CaseStatus, string> = {
+  new: "bg-muted text-muted-foreground",
   scheduled: "bg-muted text-muted-foreground",
   quoted: "bg-primary/10 text-primary",
-  submitted: "bg-accent/10 text-accent",
   approved: "bg-success/10 text-success",
   assigned: "bg-accent/10 text-accent",
   in_progress: "bg-primary/10 text-primary",
-  awaiting_client: "bg-warning/10 text-warning",
+  with_partner: "bg-warning/10 text-warning",
   qc: "bg-accent/10 text-accent",
-  delivered: "bg-success/10 text-success",
-  closed: "bg-muted text-muted-foreground",
+  released: "bg-success/10 text-success",
+  archived: "bg-muted text-muted-foreground",
 };
 
 /** Map status transitions to audit action_type */
 export const STATUS_AUDIT_MAP: Record<string, string> = {
+  new: "CASE_CREATED",
   scheduled: "CASE_SCHEDULED",
-  submitted: "CASE_SUBMITTED",
   quoted: "CASE_QUOTED",
   approved: "CASE_APPROVED",
   assigned: "CASE_ASSIGNED",
   in_progress: "CASE_WORK_STARTED",
-  awaiting_client: "CASE_AWAITING",
+  with_partner: "CASE_WITH_PARTNER",
   qc: "CASE_QC",
-  delivered: "CASE_DELIVERED",
-  closed: "CASE_CLOSED",
+  released: "CASE_RELEASED",
+  archived: "CASE_ARCHIVED",
   cancelled: "CASE_REJECTED",
+};
+
+export const CASE_TYPE_LABELS: Record<string, string> = {
+  routine: "Routine",
+  interim: "Interim",
+  fastball: "Fastball",
+};
+
+export const REPORT_TIER_LABELS: Record<string, string> = {
+  basic: "Basic",
+  standard: "Standard",
+  enhanced: "Enhanced",
 };

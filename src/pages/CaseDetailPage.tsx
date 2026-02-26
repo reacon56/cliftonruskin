@@ -5,10 +5,13 @@ import { useAuth } from "@/contexts/AuthContext";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import {
   ArrowLeft, CheckCircle2, Clock, FileText, Play, Send,
   AlertTriangle, Sparkles, Calendar, DollarSign, UserCheck,
-  ShieldCheck, Package, X,
+  ShieldCheck, Package, X, Save, Globe, Briefcase,
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import AssuranceNoteReport from "@/components/AssuranceNoteReport";
@@ -17,20 +20,21 @@ import DataProtectionSummary from "@/components/case-detail/DataProtectionSummar
 import QuotePanel from "@/components/case-detail/QuotePanel";
 import {
   CASE_STATUSES, STATUS_LABELS, STATUS_COLORS, STATUS_AUDIT_MAP,
+  CASE_TYPE_LABELS, REPORT_TIER_LABELS,
   type CaseStatus,
 } from "@/lib/case-statuses";
 
 const STATUS_ICONS: Record<CaseStatus, React.ElementType> = {
+  new: Briefcase,
   scheduled: Calendar,
   quoted: DollarSign,
-  submitted: Send,
   approved: CheckCircle2,
   assigned: UserCheck,
   in_progress: Play,
-  awaiting_client: Clock,
+  with_partner: Globe,
   qc: ShieldCheck,
-  delivered: FileText,
-  closed: Package,
+  released: FileText,
+  archived: Package,
 };
 
 export default function CaseDetailPage() {
@@ -38,6 +42,9 @@ export default function CaseDetailPage() {
   const navigate = useNavigate();
   const { user, profile, hasRole, isInternal, canQuote, canAssign, canWork, canQc, canClose, canAdjustDates, primaryRoleLabel } = useAuth();
   const { toast } = useToast();
+  const isManager = canQuote;
+  const isOfficer = canWork && !isManager;
+
   const [caseData, setCaseData] = useState<any>(null);
   const [messages, setMessages] = useState<any[]>([]);
   const [deliverables, setDeliverables] = useState<any[]>([]);
@@ -50,6 +57,8 @@ export default function CaseDetailPage() {
   const [simulatingModule, setSimulatingModule] = useState<string | null>(null);
   const [dpReview, setDpReview] = useState<any>(null);
   const [allowPreApprovalStart, setAllowPreApprovalStart] = useState(false);
+  const [editingNotes, setEditingNotes] = useState(false);
+  const [internalNotes, setInternalNotes] = useState("");
 
   useEffect(() => {
     if (id) loadCase();
@@ -67,6 +76,7 @@ export default function CaseDetailPage() {
     setMessages(msgsRes.data ?? []);
     setDeliverables(delsRes.data ?? []);
     setAuditEvents(auditRes.data ?? []);
+    setInternalNotes((caseRes.data as any)?.internal_notes ?? "");
 
     const rawModules = modulesRes.data ?? [];
     if (rawModules.length > 0) {
@@ -96,7 +106,6 @@ export default function CaseDetailPage() {
       setDpReview(null);
     }
 
-    // Load org pre-approval setting
     if (caseRes.data?.org_id) {
       const { data: orgData } = await supabase
         .from("organisations")
@@ -145,6 +154,13 @@ export default function CaseDetailPage() {
     loadCase();
   };
 
+  const saveInternalNotes = async () => {
+    await supabase.from("cases").update({ internal_notes: internalNotes } as any).eq("id", id!);
+    toast({ title: "Internal notes saved" });
+    setEditingNotes(false);
+    loadCase();
+  };
+
   const simulateDelivery = async () => {
     if (!user || !caseData) return;
     setSimulating(true);
@@ -161,7 +177,7 @@ export default function CaseDetailPage() {
       await simulateModuleDelivery(cm, true);
     }
 
-    await transitionTo("delivered", { due_date: new Date().toISOString().split("T")[0] });
+    await transitionTo("released", { due_date: new Date().toISOString().split("T")[0] });
     setSimulating(false);
   };
 
@@ -211,6 +227,12 @@ export default function CaseDetailPage() {
   const currentIdx = CASE_STATUSES.indexOf(currentStatus);
   const isHighRisk = entity?.risk_tier === "A";
 
+  // Officer cannot do QC or Release actions
+  const officerCanTransition = (target: string) => {
+    if (isOfficer && (target === "released" || target === "archived")) return false;
+    return true;
+  };
+
   return (
     <div>
       <button onClick={() => navigate(-1)} className="flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground mb-6 transition-colors">
@@ -220,7 +242,11 @@ export default function CaseDetailPage() {
       <div className="flex items-start justify-between mb-6">
         <div>
           <h1 className="fvc-heading-1 text-foreground">{caseData.product_type}</h1>
-          <p className="text-sm text-muted-foreground mt-1">{entity?.name ?? "Entity"} · {caseData.priority} priority</p>
+          <p className="text-sm text-muted-foreground mt-1">
+            {entity?.name ?? "Entity"} · {caseData.priority} priority
+            · {CASE_TYPE_LABELS[(caseData as any).case_type] || (caseData as any).case_type}
+            · {REPORT_TIER_LABELS[(caseData as any).report_tier] || (caseData as any).report_tier} tier
+          </p>
         </div>
         <Badge className={`fvc-status-badge text-sm px-3 py-1 capitalize ${STATUS_COLORS[currentStatus] || "bg-muted text-muted-foreground"}`}>
           {STATUS_LABELS[currentStatus] || caseData.status.replace(/_/g, " ")}
@@ -244,21 +270,7 @@ export default function CaseDetailPage() {
           <DollarSign size={18} className="text-accent shrink-0" />
           <div>
             <div className="text-sm font-medium text-foreground">Quote awaiting your approval</div>
-            <div className="text-xs text-muted-foreground">
-              Review the quote below and approve or reject to proceed.
-            </div>
-          </div>
-        </div>
-      )}
-
-      {currentStatus === "submitted" && isHighRisk && (
-        <div className="flex items-center gap-3 p-4 rounded-lg border border-warning/30 bg-warning/5 mb-6 animate-fade-in">
-          <AlertTriangle size={18} className="text-warning shrink-0" />
-          <div>
-            <div className="text-sm font-medium text-foreground">Approval required</div>
-            <div className="text-xs text-muted-foreground">
-              Tier A entity — requires admin approval before work begins.
-            </div>
+            <div className="text-xs text-muted-foreground">Review the quote below and approve or reject to proceed.</div>
           </div>
         </div>
       )}
@@ -305,6 +317,8 @@ export default function CaseDetailPage() {
             <div className="fvc-gold-rule mb-4" />
             <div className="space-y-3 text-sm">
               <div className="flex justify-between"><span className="text-muted-foreground">Reference</span><span className="text-foreground font-mono text-xs">{caseData.id.slice(0, 8).toUpperCase()}</span></div>
+              <div className="flex justify-between"><span className="text-muted-foreground">Case Type</span><span className="text-foreground">{CASE_TYPE_LABELS[(caseData as any).case_type] || (caseData as any).case_type}</span></div>
+              <div className="flex justify-between"><span className="text-muted-foreground">Report Tier</span><span className="text-foreground">{REPORT_TIER_LABELS[(caseData as any).report_tier] || (caseData as any).report_tier}</span></div>
               <div className="flex justify-between"><span className="text-muted-foreground">Due date</span><span className="text-foreground">{caseData.due_date ? new Date(caseData.due_date).toLocaleDateString() : "Not set"}</span></div>
               <div className="flex justify-between"><span className="text-muted-foreground">SLA</span><span className="text-foreground">{caseData.sla_days ? `${caseData.sla_days} business days` : "—"}</span></div>
               <div className="flex justify-between"><span className="text-muted-foreground">Risk tier</span><span className="text-foreground font-medium">{entity?.risk_tier ?? "—"}</span></div>
@@ -318,7 +332,31 @@ export default function CaseDetailPage() {
             </div>
           </div>
 
-          {/* Quote Panel — show for scheduled (create), quoted (approve/edit), approved (view) */}
+          {/* Internal Notes (CR only) */}
+          {isInternal && (
+            <div className="fvc-card">
+              <div className="flex items-center justify-between mb-3">
+                <h2 className="fvc-heading-3 text-foreground">Internal Notes</h2>
+                {!editingNotes ? (
+                  <Button variant="ghost" size="sm" className="text-xs" onClick={() => setEditingNotes(true)}>Edit</Button>
+                ) : (
+                  <Button size="sm" className="text-xs gap-1" onClick={saveInternalNotes}>
+                    <Save className="h-3 w-3" /> Save
+                  </Button>
+                )}
+              </div>
+              <div className="fvc-gold-rule mb-4" />
+              {editingNotes ? (
+                <Textarea rows={4} value={internalNotes} onChange={(e) => setInternalNotes(e.target.value)} placeholder="Internal-only notes…" />
+              ) : (
+                <p className="text-sm text-foreground whitespace-pre-wrap">
+                  {(caseData as any).internal_notes || <span className="text-muted-foreground italic">No internal notes.</span>}
+                </p>
+              )}
+            </div>
+          )}
+
+          {/* Quote Panel */}
           {(currentStatus === "scheduled" || currentStatus === "quoted" || currentStatus === "approved") && (
             <QuotePanel caseId={id!} caseStatus={currentStatus} onStatusChange={loadCase} entityName={entity?.name} />
           )}
@@ -408,29 +446,8 @@ export default function CaseDetailPage() {
 
         {/* Sidebar */}
         <div className="space-y-6">
-          {/* Approval gate — for submitted (legacy) status */}
-          {(hasRole("client_admin") || isInternal) && caseData.status === "submitted" && (
-            <div className="fvc-card">
-              <h3 className="fvc-heading-3 text-foreground mb-3">Approval</h3>
-              {isHighRisk && (
-                <p className="text-xs text-warning mb-3 flex items-center gap-1">
-                  <AlertTriangle size={11} /> High-risk entity
-                </p>
-              )}
-              <div className="space-y-2">
-                <Button className="w-full" onClick={() => transitionTo("approved", { approved_by: user?.id })}>
-                  <CheckCircle2 size={14} className="mr-1" /> Approve
-                </Button>
-                <Button variant="outline" className="w-full" onClick={() => transitionTo("cancelled")}>Reject</Button>
-              </div>
-            </div>
-          )}
-
-          {/* Manager: Assign — after approved, OR after quoted if pre-approval enabled */}
-          {canAssign && (
-            currentStatus === "approved" ||
-            (allowPreApprovalStart && (currentStatus === "quoted" || currentStatus === "scheduled"))
-          ) && (
+          {/* Manager: Assign */}
+          {canAssign && (currentStatus === "approved" || (allowPreApprovalStart && (currentStatus === "quoted" || currentStatus === "scheduled"))) && (
             <div className="fvc-card">
               <h3 className="fvc-heading-3 text-foreground mb-3">Assign</h3>
               {currentStatus !== "approved" && (
@@ -444,7 +461,17 @@ export default function CaseDetailPage() {
             </div>
           )}
 
-          {/* Officer: Begin Work — only if approved, or pre-approval enabled */}
+          {/* Manager: Reassign (any status except archived) */}
+          {isManager && caseData.assigned_to && currentStatus !== "archived" && currentStatus !== "released" && (
+            <div className="fvc-card">
+              <h3 className="fvc-heading-3 text-foreground mb-3">Reassign</h3>
+              <Button variant="outline" className="w-full" onClick={() => transitionTo(currentStatus, { assigned_to: user?.id })}>
+                <UserCheck size={14} className="mr-1" /> Reassign to Me
+              </Button>
+            </div>
+          )}
+
+          {/* Officer: Begin Work */}
           {canWork && currentStatus === "assigned" && (
             <div className="fvc-card">
               <h3 className="fvc-heading-3 text-foreground mb-3">Actions</h3>
@@ -462,11 +489,8 @@ export default function CaseDetailPage() {
                 <Button className="w-full" onClick={() => transitionTo("qc")}>
                   <ShieldCheck size={14} className="mr-1" /> Submit to QC
                 </Button>
-                <Button variant="outline" className="w-full" onClick={() => transitionTo("awaiting_client")}>
-                  <Clock size={14} className="mr-1" /> Await Client Input
-                </Button>
-                <Button variant="outline" className="w-full" onClick={simulateDelivery} disabled={simulating}>
-                  <FileText size={14} className="mr-1" /> {simulating ? "Generating…" : "Simulate Delivery"}
+                <Button variant="outline" className="w-full" onClick={() => transitionTo("with_partner")}>
+                  <Globe size={14} className="mr-1" /> Send to Partner
                 </Button>
                 {caseModules.filter((cm) => cm.status !== "complete" && cm.status !== "cancelled").map((cm) => (
                   <Button key={cm.id} variant="outline" className="w-full text-xs" onClick={() => simulateModuleDelivery(cm)} disabled={simulatingModule === cm.id}>
@@ -478,23 +502,8 @@ export default function CaseDetailPage() {
             </div>
           )}
 
-          {/* Lead/QC Reviewer: QC actions */}
-          {canQc && currentStatus === "qc" && (
-            <div className="fvc-card">
-              <h3 className="fvc-heading-3 text-foreground mb-3">QC Review</h3>
-              <div className="space-y-2">
-                <Button className="w-full" onClick={simulateDelivery} disabled={simulating}>
-                  <FileText size={14} className="mr-1" /> {simulating ? "Delivering…" : "Approve & Deliver"}
-                </Button>
-                <Button variant="outline" className="w-full" onClick={() => transitionTo("in_progress")}>
-                  <X size={14} className="mr-1" /> Return to Officer
-                </Button>
-              </div>
-            </div>
-          )}
-
-          {/* Officer: Awaiting client → resume */}
-          {canWork && currentStatus === "awaiting_client" && (
+          {/* Officer: With Partner → resume */}
+          {canWork && currentStatus === "with_partner" && (
             <div className="fvc-card">
               <h3 className="fvc-heading-3 text-foreground mb-3">Actions</h3>
               <Button className="w-full" onClick={() => transitionTo("in_progress")}>
@@ -503,12 +512,37 @@ export default function CaseDetailPage() {
             </div>
           )}
 
-          {/* Manager/Admin: Close — or Client Admin */}
-          {(hasRole("client_admin") || canClose) && currentStatus === "delivered" && (
+          {/* Manager: QC — approve & release, or return to officer */}
+          {canQc && currentStatus === "qc" && (
             <div className="fvc-card">
-              <h3 className="fvc-heading-3 text-foreground mb-3">Close Case</h3>
-              <Button className="w-full" onClick={() => transitionTo("closed")}>
-                <Package size={14} className="mr-1" /> Close Case
+              <h3 className="fvc-heading-3 text-foreground mb-3">QC Review</h3>
+              <div className="space-y-2">
+                <Button className="w-full" onClick={simulateDelivery} disabled={simulating}>
+                  <FileText size={14} className="mr-1" /> {simulating ? "Releasing…" : "Approve & Release"}
+                </Button>
+                <Button variant="outline" className="w-full" onClick={() => transitionTo("in_progress")}>
+                  <X size={14} className="mr-1" /> Return to Officer
+                </Button>
+              </div>
+            </div>
+          )}
+
+          {/* Manager: Archive released case */}
+          {isManager && currentStatus === "released" && (
+            <div className="fvc-card">
+              <h3 className="fvc-heading-3 text-foreground mb-3">Archive</h3>
+              <Button className="w-full" onClick={() => transitionTo("archived")}>
+                <Package size={14} className="mr-1" /> Archive Case
+              </Button>
+            </div>
+          )}
+
+          {/* Client: Close released case */}
+          {hasRole("client_admin") && currentStatus === "released" && (
+            <div className="fvc-card">
+              <h3 className="fvc-heading-3 text-foreground mb-3">Acknowledge</h3>
+              <Button className="w-full" onClick={() => transitionTo("archived")}>
+                <CheckCircle2 size={14} className="mr-1" /> Acknowledge & Close
               </Button>
             </div>
           )}
