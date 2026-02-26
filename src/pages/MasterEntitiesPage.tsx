@@ -26,6 +26,7 @@ interface MasterEntity {
 export default function MasterEntitiesPage() {
   const [entities, setEntities] = useState<MasterEntity[]>([]);
   const [search, setSearch] = useState("");
+  const [jurisdictionFilter, setJurisdictionFilter] = useState("");
   const [createOpen, setCreateOpen] = useState(false);
   const [form, setForm] = useState({ canonical_name: "", jurisdiction_incorporation: "", canonical_registration_number: "", website: "", notes_internal: "" });
   const { toast } = useToast();
