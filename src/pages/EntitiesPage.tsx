@@ -271,6 +271,11 @@ export default function EntitiesPage() {
             </button>
           </div>
           <SavedViewsDropdown pageType="entities" currentFilters={currentFilters} onApplyFilters={handleApplyFilters} />
+          {hasRole("client_admin") && (
+            <Button variant="outline" onClick={() => setBulkUploadOpen(true)}>
+              <Upload size={15} className="mr-2" />Bulk Upload
+            </Button>
+          )}
           {canAdd && (
             <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
               <DialogTrigger asChild>
