@@ -38,6 +38,7 @@ export default function EntitiesPage() {
   const [filterHqCountry, setFilterHqCountry] = useState<string>("all");
   const [activeViewName, setActiveViewName] = useState<string | undefined>();
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [bulkUploadOpen, setBulkUploadOpen] = useState(false);
   const [viewMode, setViewMode] = useState<"list" | "map" | "table">("list");
   const [highlightEntityId, setHighlightEntityId] = useState<string | null>(null);
   const [postSaveEntity, setPostSaveEntity] = useState<{ id: string; name: string; country?: string; risk_tier?: string; data_access_level?: string } | null>(null);
