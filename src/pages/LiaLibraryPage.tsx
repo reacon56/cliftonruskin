@@ -171,6 +171,9 @@ export default function LiaLibraryPage() {
     retention_months: f.retention_months,
     outcome: f.outcome || null,
     conditions: f.conditions || null,
+    scope_summary: f.scope_summary || null,
+    effective_date: f.effective_date || null,
+    approved_by_name: f.approved_by_name || null,
   });
 
   const dbToForm = (t: MasterLiaTemplate): TemplateFormState => {
