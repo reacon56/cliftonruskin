@@ -230,9 +230,17 @@ export default function LiaLibraryPage() {
         object_type: "master_lia_template", object_id: (data as any)?.id,
         metadata: { name: form.name, purpose: form.purpose_category },
       });
+      // If superseding, mark old one
+      if (supersedingId && status === "final") {
+        await supabase.from("master_lia_templates" as any)
+          .update({ status: "superseded", superseded_by: (data as any)?.id } as any)
+          .eq("id", supersedingId);
+      }
       toast({ title: status === "final" ? "Master LIA finalised" : "Template saved as draft" });
       setCreateOpen(false);
       setForm(INITIAL_FORM);
+      setSupersedingId(null);
+      setSupersedingVersion(0);
       loadTemplates();
     }
     setSaving(false);
