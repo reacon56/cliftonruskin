@@ -38,6 +38,7 @@ import AboutPage from "@/pages/website/AboutPage";
 import ServicesPage from "@/pages/website/ServicesPage";
 import SectorsPage from "@/pages/website/SectorsPage";
 import InsightsPage from "@/pages/website/InsightsPage";
+import ObservationsPage from "@/pages/website/ObservationsPage";
 import ContactPage from "@/pages/website/ContactPage";
 
 const queryClient = new QueryClient();
