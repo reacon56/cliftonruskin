@@ -6,6 +6,18 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
+/** All internal (CR) roles that should have cross-org access */
+const INTERNAL_ROLES = [
+  "fvc_analyst",
+  "fvc_ops_admin",
+  "fvc_assurance_manager",
+  "fvc_assurance_officer",
+  "fvc_assurance_lead",
+  "fvc_quality_reviewer",
+];
+
+const CLIENT_ROLES = ["client_admin", "client_requester", "client_auditor"];
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -23,7 +35,7 @@ Deno.serve(async (req) => {
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 
-    // Create a client with the user's JWT to check identity
+    // Authenticate user via JWT
     const userClient = createClient(supabaseUrl, Deno.env.get("SUPABASE_ANON_KEY")!, {
       global: { headers: { Authorization: authHeader } },
     });
@@ -42,31 +54,48 @@ Deno.serve(async (req) => {
 
     const { bucket, path } = await req.json();
 
-    if (!bucket || !path) {
+    if (!bucket || !path || typeof bucket !== "string" || typeof path !== "string") {
       return new Response(JSON.stringify({ error: "bucket and path required" }), {
         status: 400,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
-    // Use service role client to check authorization
+    // Prevent path traversal
+    if (path.includes("..") || path.startsWith("/")) {
+      return new Response(JSON.stringify({ error: "Invalid path" }), {
+        status: 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
     const adminClient = createClient(supabaseUrl, serviceRoleKey);
 
-    // Authorization checks per bucket
+    // Fetch user roles once
+    const { data: roles } = await adminClient
+      .from("user_roles")
+      .select("role")
+      .eq("user_id", user.id);
+
+    const roleList = (roles || []).map((r: any) => r.role as string);
+    const isInternal = roleList.some((r) => INTERNAL_ROLES.includes(r));
+    const isClient = roleList.some((r) => CLIENT_ROLES.includes(r));
+    const isPartner = roleList.includes("partner");
+
+    // Fetch user's org_id for org-scoping checks
+    let userOrgId: string | null = null;
+    if (isClient) {
+      const { data: profile } = await adminClient
+        .from("profiles")
+        .select("org_id")
+        .eq("user_id", user.id)
+        .single();
+      userOrgId = profile?.org_id ?? null;
+    }
+
+    /* ── Bucket-specific authorization ── */
+
     if (bucket === "partner-evidence") {
-      // Partner can only access files for their own tasks
-      // Internal users can access all
-      const { data: roles } = await adminClient
-        .from("user_roles")
-        .select("role")
-        .eq("user_id", user.id);
-
-      const roleList = (roles || []).map((r: any) => r.role);
-      const isInternal = roleList.some((r: string) =>
-        ["fvc_analyst", "fvc_ops_admin"].includes(r)
-      );
-      const isPartner = roleList.includes("partner");
-
       if (!isInternal && !isPartner) {
         return new Response(JSON.stringify({ error: "Forbidden" }), {
           status: 403,
@@ -74,46 +103,80 @@ Deno.serve(async (req) => {
         });
       }
 
-      // For partners, verify the task belongs to them
-      if (isPartner) {
-        // Path format: {taskId}/{itemId}/{filename}
+      // Partners: verify the task belongs to them
+      if (isPartner && !isInternal) {
         const taskId = path.split("/")[0];
-        if (taskId) {
-          const { data: task } = await adminClient
-            .from("partner_tasks")
-            .select("id")
-            .eq("id", taskId)
-            .eq("partner_user_id", user.id)
-            .single();
+        if (!taskId) {
+          return new Response(JSON.stringify({ error: "Forbidden" }), {
+            status: 403,
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+          });
+        }
 
-          if (!task) {
+        const { data: task } = await adminClient
+          .from("partner_tasks")
+          .select("id")
+          .eq("id", taskId)
+          .eq("partner_user_id", user.id)
+          .single();
+
+        if (!task) {
+          return new Response(JSON.stringify({ error: "Forbidden" }), {
+            status: 403,
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+          });
+        }
+      }
+    } else if (bucket === "deliverables") {
+      if (!isInternal && !isClient) {
+        return new Response(JSON.stringify({ error: "Forbidden" }), {
+          status: 403,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+
+      // Clients: verify the deliverable belongs to their org via case → entity → org
+      if (isClient && !isInternal) {
+        if (!userOrgId) {
+          return new Response(JSON.stringify({ error: "Forbidden: no org" }), {
+            status: 403,
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+          });
+        }
+
+        // Path format: {caseId}/{filename} or {deliverableId}/{filename}
+        const objectId = path.split("/")[0];
+        if (!objectId) {
+          return new Response(JSON.stringify({ error: "Forbidden" }), {
+            status: 403,
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+          });
+        }
+
+        // Check if this case belongs to the user's org
+        const { data: caseRow } = await adminClient
+          .from("cases")
+          .select("id")
+          .eq("id", objectId)
+          .eq("org_id", userOrgId)
+          .maybeSingle();
+
+        // Also check deliverables table → case → org
+        if (!caseRow) {
+          const { data: delivRow } = await adminClient
+            .from("deliverables")
+            .select("case_id, cases!inner(org_id)")
+            .eq("id", objectId)
+            .maybeSingle();
+
+          const delivOrgId = (delivRow as any)?.cases?.org_id;
+          if (!delivRow || delivOrgId !== userOrgId) {
             return new Response(JSON.stringify({ error: "Forbidden" }), {
               status: 403,
               headers: { ...corsHeaders, "Content-Type": "application/json" },
             });
           }
         }
-      }
-    } else if (bucket === "deliverables") {
-      // Only internal users and org members with client roles
-      const { data: roles } = await adminClient
-        .from("user_roles")
-        .select("role")
-        .eq("user_id", user.id);
-
-      const roleList = (roles || []).map((r: any) => r.role);
-      const isInternal = roleList.some((r: string) =>
-        ["fvc_analyst", "fvc_ops_admin"].includes(r)
-      );
-      const isClient = roleList.some((r: string) =>
-        ["client_admin", "client_requester", "client_auditor"].includes(r)
-      );
-
-      if (!isInternal && !isClient) {
-        return new Response(JSON.stringify({ error: "Forbidden" }), {
-          status: 403,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
       }
     } else {
       return new Response(JSON.stringify({ error: "Unknown bucket" }), {
