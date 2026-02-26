@@ -77,10 +77,14 @@ export default function MasterEntitiesPage() {
     }
   };
 
-  const filtered = entities.filter((e) =>
-    e.canonical_name.toLowerCase().includes(search.toLowerCase()) ||
-    (e.jurisdiction_incorporation ?? "").toLowerCase().includes(search.toLowerCase())
-  );
+  const jurisdictions = [...new Set(entities.map((e) => e.jurisdiction_incorporation).filter(Boolean))] as string[];
+
+  const filtered = entities.filter((e) => {
+    const matchesSearch = e.canonical_name.toLowerCase().includes(search.toLowerCase()) ||
+      (e.jurisdiction_incorporation ?? "").toLowerCase().includes(search.toLowerCase());
+    const matchesJurisdiction = !jurisdictionFilter || e.jurisdiction_incorporation === jurisdictionFilter;
+    return matchesSearch && matchesJurisdiction;
+  });
 
   return (
     <div className="space-y-6">
