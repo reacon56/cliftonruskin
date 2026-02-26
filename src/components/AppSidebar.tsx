@@ -4,7 +4,7 @@ import {
   LayoutDashboard, Building2, FileCheck, FolderOpen, Activity,
   Shield, Users, ClipboardList, HeadphonesIcon, ListTodo,
   Settings, FileText, LogOut, ChevronLeft, ChevronRight, Moon, Sun,
-  ArrowLeftRight, CheckCircle2, Scale, ArrowUpCircle,
+  ArrowLeftRight, CheckCircle2, Scale, ArrowUpCircle, Newspaper,
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
@@ -67,6 +67,7 @@ export default function AppSidebar() {
     { label: "Clients", path: "/clients", icon: <Building2 size={18} /> },
     { label: "Feature Controls", path: "/feature-controls", icon: <Shield size={18} /> },
     { label: "Upgrade Requests", path: "/upgrade-requests", icon: <ArrowUpCircle size={18} /> },
+    { label: "Market Lessons", path: "/admin/market-lessons", icon: <Newspaper size={18} /> },
     { label: "Templates", path: "/templates", icon: <FileText size={18} /> },
     { label: "Monitoring", path: "/monitoring-rules", icon: <Activity size={18} /> },
     { label: "Admin", path: "/admin", icon: <Settings size={18} /> },

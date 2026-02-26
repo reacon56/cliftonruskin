@@ -1,3 +1,5 @@
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 import { ExternalLink } from "lucide-react";
 import { countryCodeToFlag } from "@/lib/country-flag";
 
@@ -118,6 +120,38 @@ const observations: Observation[] = [
 ];
 
 export default function ObservationsPage() {
+  // Fetch published market lessons from DB
+  const { data: dbLessons = [] } = useQuery({
+    queryKey: ["published-market-lessons"],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("market_lessons" as any)
+        .select("*")
+        .eq("published", true)
+        .order("publication_date", { ascending: false });
+      return (data || []) as any[];
+    },
+  });
+
+  // Merge DB lessons with hardcoded fallbacks, DB first
+  const dbObservations: Observation[] = dbLessons.map((l: any) => ({
+    category: l.category || "Governance",
+    headline: l.title,
+    sourceUrl: l.publication_url,
+    publication: l.publication_name,
+    date: l.publication_date
+      ? new Date(l.publication_date).toLocaleDateString("en-GB", { month: "long", year: "numeric" })
+      : "",
+    summary: l.summary_text || "",
+    reflection: l.governance_reflection || "",
+    countryCode: l.jurisdiction_country_code || undefined,
+  }));
+
+  // Deduplicate: if DB has entries with same headline, skip hardcoded
+  const dbHeadlines = new Set(dbObservations.map((o) => o.headline));
+  const fallback = observations.filter((o) => !dbHeadlines.has(o.headline));
+  const allObservations = [...dbObservations, ...fallback];
+
   return (
     <div>
       {/* ── Hero ── */}
@@ -155,7 +189,7 @@ export default function ObservationsPage() {
       <section className="bg-[#f6f0e6] pb-20">
         <div className="mx-auto max-w-6xl px-6">
           <div className="grid gap-8 md:grid-cols-2">
-            {observations.map((o) => {
+            {allObservations.map((o) => {
               const flag = countryCodeToFlag(o.countryCode === "EU" ? null : o.countryCode);
               return (
                 <article

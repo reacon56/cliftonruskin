@@ -5,3 +5,9 @@ verify_jwt = false
 
 [functions.notify-quote-approved]
 verify_jwt = false
+
+[functions.fetch-governance-rss]
+verify_jwt = false
+
+[functions.generate-governance-summary]
+verify_jwt = false
