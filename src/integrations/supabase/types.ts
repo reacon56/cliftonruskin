@@ -766,6 +766,47 @@ export type Database = {
           },
         ]
       }
+      feature_activation_log: {
+        Row: {
+          action: string
+          changed_by: string | null
+          created_at: string
+          feature_key: string
+          id: string
+          new_value: boolean | null
+          org_id: string
+          previous_value: boolean | null
+        }
+        Insert: {
+          action: string
+          changed_by?: string | null
+          created_at?: string
+          feature_key: string
+          id?: string
+          new_value?: boolean | null
+          org_id: string
+          previous_value?: boolean | null
+        }
+        Update: {
+          action?: string
+          changed_by?: string | null
+          created_at?: string
+          feature_key?: string
+          id?: string
+          new_value?: boolean | null
+          org_id?: string
+          previous_value?: boolean | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "feature_activation_log_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organisations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       jurisdiction_benchmark_inputs: {
         Row: {
           abnormal_patterns: string | null
@@ -1151,6 +1192,56 @@ export type Database = {
             columns: ["entity_id"]
             isOneToOne: false
             referencedRelation: "entities"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      org_feature_flags: {
+        Row: {
+          billing_model: string | null
+          created_at: string
+          enabled: boolean
+          feature_key: string
+          id: string
+          org_id: string
+          overridden_at: string | null
+          overridden_by: string | null
+          tier_default: string
+          unit_price: number | null
+          updated_at: string
+        }
+        Insert: {
+          billing_model?: string | null
+          created_at?: string
+          enabled?: boolean
+          feature_key: string
+          id?: string
+          org_id: string
+          overridden_at?: string | null
+          overridden_by?: string | null
+          tier_default?: string
+          unit_price?: number | null
+          updated_at?: string
+        }
+        Update: {
+          billing_model?: string | null
+          created_at?: string
+          enabled?: boolean
+          feature_key?: string
+          id?: string
+          org_id?: string
+          overridden_at?: string | null
+          overridden_by?: string | null
+          tier_default?: string
+          unit_price?: number | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "org_feature_flags_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organisations"
             referencedColumns: ["id"]
           },
         ]
