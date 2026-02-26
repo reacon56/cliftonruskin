@@ -46,15 +46,16 @@
     --sidebar-border: 220 20% 25%;
     --sidebar-ring: 38 55% 52%;
 
-    /* Custom tokens */
-    --gold: 38 55% 52%;
-    --gold-light: 38 40% 72%;
-    --gold-dark: 38 60% 38%;
-    --navy: 220 35% 18%;
-    --navy-light: 220 25% 30%;
-    --navy-dark: 220 40% 10%;
-    --ivory: 40 25% 97%;
-    --warm-gray: 38 10% 62%;
+    /* Custom tokens — CR brand palette */
+    --gold: 41 39% 54%;
+    --gold-light: 41 30% 72%;
+    --gold-dark: 41 50% 40%;
+    --navy: 209 63% 16%;
+    --navy-light: 209 45% 28%;
+    --navy-dark: 209 70% 10%;
+    --ivory: 0 0% 100%;
+    --cr-light: 207 26% 93%;
+    --warm-gray: 207 10% 62%;
     --success: 152 45% 38%;
     --success-foreground: 40 25% 97%;
     --warning: 38 75% 52%;
