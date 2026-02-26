@@ -4,7 +4,8 @@ import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Search, Building2, List, Map, Globe, MapPin, ExternalLink, User, Sparkles, ArrowRight, CheckCircle2, Zap, Table2 } from "lucide-react";
+import { Plus, Search, Building2, List, Map, Globe, MapPin, ExternalLink, User, Sparkles, ArrowRight, CheckCircle2, Zap, Table2, Upload } from "lucide-react";
+import BulkEntityUpload from "@/components/BulkEntityUpload";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import {
