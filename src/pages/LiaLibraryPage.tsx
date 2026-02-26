@@ -201,6 +201,9 @@ export default function LiaLibraryPage() {
       retention_months: t.retention_months,
       outcome: t.outcome || "",
       conditions: t.conditions || "",
+      scope_summary: t.scope_summary || "",
+      effective_date: t.effective_date || "",
+      approved_by_name: t.approved_by_name || "",
     };
   };
 
