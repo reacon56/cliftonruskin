@@ -1060,6 +1060,54 @@ export type Database = {
           },
         ]
       }
+      market_lessons: {
+        Row: {
+          category: string
+          created_at: string
+          created_by: string | null
+          governance_reflection: string | null
+          id: string
+          jurisdiction_country_code: string | null
+          publication_date: string | null
+          publication_name: string
+          publication_url: string
+          published: boolean
+          summary_text: string | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          category?: string
+          created_at?: string
+          created_by?: string | null
+          governance_reflection?: string | null
+          id?: string
+          jurisdiction_country_code?: string | null
+          publication_date?: string | null
+          publication_name?: string
+          publication_url?: string
+          published?: boolean
+          summary_text?: string | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          created_by?: string | null
+          governance_reflection?: string | null
+          id?: string
+          jurisdiction_country_code?: string | null
+          publication_date?: string | null
+          publication_name?: string
+          publication_url?: string
+          published?: boolean
+          summary_text?: string | null
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       master_lia_templates: {
         Row: {
           approved_at: string | null
