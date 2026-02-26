@@ -713,6 +713,8 @@ export type Database = {
         Row: {
           confidence_level: string
           created_at: string
+          effective_from_date: string | null
+          effective_to_date: string | null
           id: string
           last_verified_date: string | null
           percentage: number | null
@@ -724,6 +726,8 @@ export type Database = {
         Insert: {
           confidence_level?: string
           created_at?: string
+          effective_from_date?: string | null
+          effective_to_date?: string | null
           id?: string
           last_verified_date?: string | null
           percentage?: number | null
@@ -735,6 +739,8 @@ export type Database = {
         Update: {
           confidence_level?: string
           created_at?: string
+          effective_from_date?: string | null
+          effective_to_date?: string | null
           id?: string
           last_verified_date?: string | null
           percentage?: number | null
