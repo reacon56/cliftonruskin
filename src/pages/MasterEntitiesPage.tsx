@@ -34,21 +34,21 @@ export default function MasterEntitiesPage() {
   useEffect(() => { load(); }, []);
 
   const load = async () => {
-    const { data } = await supabase
-      .from("master_entities" as any)
+    const { data } = await (supabase as any)
+      .from("master_entities")
       .select("*")
       .order("canonical_name");
 
     if (!data) return;
 
     // Get linked entity counts + conflict counts
-    const ids = data.map((d: any) => d.id);
+    const ids = (data as any[]).map((d: any) => d.id);
     const { data: linked } = ids.length > 0
       ? await supabase.from("entities").select("master_entity_id, has_master_conflict").in("master_entity_id" as any, ids)
-      : { data: [] };
+      : { data: [] as any[] };
 
     const countMap: Record<string, { linked: number; conflicts: number }> = {};
-    (linked ?? []).forEach((e: any) => {
+    ((linked ?? []) as any[]).forEach((e: any) => {
       if (!e.master_entity_id) return;
       if (!countMap[e.master_entity_id]) countMap[e.master_entity_id] = { linked: 0, conflicts: 0 };
       countMap[e.master_entity_id].linked++;
