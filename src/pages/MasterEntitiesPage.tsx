@@ -203,17 +203,6 @@ export default function MasterEntitiesPage() {
                 {allJurisdictions.map((j) => <SelectItem key={j} value={j}>{j}</SelectItem>)}
               </SelectContent>
             </Select>
-            <Select value={linkStatusFilter} onValueChange={(v) => setLinkStatusFilter(v === "all" ? "" : v)}>
-              <SelectTrigger className="w-40">
-                <SelectValue placeholder="Link status" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All statuses</SelectItem>
-                <SelectItem value="linked">Linked</SelectItem>
-                <SelectItem value="unlinked">Unlinked</SelectItem>
-                <SelectItem value="conflict">Has conflict</SelectItem>
-              </SelectContent>
-            </Select>
           </div>
 
           {filteredClients.length === 0 ? (
