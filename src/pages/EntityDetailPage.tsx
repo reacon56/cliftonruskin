@@ -20,7 +20,7 @@ import CommercialPostureTab from "@/components/entity-detail/CommercialPostureTa
 import JurisdictionBenchmarkTab from "@/components/entity-detail/JurisdictionBenchmarkTab";
 import OwnershipStructureTab from "@/components/entity-detail/OwnershipStructureTab";
 import { useFeatureFlags } from "@/hooks/use-feature-flags";
-import MasterEntityLinkPanel from "@/components/entity-detail/MasterEntityLinkPanel";
+
 import { Lock } from "lucide-react";
 
 export default function EntityDetailPage() {
