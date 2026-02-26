@@ -1853,29 +1853,65 @@ export type Database = {
         Row: {
           active: boolean
           capability_tags: Json | null
+          compliance_document_url: string | null
+          contact_email: string | null
+          contact_name: string | null
+          contact_phone: string | null
           country: string | null
           created_at: string
+          dd_status: string
           id: string
+          internal_rating: number | null
+          jurisdictions_covered: string[]
           name: string
+          notes_internal: string | null
           rate_card: Json | null
+          rate_structure: string | null
+          services_offered: string[]
+          sla_terms: string | null
+          updated_at: string
         }
         Insert: {
           active?: boolean
           capability_tags?: Json | null
+          compliance_document_url?: string | null
+          contact_email?: string | null
+          contact_name?: string | null
+          contact_phone?: string | null
           country?: string | null
           created_at?: string
+          dd_status?: string
           id?: string
+          internal_rating?: number | null
+          jurisdictions_covered?: string[]
           name: string
+          notes_internal?: string | null
           rate_card?: Json | null
+          rate_structure?: string | null
+          services_offered?: string[]
+          sla_terms?: string | null
+          updated_at?: string
         }
         Update: {
           active?: boolean
           capability_tags?: Json | null
+          compliance_document_url?: string | null
+          contact_email?: string | null
+          contact_name?: string | null
+          contact_phone?: string | null
           country?: string | null
           created_at?: string
+          dd_status?: string
           id?: string
+          internal_rating?: number | null
+          jurisdictions_covered?: string[]
           name?: string
+          notes_internal?: string | null
           rate_card?: Json | null
+          rate_structure?: string | null
+          services_offered?: string[]
+          sla_terms?: string | null
+          updated_at?: string
         }
         Relationships: []
       }
