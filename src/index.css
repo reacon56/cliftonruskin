@@ -296,3 +296,26 @@
   opacity: 1;
   transform: translateY(0);
 }
+
+/* Print / PDF export styles */
+@media print {
+  body {
+    background: white !important;
+    color: black !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+  .print\\:hidden { display: none !important; }
+  .print\\:p-8 { padding: 2rem !important; }
+  .print\\:break-after-page { break-after: page; }
+  aside, nav { display: none !important; }
+  .fvc-card {
+    break-inside: avoid;
+    box-shadow: none !important;
+    border: 1px solid #e5e7eb !important;
+  }
+  .fvc-kpi-tile {
+    break-inside: avoid;
+    box-shadow: none !important;
+  }
+}
