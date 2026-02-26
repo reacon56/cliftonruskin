@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
@@ -22,6 +22,7 @@ import EntityMapView from "@/components/EntityMapView";
 import EnhancementSuggestionPanel from "@/components/EnhancementSuggestionPanel";
 import { CountryFlagBadge, FlagBadgesInfo } from "@/components/CountryFlagBadge";
 import { OperatingCountryChips, type OperatingCountry } from "@/components/OperatingCountries";
+import { findMasterMatches } from "@/lib/entity-matching";
 
 export default function EntitiesPage() {
   const { profile, hasRole, isInternal } = useAuth();
@@ -290,6 +291,39 @@ export default function EntitiesPage() {
                   <div className="space-y-2">
                     <Label>Name *</Label>
                     <Input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} required />
+                    {/* Org-scoped fuzzy duplicate warning */}
+                    {form.name.length >= 3 && (() => {
+                      const dupes = findMasterMatches(
+                        form.name,
+                        form.country || null,
+                        entities.map((ent: any) => ({
+                          id: ent.id,
+                          canonical_name: ent.name,
+                          jurisdiction_incorporation: ent.incorporation_country_name || ent.country || null,
+                          canonical_registration_number: ent.registration_number || null,
+                        })),
+                        55
+                      );
+                      if (dupes.length === 0) return null;
+                      return (
+                        <div className="mt-1.5 p-2.5 rounded-md border border-amber-300 bg-amber-50 dark:bg-amber-950/30 dark:border-amber-700 space-y-1.5">
+                          <p className="text-xs font-medium text-amber-700 dark:text-amber-400 flex items-center gap-1">
+                            <Sparkles className="h-3 w-3" /> Possible duplicates in your register
+                          </p>
+                          {dupes.slice(0, 3).map((d) => (
+                            <button
+                              key={d.masterId}
+                              type="button"
+                              onClick={() => { setDialogOpen(false); navigate(`/entities/${d.masterId}`); }}
+                              className="w-full text-left text-xs p-1.5 rounded hover:bg-amber-100 dark:hover:bg-amber-900/40 flex items-center justify-between"
+                            >
+                              <span className="font-medium text-foreground">{d.masterName}</span>
+                              <span className="text-muted-foreground">{d.similarity}% match</span>
+                            </button>
+                          ))}
+                        </div>
+                      );
+                    })()}
                   </div>
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
