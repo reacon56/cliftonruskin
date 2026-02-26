@@ -87,6 +87,7 @@ export default function AppSidebar() {
     { label: "Feature Controls", path: "/feature-controls", icon: <Shield size={18} /> },
     { label: "Upgrade Requests", path: "/upgrade-requests", icon: <ArrowUpCircle size={18} /> },
     { label: "Market Lessons", path: "/admin/market-lessons", icon: <Newspaper size={18} /> },
+    { label: "Source Registry", path: "/source-registry", icon: <Database size={18} /> },
     { label: "Audit Log", path: "/audit-log", icon: <ClipboardList size={18} /> },
   ];
 
