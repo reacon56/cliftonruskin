@@ -216,7 +216,7 @@ export default function AppSidebar() {
           <Button
             variant="ghost"
             size="sm"
-            onClick={toggleView}
+            onClick={handleToggleView}
             className="w-full justify-start gap-2 text-sidebar-primary hover:text-sidebar-foreground hover:bg-sidebar-accent/40 transition-colors duration-200 border border-sidebar-border/50"
             title={collapsed ? `Switch to ${activeView === "internal" ? "Client" : "CR Internal"}` : undefined}
           >
