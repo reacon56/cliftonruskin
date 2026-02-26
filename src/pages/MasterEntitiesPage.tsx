@@ -8,7 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
-import { Layers, Plus, Search, Building2, Globe, AlertTriangle, Link2Off, Users } from "lucide-react";
+import { Layers, Plus, Search, Building2, Globe, AlertTriangle, Users } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 
 interface MasterEntity {
