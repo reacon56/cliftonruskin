@@ -3,8 +3,9 @@ import { Button } from "@/components/ui/button";
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { ArrowLeft, FileCheck, RefreshCw, Zap, ShieldAlert, Pencil, ChevronDown } from "lucide-react";
+import { ArrowLeft, FileCheck, RefreshCw, Zap, ShieldAlert, Pencil, ChevronDown, Globe } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { countryCodeToFlag } from "@/lib/country-flag";
 
 interface Props {
   entity: any;
@@ -58,7 +59,24 @@ export default function EntityDetailHeader({ entity, canEdit, canAdmin, onEditEn
 
       <div className="flex items-start justify-between mb-2">
         <div className="flex-1 min-w-0">
-          <h1 className="fvc-heading-1 text-foreground">{entity.name}</h1>
+          <div className="flex items-center gap-3">
+            <span
+              className="shrink-0 text-[28px] leading-none"
+              title={entity.incorporation_country_name ? `Incorporated in: ${entity.incorporation_country_name}` : "Incorporation not confirmed"}
+              role="img"
+              aria-label={entity.incorporation_country_name ? `Flag of ${entity.incorporation_country_name}` : "Incorporation not confirmed"}
+            >
+              {countryCodeToFlag(entity.incorporation_country_code) || (
+                <Globe size={24} className="text-muted-foreground/40" />
+              )}
+            </span>
+            <h1 className="fvc-heading-1 text-foreground">{entity.name}</h1>
+          </div>
+          {entity.incorporation_country_name && (
+            <p className="text-xs text-muted-foreground mt-1.5 ml-[40px]">
+              Jurisdiction of incorporation: {entity.incorporation_country_name} ({entity.incorporation_country_code})
+            </p>
+          )}
           <div className="fvc-gold-rule mt-3 mb-3" />
           <div className="flex flex-wrap items-center gap-2 mt-2">
             <Badge className={`fvc-status-badge ${tierColor(entity.risk_tier)}`}>Tier {entity.risk_tier}</Badge>

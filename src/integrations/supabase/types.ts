@@ -534,9 +534,13 @@ export type Database = {
           head_office_country: string | null
           head_office_postcode: string | null
           head_office_region: string | null
+          hq_country_code: string | null
+          hq_country_name: string | null
           hq_lat: number | null
           hq_lng: number | null
           id: string
+          incorporation_country_code: string | null
+          incorporation_country_name: string | null
           internal_contacts: Json | null
           last_review_date: string | null
           name: string
@@ -576,9 +580,13 @@ export type Database = {
           head_office_country?: string | null
           head_office_postcode?: string | null
           head_office_region?: string | null
+          hq_country_code?: string | null
+          hq_country_name?: string | null
           hq_lat?: number | null
           hq_lng?: number | null
           id?: string
+          incorporation_country_code?: string | null
+          incorporation_country_name?: string | null
           internal_contacts?: Json | null
           last_review_date?: string | null
           name: string
@@ -618,9 +626,13 @@ export type Database = {
           head_office_country?: string | null
           head_office_postcode?: string | null
           head_office_region?: string | null
+          hq_country_code?: string | null
+          hq_country_name?: string | null
           hq_lat?: number | null
           hq_lng?: number | null
           id?: string
+          incorporation_country_code?: string | null
+          incorporation_country_name?: string | null
           internal_contacts?: Json | null
           last_review_date?: string | null
           name?: string
