@@ -104,6 +104,9 @@ const INITIAL_FORM: TemplateFormState = {
   retention_months: null,
   outcome: "",
   conditions: "",
+  scope_summary: "",
+  effective_date: "",
+  approved_by_name: "",
 };
 
 const PURPOSES = [
