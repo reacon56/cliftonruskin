@@ -339,6 +339,9 @@ export default function LiaLibraryPage() {
 
       {/* Template name */}
       <div className="space-y-2">
+        <Label className="text-xs">Template name</Label>
+        <Input value={form.name} onChange={(e) => set({ name: e.target.value })} placeholder="e.g., Standard Supplier Due Diligence" disabled={readOnly} />
+      </div>
 
       {/* Progress */}
       <div className="flex items-center gap-3 mb-2">
