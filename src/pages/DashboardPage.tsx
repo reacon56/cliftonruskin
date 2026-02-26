@@ -41,7 +41,8 @@ interface DashboardStats {
 
 export default function DashboardPage() {
   const { profile, isInternal, canQuote } = useAuth();
-  const isManager = isInternal && canQuote;
+  const { activeView } = useViewMode();
+  const isManager = isInternal && canQuote && activeView === "internal";
   const navigate = useNavigate();
   const dashRef = useRef<HTMLDivElement>(null);
   const [stats, setStats] = useState<DashboardStats>({
