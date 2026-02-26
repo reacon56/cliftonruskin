@@ -230,7 +230,7 @@
   /* Gold accent line */
   .fvc-gold-rule {
     @apply h-px w-12;
-    background: linear-gradient(90deg, hsl(38 55% 52%), hsl(38 55% 52% / 0));
+    background: linear-gradient(90deg, hsl(41 39% 54%), hsl(41 39% 54% / 0));
   }
 
   /* Stagger animation helper */
