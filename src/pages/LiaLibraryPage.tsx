@@ -41,9 +41,15 @@ interface MasterLiaTemplate {
   conditions: string | null;
   status: string;
   approved_by: string | null;
+  approved_by_name: string | null;
   approved_at: string | null;
   created_at: string;
   updated_at: string;
+  version_number: number;
+  effective_date: string | null;
+  scope_summary: string | null;
+  document_url: string | null;
+  superseded_by: string | null;
 }
 
 interface TemplateFormState {
