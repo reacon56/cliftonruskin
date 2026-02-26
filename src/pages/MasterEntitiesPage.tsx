@@ -242,11 +242,6 @@ export default function MasterEntitiesPage() {
                         <AlertTriangle className="h-3 w-3" /> Conflict
                       </Badge>
                     )}
-                    {ce.master_entity_id ? (
-                      <Badge variant="secondary" className="text-[10px]">Linked</Badge>
-                    ) : (
-                      <Badge variant="outline" className="text-[10px] text-amber-600 border-amber-300">Unlinked</Badge>
-                    )}
                   </div>
                 </button>
               ))}
