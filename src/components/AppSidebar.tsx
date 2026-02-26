@@ -212,7 +212,7 @@ export default function AppSidebar() {
             </Button>
           </div>
         )}
-        {hasBothRoles && (
+        {canToggle && (
           <Button
             variant="ghost"
             size="sm"
