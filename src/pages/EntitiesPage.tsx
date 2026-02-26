@@ -701,6 +701,12 @@ export default function EntitiesPage() {
           </div>
         </DialogContent>
       </Dialog>
+
+      <BulkEntityUpload
+        open={bulkUploadOpen}
+        onOpenChange={setBulkUploadOpen}
+        onImportComplete={loadEntities}
+      />
     </div>
   );
 }
