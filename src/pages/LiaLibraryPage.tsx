@@ -210,10 +210,12 @@ export default function LiaLibraryPage() {
   const handleCreate = async (status: "draft" | "final") => {
     if (!profile?.org_id || !user) return;
     setSaving(true);
+    const newVersion = supersedingId ? supersedingVersion + 1 : 1;
     const record = {
       ...formToDb(form),
       org_id: profile.org_id,
       status,
+      version_number: newVersion,
       updated_at: new Date().toISOString(),
       ...(status === "final" ? { approved_by: user.id, approved_at: new Date().toISOString() } : {}),
     };
