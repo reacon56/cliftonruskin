@@ -17,6 +17,7 @@ import { useToast } from "@/hooks/use-toast";
 import AssuranceNoteReport from "@/components/AssuranceNoteReport";
 import CaseActivityTimeline from "@/components/CaseActivityTimeline";
 import DataProtectionSummary from "@/components/case-detail/DataProtectionSummary";
+import CaseProcessingRecord from "@/components/case-detail/CaseProcessingRecord";
 import QuotePanel from "@/components/case-detail/QuotePanel";
 import {
   CASE_STATUSES, STATUS_LABELS, STATUS_COLORS, STATUS_AUDIT_MAP,
@@ -219,6 +220,8 @@ export default function CaseDetailPage() {
     }
   };
 
+  const scopeChangeBlocking = (caseData as any)?.scope_change_flag && !(caseData as any)?.scope_change_resolved;
+
   if (!caseData) {
     return <div className="text-sm text-muted-foreground py-20 text-center">Loading…</div>;
   }
@@ -308,6 +311,11 @@ export default function CaseDetailPage() {
       </div>
 
       <DataProtectionSummary caseData={caseData} isInternal={isInternal} dpReview={dpReview} />
+
+      {/* Processing Record */}
+      <div className="mb-6">
+        <CaseProcessingRecord caseData={caseData} isInternal={isInternal} isManager={isManager} onRefresh={loadCase} />
+      </div>
 
       <div className="grid lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2 space-y-6">
@@ -517,7 +525,13 @@ export default function CaseDetailPage() {
             <div className="fvc-card">
               <h3 className="fvc-heading-3 text-foreground mb-3">QC Review</h3>
               <div className="space-y-2">
-                <Button className="w-full" onClick={simulateDelivery} disabled={simulating}>
+                {scopeChangeBlocking && (
+                  <div className="p-2.5 rounded-lg border border-destructive/30 bg-destructive/5 text-xs text-destructive flex items-center gap-2">
+                    <AlertTriangle size={12} />
+                    Release blocked — resolve scope change first
+                  </div>
+                )}
+                <Button className="w-full" onClick={simulateDelivery} disabled={simulating || scopeChangeBlocking}>
                   <FileText size={14} className="mr-1" /> {simulating ? "Releasing…" : "Approve & Release"}
                 </Button>
                 <Button variant="outline" className="w-full" onClick={() => transitionTo("in_progress")}>

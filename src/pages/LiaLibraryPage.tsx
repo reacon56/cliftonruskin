@@ -41,9 +41,15 @@ interface MasterLiaTemplate {
   conditions: string | null;
   status: string;
   approved_by: string | null;
+  approved_by_name: string | null;
   approved_at: string | null;
   created_at: string;
   updated_at: string;
+  version_number: number;
+  effective_date: string | null;
+  scope_summary: string | null;
+  document_url: string | null;
+  superseded_by: string | null;
 }
 
 interface TemplateFormState {
@@ -69,6 +75,10 @@ interface TemplateFormState {
   retention_months: number | null;
   outcome: string;
   conditions: string;
+  // New versioning fields
+  scope_summary: string;
+  effective_date: string;
+  approved_by_name: string;
 }
 
 const INITIAL_FORM: TemplateFormState = {
@@ -94,6 +104,9 @@ const INITIAL_FORM: TemplateFormState = {
   retention_months: null,
   outcome: "",
   conditions: "",
+  scope_summary: "",
+  effective_date: "",
+  approved_by_name: "",
 };
 
 const PURPOSES = [
@@ -158,6 +171,9 @@ export default function LiaLibraryPage() {
     retention_months: f.retention_months,
     outcome: f.outcome || null,
     conditions: f.conditions || null,
+    scope_summary: f.scope_summary || null,
+    effective_date: f.effective_date || null,
+    approved_by_name: f.approved_by_name || null,
   });
 
   const dbToForm = (t: MasterLiaTemplate): TemplateFormState => {
@@ -185,16 +201,21 @@ export default function LiaLibraryPage() {
       retention_months: t.retention_months,
       outcome: t.outcome || "",
       conditions: t.conditions || "",
+      scope_summary: t.scope_summary || "",
+      effective_date: t.effective_date || "",
+      approved_by_name: t.approved_by_name || "",
     };
   };
 
   const handleCreate = async (status: "draft" | "final") => {
     if (!profile?.org_id || !user) return;
     setSaving(true);
+    const newVersion = supersedingId ? supersedingVersion + 1 : 1;
     const record = {
       ...formToDb(form),
       org_id: profile.org_id,
       status,
+      version_number: newVersion,
       updated_at: new Date().toISOString(),
       ...(status === "final" ? { approved_by: user.id, approved_at: new Date().toISOString() } : {}),
     };
@@ -209,9 +230,17 @@ export default function LiaLibraryPage() {
         object_type: "master_lia_template", object_id: (data as any)?.id,
         metadata: { name: form.name, purpose: form.purpose_category },
       });
+      // If superseding, mark old one
+      if (supersedingId && status === "final") {
+        await supabase.from("master_lia_templates" as any)
+          .update({ status: "superseded", superseded_by: (data as any)?.id } as any)
+          .eq("id", supersedingId);
+      }
       toast({ title: status === "final" ? "Master LIA finalised" : "Template saved as draft" });
       setCreateOpen(false);
       setForm(INITIAL_FORM);
+      setSupersedingId(null);
+      setSupersedingVersion(0);
       loadTemplates();
     }
     setSaving(false);
@@ -285,8 +314,39 @@ export default function LiaLibraryPage() {
 
   const isDialogReadOnly = editTemplate?.status === "final" && !isAdmin;
 
+  const handleCreateNewVersion = async (t: MasterLiaTemplate) => {
+    // Supersede the current template and open a new version
+    const newForm = dbToForm(t);
+    newForm.scope_summary = "";
+    newForm.effective_date = new Date().toISOString().split("T")[0];
+    setForm(newForm);
+    // Store the template being superseded
+    setSupersedingId(t.id);
+    setSupersedingVersion(t.version_number);
+    setCreateOpen(true);
+  };
+
+  const [supersedingId, setSupersedingId] = useState<string | null>(null);
+  const [supersedingVersion, setSupersedingVersion] = useState<number>(0);
+
   const renderTemplateForm = (readOnly: boolean) => (
     <div className="space-y-4">
+      {/* Version & Scope */}
+      <div className="grid grid-cols-2 gap-4">
+        <div className="space-y-2">
+          <Label className="text-xs">Effective Date</Label>
+          <Input type="date" value={form.effective_date} onChange={(e) => set({ effective_date: e.target.value })} disabled={readOnly} />
+        </div>
+        <div className="space-y-2">
+          <Label className="text-xs">Approved By (Name/Role)</Label>
+          <Input value={form.approved_by_name} onChange={(e) => set({ approved_by_name: e.target.value })} placeholder="e.g. Jane Smith, DPO" disabled={readOnly} />
+        </div>
+      </div>
+      <div className="space-y-2">
+        <Label className="text-xs">Scope Summary</Label>
+        <Textarea rows={2} value={form.scope_summary} onChange={(e) => set({ scope_summary: e.target.value })} placeholder="Describe the scope of this LIA version…" disabled={readOnly} />
+      </div>
+
       {/* Template name */}
       <div className="space-y-2">
         <Label className="text-xs">Template name</Label>
@@ -551,11 +611,12 @@ export default function LiaLibraryPage() {
           <Input placeholder="Search templates…" value={search} onChange={(e) => setSearch(e.target.value)} className="pl-9 text-sm" />
         </div>
         <Select value={filterStatus} onValueChange={setFilterStatus}>
-          <SelectTrigger className="w-36 text-sm"><SelectValue /></SelectTrigger>
+          <SelectTrigger className="w-40 text-sm"><SelectValue /></SelectTrigger>
           <SelectContent>
             <SelectItem value="all">All statuses</SelectItem>
             <SelectItem value="draft">Draft</SelectItem>
-            <SelectItem value="final">Finalised</SelectItem>
+            <SelectItem value="final">Active</SelectItem>
+            <SelectItem value="superseded">Superseded</SelectItem>
           </SelectContent>
         </Select>
       </div>
@@ -580,22 +641,33 @@ export default function LiaLibraryPage() {
               <div className="flex-1 min-w-0 mr-4">
                 <div className="flex items-center gap-2 mb-1">
                   <span className="text-sm font-medium text-foreground truncate">{t.name || "Untitled template"}</span>
-                  <Badge className={`fvc-status-badge text-[10px] ${t.status === "final" ? "bg-success/10 text-success" : "bg-muted text-muted-foreground"}`}>
-                    {t.status}
+                  <Badge className="text-[10px] bg-muted text-muted-foreground">v{(t as any).version_number || 1}</Badge>
+                  <Badge className={`fvc-status-badge text-[10px] ${
+                    t.status === "final" ? "bg-success/10 text-success" :
+                    t.status === "superseded" ? "bg-muted text-muted-foreground/60" :
+                    "bg-warning/10 text-warning"
+                  }`}>
+                    {t.status === "final" ? "Active" : t.status === "superseded" ? "Superseded" : "Draft"}
                   </Badge>
                   {t.outcome && (
                     <Badge variant="outline" className="text-[10px] capitalize">{t.outcome.replace(/_/g, " ")}</Badge>
-                  )}
-                  {t.approved_at && (
-                    <Badge className="bg-accent/10 text-accent text-[10px] gap-1"><CheckCircle2 size={9} /> Approved</Badge>
                   )}
                 </div>
                 <div className="text-[11px] text-muted-foreground">
                   {t.purpose_category || "No purpose set"}
                   {" · "}{t.lawful_basis === "legitimate_interests" ? "Legitimate interests" : t.lawful_basis}
-                  {" · "}{new Date(t.created_at).toLocaleDateString()}
+                  {(t as any).effective_date ? ` · Effective ${new Date((t as any).effective_date).toLocaleDateString()}` : ` · Created ${new Date(t.created_at).toLocaleDateString()}`}
+                  {(t as any).approved_by_name && ` · Approved by ${(t as any).approved_by_name}`}
                 </div>
+                {(t as any).scope_summary && (
+                  <div className="text-[11px] text-muted-foreground/70 mt-0.5 truncate">{(t as any).scope_summary}</div>
+                )}
               </div>
+              {canEdit && t.status === "final" && (
+                <Button variant="outline" size="sm" className="text-xs shrink-0" onClick={(e) => { e.stopPropagation(); handleCreateNewVersion(t); }}>
+                  New Version
+                </Button>
+              )}
             </div>
           ))}
         </div>
