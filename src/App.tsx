@@ -27,6 +27,7 @@ import AutoApprovalSettingsPage from "@/pages/AutoApprovalSettingsPage";
 import OrgSettingsPage from "@/pages/OrgSettingsPage";
 import FeatureControlsPage from "@/pages/FeatureControlsPage";
 import UpgradeRequestsPage from "@/pages/UpgradeRequestsPage";
+import MarketLessonsAdminPage from "@/pages/MarketLessonsAdminPage";
 import PartnerTaskListPage from "@/pages/partner/PartnerTaskListPage";
 import PartnerTaskDetailPage from "@/pages/partner/PartnerTaskDetailPage";
 import NotFound from "@/pages/NotFound";
