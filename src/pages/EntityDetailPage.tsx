@@ -20,12 +20,13 @@ import CommercialPostureTab from "@/components/entity-detail/CommercialPostureTa
 import JurisdictionBenchmarkTab from "@/components/entity-detail/JurisdictionBenchmarkTab";
 import OwnershipStructureTab from "@/components/entity-detail/OwnershipStructureTab";
 import { useFeatureFlags } from "@/hooks/use-feature-flags";
+import MasterEntityLinkPanel from "@/components/entity-detail/MasterEntityLinkPanel";
 import { Lock } from "lucide-react";
 
 export default function EntityDetailPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { profile, hasRole } = useAuth();
+  const { profile, hasRole, isInternal } = useAuth();
   const { toast } = useToast();
   const { flags: featureFlags } = useFeatureFlags();
 
@@ -155,6 +156,13 @@ export default function EntityDetailPage() {
         onEditEntity={() => setEditOpen(true)}
         onChangeTier={() => setTierOpen(true)}
       />
+
+      {/* Master Entity Link Panel (CR internal only) */}
+      {isInternal && (
+        <div className="mt-4 max-w-sm">
+          <MasterEntityLinkPanel entityId={entity.id} entityName={entity.name} onRefresh={loadAll} />
+        </div>
+      )}
 
       <Tabs defaultValue="overview" className="mt-8">
         <TabsList className="bg-muted/50">

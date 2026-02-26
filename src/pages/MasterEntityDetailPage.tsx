@@ -30,21 +30,22 @@ export default function MasterEntityDetailPage() {
   useEffect(() => { if (id) load(); }, [id]);
 
   const load = async () => {
-    const { data } = await supabase
-      .from("master_entities" as any)
+    const { data } = await (supabase as any)
+      .from("master_entities")
       .select("*")
       .eq("id", id!)
       .single();
 
     if (!data) return;
-    setEntity(data);
-    setForm({ ...data });
+    const d = data as any;
+    setEntity(d);
+    setForm({ ...d });
 
     // Load linked client entities
-    const { data: linkedData } = await supabase
+    const { data: linkedData } = await (supabase as any)
       .from("entities")
       .select("id, name, has_master_conflict, country, org_id")
-      .eq("master_entity_id" as any, id!);
+      .eq("master_entity_id", id!);
 
     if (linkedData) {
       // Get org names
@@ -71,11 +72,11 @@ export default function MasterEntityDetailPage() {
       registered_address_line1, registered_city, registered_country, registered_postcode,
       hq_address_line1, hq_city, hq_country, hq_postcode } = form;
 
-    const { error } = await supabase.from("master_entities" as any).update({
+    const { error } = await (supabase as any).from("master_entities").update({
       canonical_name, jurisdiction_incorporation, canonical_registration_number, website, notes_internal,
       registered_address_line1, registered_city, registered_country, registered_postcode,
       hq_address_line1, hq_city, hq_country, hq_postcode, updated_at: new Date().toISOString(),
-    } as any).eq("id", id!);
+    }).eq("id", id!);
 
     setSaving(false);
     if (error) {

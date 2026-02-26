@@ -42,6 +42,7 @@ import QaQueuePage from "@/pages/QaQueuePage";
 import MyTasksPage from "@/pages/MyTasksPage";
 import PartnerRequestsPage from "@/pages/PartnerRequestsPage";
 import KnowledgeBasePage from "@/pages/KnowledgeBasePage";
+import MasterEntityDetailPage from "@/pages/MasterEntityDetailPage";
 
 // Website pages
 import WebsiteLayout from "@/components/website/WebsiteLayout";
@@ -116,6 +117,7 @@ function AppRoutes() {
         {/* ── Manager-only routes ── */}
         <Route path="/workload" element={<InternalRouteGuard managerOnly><WorkloadPage /></InternalRouteGuard>} />
         <Route path="/master-entities" element={<InternalRouteGuard managerOnly><MasterEntitiesPage /></InternalRouteGuard>} />
+        <Route path="/master-entities/:id" element={<InternalRouteGuard managerOnly><MasterEntityDetailPage /></InternalRouteGuard>} />
         <Route path="/programme-settings" element={<InternalRouteGuard managerOnly><ProgrammeSettingsPage /></InternalRouteGuard>} />
         <Route path="/partner-directory" element={<InternalRouteGuard managerOnly><PartnerDirectoryPage /></InternalRouteGuard>} />
         <Route path="/reconciliation" element={<InternalRouteGuard managerOnly><ReconciliationPage /></InternalRouteGuard>} />
