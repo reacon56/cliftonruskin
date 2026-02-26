@@ -59,23 +59,30 @@ export default function EntityDetailHeader({ entity, canEdit, canAdmin, onEditEn
 
       <div className="flex items-start justify-between mb-2">
         <div className="flex-1 min-w-0">
-          <h1 className="fvc-heading-1 text-foreground">{entity.name}</h1>
-          <div className="flex items-center gap-2 mt-2">
-            <CountryFlagBadge code={entity.incorporation_country_code} name={entity.incorporation_country_name} label="INC" size="md" />
-            <CountryFlagBadge code={entity.hq_country_code} name={entity.hq_country_name} label="HQ" size="md" />
-            <FlagBadgesInfo size="md" />
-          </div>
-          {(entity.incorporation_country_name || entity.hq_country_name) && (
-            <div className="flex flex-wrap gap-x-5 gap-y-1 text-xs text-muted-foreground mt-2 ml-0.5">
-              {entity.incorporation_country_name && (
-                <span>Incorporated in: {entity.incorporation_country_name} ({entity.incorporation_country_code})</span>
-              )}
-              {entity.hq_country_name && (
-                <span>HQ: {entity.hq_country_name} ({entity.hq_country_code})</span>
-              )}
+          <div className="flex items-center gap-3 flex-wrap">
+            <h1 className="fvc-heading-1 text-foreground">{entity.name}</h1>
+            <div className="flex items-center gap-2">
+              <CountryFlagBadge code={entity.incorporation_country_code} name={entity.incorporation_country_name} label="INC" size="md" />
+              <CountryFlagBadge code={entity.hq_country_code} name={entity.hq_country_name} label="HQ" size="md" />
+              <FlagBadgesInfo size="md" />
             </div>
-          )}
+          </div>
           <div className="fvc-gold-rule mt-3 mb-3" />
+          {/* Read-only jurisdiction rows */}
+          <div className="flex flex-wrap gap-x-6 gap-y-1 text-xs text-muted-foreground mb-2 ml-0.5">
+            <span>
+              <span className="text-[10px] font-semibold uppercase tracking-[0.08em] text-muted-foreground/60 mr-1.5">Jurisdiction of incorporation:</span>
+              {entity.incorporation_country_name
+                ? `${entity.incorporation_country_name} (${entity.incorporation_country_code})`
+                : "Not confirmed"}
+            </span>
+            <span>
+              <span className="text-[10px] font-semibold uppercase tracking-[0.08em] text-muted-foreground/60 mr-1.5">HQ / Principal place of business:</span>
+              {entity.hq_country_name
+                ? `${entity.hq_country_name} (${entity.hq_country_code})`
+                : "Not confirmed"}
+            </span>
+          </div>
           <div className="flex flex-wrap items-center gap-2 mt-2">
             <Badge className={`fvc-status-badge ${tierColor(entity.risk_tier)}`}>Tier {entity.risk_tier}</Badge>
             <Badge className={`fvc-status-badge ${assuranceStatus.color}`}>{assuranceStatus.label}</Badge>

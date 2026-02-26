@@ -454,28 +454,38 @@ export default function EntitiesPage() {
                     className="fvc-card-interactive group"
                     onClick={() => navigate(`/entities/${e.id}`)}
                   >
-                    {/* Top line */}
-                    <div className="flex items-start justify-between mb-3">
-                      <div className="min-w-0 flex-1 mr-3">
-                        <div className="flex items-center gap-2">
-                          <h3 className="text-sm font-semibold text-foreground truncate">{e.name}</h3>
-                          <span className="text-[10px] text-muted-foreground capitalize shrink-0">{e.entity_type}</span>
-                        </div>
-                        <div className="flex items-center gap-1.5 mt-1.5 flex-wrap">
-                          <CountryFlagBadge code={e.incorporation_country_code} name={e.incorporation_country_name} label="INC" />
-                          <CountryFlagBadge code={e.hq_country_code} name={e.hq_country_name} label="HQ" />
-                          <FlagBadgesInfo />
-                          {(opCountriesMap[e.id]?.length ?? 0) > 0 && (
-                            <span className="text-muted-foreground/30 mx-0.5">|</span>
-                          )}
-                          <OperatingCountryChips countries={opCountriesMap[e.id] ?? []} />
-                        </div>
+                    {/* Row 1: Name + jurisdiction badges */}
+                    <div className="flex items-center justify-between gap-2 mb-1.5">
+                      <h3 className="text-sm font-semibold text-foreground truncate min-w-0">{e.name}</h3>
+                      <div className="flex items-center gap-1.5 shrink-0
+                        transition-all duration-200
+                        group-hover:[&>span]:shadow-[0_0_0_1px_hsl(var(--gold)/0.2),0_2px_8px_hsl(var(--gold)/0.08)]">
+                        <CountryFlagBadge code={e.incorporation_country_code} name={e.incorporation_country_name} label="INC" />
+                        <CountryFlagBadge code={e.hq_country_code} name={e.hq_country_name} label="HQ" />
+                        <FlagBadgesInfo />
+                      </div>
+                    </div>
+
+                    {/* Row 2: Type + risk badges */}
+                    <div className="flex items-center justify-between mb-3">
+                      <div className="flex items-center gap-2">
+                        <span className="text-[10px] text-muted-foreground capitalize">{e.entity_type}</span>
+                        {e.registration_number && (
+                          <span className="text-[10px] text-muted-foreground/50">· {e.registration_number}</span>
+                        )}
                       </div>
                       <div className="flex items-center gap-1.5 shrink-0">
                         <Badge className={`fvc-status-badge ${tierColor(e.risk_tier)}`}>Tier {e.risk_tier}</Badge>
                         <Badge className={`fvc-status-badge ${dueStatus.color}`}>{dueStatus.label}</Badge>
                       </div>
                     </div>
+
+                    {/* Operating countries */}
+                    {(opCountriesMap[e.id]?.length ?? 0) > 0 && (
+                      <div className="flex items-center gap-1.5 mb-3">
+                        <OperatingCountryChips countries={opCountriesMap[e.id] ?? []} />
+                      </div>
+                    )}
 
                     {/* Profile section — 2 columns */}
                     <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-[11px] mb-3">
