@@ -1,8 +1,13 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
-import { Building2, AlertTriangle, FileCheck, Activity, Clock, TrendingUp, MapPin, CalendarClock, ShieldCheck, CalendarDays, BarChart3, Globe } from "lucide-react";
+import {
+  Building2, AlertTriangle, FileCheck, Activity, Clock, TrendingUp, MapPin,
+  CalendarClock, ShieldCheck, CalendarDays, BarChart3, Globe, Printer, PieChart as PieChartIcon,
+  Heartbeat,
+} from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import EntityWorldMap from "@/components/EntityWorldMap";
 import ReviewTimeline from "@/components/ReviewTimeline";
@@ -17,6 +22,9 @@ import PlanUtilisationCard from "@/components/dashboard/PlanUtilisationCard";
 import ApprovalsSummaryCard from "@/components/dashboard/ApprovalsSummaryCard";
 import EnhancementCoverageCard from "@/components/dashboard/EnhancementCoverageCard";
 import LiaSummaryCard from "@/components/dashboard/LiaSummaryCard";
+import RiskDistributionChart from "@/components/dashboard/RiskDistributionChart";
+import ProgrammeHealthIndicator from "@/components/dashboard/ProgrammeHealthIndicator";
+import ManagerDashboardView from "@/components/dashboard/ManagerDashboardView";
 
 interface DashboardStats {
   totalEntities: number;
@@ -33,8 +41,10 @@ interface DashboardStats {
 }
 
 export default function DashboardPage() {
-  const { profile } = useAuth();
+  const { profile, isInternal, canQuote } = useAuth();
+  const isManager = isInternal && canQuote;
   const navigate = useNavigate();
+  const dashRef = useRef<HTMLDivElement>(null);
   const [stats, setStats] = useState<DashboardStats>({
     totalEntities: 0, dueSoon: 0, dueIn60: 0, overdue: 0, activeCases: 0,
     completedThisMonth: 0, highAlerts: 0, pendingApprovals: 0, awaitingClient: 0, compliancePct: 100,
@@ -46,6 +56,7 @@ export default function DashboardPage() {
   const [alerts, setAlerts] = useState<any[]>([]);
   const [mapView, setMapView] = useState<"map" | "risk">("map");
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const [managerOrgId, setManagerOrgId] = useState("");
 
   // Drawer detail data
   const [overdueEntities, setOverdueEntities] = useState<any[]>([]);
@@ -60,6 +71,10 @@ export default function DashboardPage() {
     if (!profile?.org_id) return;
     loadDashboard();
   }, [profile?.org_id]);
+
+  const handleExportPdf = () => {
+    window.print();
+  };
 
   const loadDashboard = async () => {
     const orgId = profile!.org_id!;
@@ -96,7 +111,6 @@ export default function DashboardPage() {
       supabase.from("cases").select("id, product_type, entities(name)").eq("org_id", orgId).eq("status", "submitted").limit(10),
       supabase.from("change_logs").select("id, summary, what_changed").gte("created_at", new Date(now.getTime() - 30 * 86400000).toISOString()),
       supabase.from("monitoring_events").select("id, event_type").gte("detected_at", new Date(now.getTime() - 30 * 86400000).toISOString()),
-      // LIA reviews due within 30 days or overdue
       supabase.from("lia_assessments" as any).select("id", { count: "exact", head: true }).eq("org_id", orgId).eq("status", "final").lte("review_date", in30),
       supabase.from("lia_assessments" as any).select("id, purpose, review_date").eq("org_id", orgId).eq("status", "final").lte("review_date", in30).order("review_date", { ascending: true }).limit(10),
     ]);
@@ -129,18 +143,12 @@ export default function DashboardPage() {
     setDueSoonEntities(dueSoonEntRes.data ?? []);
     setPendingCases(pendingCasesRes.data ?? []);
 
-    // Compute change stats
     const changeLogs = changeLogsRes.data ?? [];
     const monTypes = monitoringTypesRes.data ?? [];
     const adverseMedia = monTypes.filter((m: any) => ["adverse_media", "negative_news", "media"].includes(m.event_type)).length;
     const ownership = monTypes.filter((m: any) => ["ownership_change", "director_change", "psc_change", "corporate_change"].includes(m.event_type)).length;
     const litigation = monTypes.filter((m: any) => ["litigation", "regulatory", "sanctions", "enforcement"].includes(m.event_type)).length;
-    setChangeStats({
-      total: changeLogs.length,
-      adverseMedia,
-      ownership,
-      litigation,
-    });
+    setChangeStats({ total: changeLogs.length, adverseMedia, ownership, litigation });
   };
 
   const kpis = [
@@ -253,52 +261,66 @@ export default function DashboardPage() {
     return "bg-success/10 text-success";
   };
 
-  const statusColor = (s: string) => {
-    const map: Record<string, string> = {
-      draft: "bg-muted text-muted-foreground",
-      submitted: "bg-info/10 text-info",
-      approved: "bg-success/10 text-success",
-      in_progress: "bg-accent/10 text-accent",
-      awaiting_client: "bg-warning/10 text-warning",
-      complete: "bg-success/10 text-success",
-      cancelled: "bg-muted text-muted-foreground",
-    };
-    return map[s] ?? "bg-muted text-muted-foreground";
-  };
-
   return (
-    <div>
+    <div ref={dashRef} className="print:p-8">
       {/* Header */}
       <div className="mb-10 flex items-start justify-between">
         <div>
-          <h1 className="fvc-heading-1 text-foreground">Dashboard</h1>
+          <h1 className="fvc-heading-1 text-foreground">
+            {isManager ? "Global Assurance Dashboard" : "Dashboard"}
+          </h1>
           <div className="fvc-gold-rule mt-3 mb-2" />
           <p className="text-sm text-muted-foreground">
-            Overview of your assurance programme
+            {isManager ? "Cross-client assurance programme overview" : "Overview of your assurance programme"}
           </p>
         </div>
-        <SavedViewsDropdown />
+        <div className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleExportPdf}
+            className="gap-1.5 text-xs print:hidden"
+          >
+            <Printer size={13} /> Export PDF
+          </Button>
+          <div className="print:hidden">
+            <SavedViewsDropdown />
+          </div>
+        </div>
       </div>
 
+      {/* ── Manager-only section ── */}
+      {isManager && (
+        <div className="mb-10 print:break-after-page">
+          <ManagerDashboardView
+            selectedOrgId={managerOrgId}
+            onOrgChange={setManagerOrgId}
+          />
+        </div>
+      )}
+
       {/* Actions Required strip */}
-      <ActionsRequired
-        stats={{
-          pendingApprovals: stats.pendingApprovals,
-          awaitingClient: stats.awaitingClient,
-          overdue: stats.overdue,
-          highAlerts: stats.highAlerts,
-          dueSoon: stats.dueSoon,
-          liaReviewsDue: stats.liaReviewsDue,
-        }}
-        onViewAll={() => setDrawerOpen(true)}
-      />
+      <div className="print:hidden">
+        <ActionsRequired
+          stats={{
+            pendingApprovals: stats.pendingApprovals,
+            awaitingClient: stats.awaitingClient,
+            overdue: stats.overdue,
+            highAlerts: stats.highAlerts,
+            dueSoon: stats.dueSoon,
+            liaReviewsDue: stats.liaReviewsDue,
+          }}
+          onViewAll={() => setDrawerOpen(true)}
+        />
+      </div>
 
       {/* KPI tiles */}
       <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-3 mb-10 fvc-stagger">
-        {kpis.map((kpi) => (
+        {kpis.map((kpi, idx) => (
           <div
             key={kpi.label}
-            className="fvc-kpi-tile group cursor-pointer"
+            className="fvc-kpi-tile group cursor-pointer animate-fade-in"
+            style={{ animationDelay: `${idx * 50}ms`, animationFillMode: "both" }}
             onClick={() => navigate(kpi.route)}
           >
             <div className={`${kpi.color} mb-3 transition-transform duration-300 group-hover:scale-110`}>
@@ -314,9 +336,35 @@ export default function DashboardPage() {
         ))}
       </div>
 
+      {/* Risk Distribution + Programme Health */}
+      <div className="grid lg:grid-cols-2 gap-6 mb-10">
+        <div className="fvc-card animate-fade-in" style={{ animationDelay: "100ms", animationFillMode: "both" }}>
+          <div className="flex items-center gap-2 mb-4">
+            <PieChartIcon size={16} className="text-accent" />
+            <h2 className="fvc-heading-3 text-foreground">Risk Distribution</h2>
+          </div>
+          <p className="text-[11px] text-muted-foreground mb-4">Entity distribution across risk tiers</p>
+          <RiskDistributionChart entities={allEntities} />
+        </div>
+        <div className="fvc-card animate-fade-in" style={{ animationDelay: "150ms", animationFillMode: "both" }}>
+          <div className="flex items-center gap-2 mb-4">
+            <ShieldCheck size={16} className="text-accent" />
+            <h2 className="fvc-heading-3 text-foreground">Programme Health</h2>
+          </div>
+          <p className="text-[11px] text-muted-foreground mb-4">Composite health score based on compliance and alerts</p>
+          <ProgrammeHealthIndicator
+            compliancePct={stats.compliancePct}
+            overdueCount={stats.overdue}
+            activeCases={stats.activeCases}
+            highAlerts={stats.highAlerts}
+            totalEntities={stats.totalEntities}
+          />
+        </div>
+      </div>
+
       {/* Map / Risk & Coverage + Review Timeline */}
-      <div className="grid lg:grid-cols-2 gap-6 mb-10 fvc-stagger">
-        <div className="fvc-card">
+      <div className="grid lg:grid-cols-2 gap-6 mb-10">
+        <div className="fvc-card animate-fade-in" style={{ animationDelay: "200ms", animationFillMode: "both" }}>
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-2">
               {mapView === "map" ? <MapPin size={16} className="text-accent" /> : <BarChart3 size={16} className="text-accent" />}
@@ -324,13 +372,11 @@ export default function DashboardPage() {
                 {mapView === "map" ? "Entity Locations" : "Risk & Coverage"}
               </h2>
             </div>
-            <div className="flex items-center rounded-md border border-border overflow-hidden">
+            <div className="flex items-center rounded-md border border-border overflow-hidden print:hidden">
               <button
                 onClick={() => setMapView("map")}
                 className={`flex items-center gap-1 px-2.5 py-1 text-[11px] font-medium transition-colors ${
-                  mapView === "map"
-                    ? "bg-accent/10 text-accent"
-                    : "text-muted-foreground hover:bg-muted/50"
+                  mapView === "map" ? "bg-accent/10 text-accent" : "text-muted-foreground hover:bg-muted/50"
                 }`}
               >
                 <Globe size={11} /> Map
@@ -338,9 +384,7 @@ export default function DashboardPage() {
               <button
                 onClick={() => setMapView("risk")}
                 className={`flex items-center gap-1 px-2.5 py-1 text-[11px] font-medium transition-colors ${
-                  mapView === "risk"
-                    ? "bg-accent/10 text-accent"
-                    : "text-muted-foreground hover:bg-muted/50"
+                  mapView === "risk" ? "bg-accent/10 text-accent" : "text-muted-foreground hover:bg-muted/50"
                 }`}
               >
                 <BarChart3 size={11} /> Risk & Coverage
@@ -358,7 +402,7 @@ export default function DashboardPage() {
             <RiskCoverageView entities={allEntities} />
           )}
         </div>
-        <div className="fvc-card">
+        <div className="fvc-card animate-fade-in" style={{ animationDelay: "250ms", animationFillMode: "both" }}>
           <div className="flex items-center gap-2 mb-4">
             <CalendarClock size={16} className="text-accent" />
             <h2 className="fvc-heading-3 text-foreground">Review Schedule</h2>
@@ -368,7 +412,7 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      <div className="grid lg:grid-cols-3 gap-6 mb-10 fvc-stagger">
+      <div className="grid lg:grid-cols-3 gap-6 mb-10">
         {/* What Changed card */}
         <WhatChangedCard
           totalChanges={changeStats.total}
@@ -378,7 +422,7 @@ export default function DashboardPage() {
         />
 
         {/* Recent entities */}
-        <div className="fvc-card">
+        <div className="fvc-card animate-fade-in" style={{ animationDelay: "300ms", animationFillMode: "both" }}>
           <div className="flex items-center justify-between mb-5">
             <h2 className="fvc-heading-3 text-foreground">Recent Entities</h2>
             <button onClick={() => navigate("/entities")} className="fvc-link text-xs">View all</button>
@@ -410,7 +454,7 @@ export default function DashboardPage() {
         <ActiveCasesCard cases={recentCases} />
 
         {/* Monitoring alerts */}
-        <div className="fvc-card lg:col-span-2">
+        <div className="fvc-card lg:col-span-2 animate-fade-in" style={{ animationDelay: "350ms", animationFillMode: "both" }}>
           <div className="flex items-center justify-between mb-5">
             <h2 className="fvc-heading-3 text-foreground">Monitoring Alerts</h2>
             <button onClick={() => navigate("/monitoring")} className="fvc-link text-xs">View all</button>
@@ -428,8 +472,8 @@ export default function DashboardPage() {
                     </div>
                   </div>
                   <Badge className={`fvc-status-badge shrink-0 ${
-                    a.severity === "high" ? "bg-destructive/10 text-destructive" 
-                    : a.severity === "med" ? "bg-warning/10 text-warning" 
+                    a.severity === "high" ? "bg-destructive/10 text-destructive"
+                    : a.severity === "med" ? "bg-warning/10 text-warning"
                     : "bg-muted text-muted-foreground"
                   }`}>
                     {a.severity}
@@ -454,11 +498,13 @@ export default function DashboardPage() {
       </div>
 
       {/* Actions Drawer */}
-      <ActionsDrawer
-        open={drawerOpen}
-        onOpenChange={setDrawerOpen}
-        sections={drawerSections}
-      />
+      <div className="print:hidden">
+        <ActionsDrawer
+          open={drawerOpen}
+          onOpenChange={setDrawerOpen}
+          sections={drawerSections}
+        />
+      </div>
     </div>
   );
 }
