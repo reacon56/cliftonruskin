@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import ProtectedRoute from "@/components/ProtectedRoute";
+import InternalRouteGuard from "@/components/InternalRouteGuard";
 import AppLayout from "@/components/AppLayout";
 import PartnerLayout from "@/components/PartnerLayout";
 import AuthPage from "@/pages/AuthPage";
@@ -31,6 +32,16 @@ import MarketLessonsAdminPage from "@/pages/MarketLessonsAdminPage";
 import PartnerTaskListPage from "@/pages/partner/PartnerTaskListPage";
 import PartnerTaskDetailPage from "@/pages/partner/PartnerTaskDetailPage";
 import NotFound from "@/pages/NotFound";
+import WorkloadPage from "@/pages/WorkloadPage";
+import MasterEntitiesPage from "@/pages/MasterEntitiesPage";
+import ProgrammeSettingsPage from "@/pages/ProgrammeSettingsPage";
+import PartnerDirectoryPage from "@/pages/PartnerDirectoryPage";
+import ReconciliationPage from "@/pages/ReconciliationPage";
+import RiskModelPage from "@/pages/RiskModelPage";
+import QaQueuePage from "@/pages/QaQueuePage";
+import MyTasksPage from "@/pages/MyTasksPage";
+import PartnerRequestsPage from "@/pages/PartnerRequestsPage";
+import KnowledgeBasePage from "@/pages/KnowledgeBasePage";
 
 // Website pages
 import WebsiteLayout from "@/components/website/WebsiteLayout";
@@ -101,6 +112,21 @@ function AppRoutes() {
         <Route path="/cases/:caseId/modules/:moduleId" element={<ModuleWorkbenchPage />} />
         <Route path="/partner/tasks/:taskId" element={<PartnerTaskDetailPage />} />
         <Route path="/support" element={<SupportPage />} />
+
+        {/* ── Manager-only routes ── */}
+        <Route path="/workload" element={<InternalRouteGuard managerOnly><WorkloadPage /></InternalRouteGuard>} />
+        <Route path="/master-entities" element={<InternalRouteGuard managerOnly><MasterEntitiesPage /></InternalRouteGuard>} />
+        <Route path="/programme-settings" element={<InternalRouteGuard managerOnly><ProgrammeSettingsPage /></InternalRouteGuard>} />
+        <Route path="/partner-directory" element={<InternalRouteGuard managerOnly><PartnerDirectoryPage /></InternalRouteGuard>} />
+        <Route path="/reconciliation" element={<InternalRouteGuard managerOnly><ReconciliationPage /></InternalRouteGuard>} />
+        <Route path="/risk-model" element={<InternalRouteGuard managerOnly><RiskModelPage /></InternalRouteGuard>} />
+
+        {/* ── Internal routes (officer + manager) ── */}
+        <Route path="/qa-queue" element={<InternalRouteGuard><QaQueuePage /></InternalRouteGuard>} />
+        <Route path="/my-tasks" element={<InternalRouteGuard><MyTasksPage /></InternalRouteGuard>} />
+        <Route path="/partner-requests" element={<InternalRouteGuard><PartnerRequestsPage /></InternalRouteGuard>} />
+        <Route path="/knowledge-base" element={<InternalRouteGuard><KnowledgeBasePage /></InternalRouteGuard>} />
+
         <Route path="/users" element={<StubPage title="Users & Roles" description="Manage team members and role assignments" />} />
         <Route path="/clients" element={<StubPage title="Clients" description="Manage client organisations" />} />
         <Route path="/templates" element={<StubPage title="Templates" description="Report and deliverable templates" />} />

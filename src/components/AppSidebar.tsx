@@ -5,6 +5,8 @@ import {
   Shield, Users, ClipboardList, HeadphonesIcon, ListTodo,
   Settings, FileText, LogOut, ChevronLeft, ChevronRight, Moon, Sun,
   ArrowLeftRight, CheckCircle2, Scale, ArrowUpCircle, Newspaper,
+  Briefcase, Eye, BookOpen, GitMerge, BarChart3, Search,
+  Send, Layers,
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
@@ -19,13 +21,16 @@ interface NavItem {
 }
 
 export default function AppSidebar() {
-  const { hasRole, isClient, isInternal, signOut, profile } = useAuth();
+  const { hasRole, isClient, isInternal, signOut, profile, canQuote, canWork } = useAuth();
   const { theme, toggleTheme } = useTheme();
   const navigate = useNavigate();
   const [collapsed, setCollapsed] = useState(false);
   const hasBothRoles = isClient && isInternal;
   const [viewAs, setViewAs] = useState<"client" | "internal">(isInternal ? "internal" : "client");
   const [pendingApprovals, setPendingApprovals] = useState(0);
+
+  const isManager = hasRole("fvc_assurance_manager" as any) || hasRole("fvc_ops_admin" as any);
+  const isOfficer = hasRole("fvc_assurance_officer" as any) || hasRole("fvc_analyst" as any);
 
   useEffect(() => {
     if (!profile?.org_id || !hasRole("client_admin")) return;
@@ -62,17 +67,37 @@ export default function AppSidebar() {
     { label: "Support", path: "/support", icon: <HeadphonesIcon size={18} /> }
   );
 
-  const internalNav: NavItem[] = [
-    { label: "Case Queue", path: "/cases", icon: <ListTodo size={18} /> },
+  // ── Manager nav: full visibility ──
+  const managerNav: NavItem[] = [
+    { label: "Dashboard", path: "/dashboard", icon: <LayoutDashboard size={18} /> },
+    { label: "All Cases", path: "/cases", icon: <ListTodo size={18} /> },
+    { label: "Workload View", path: "/workload", icon: <BarChart3 size={18} /> },
+    { label: "Master Entities", path: "/master-entities", icon: <Layers size={18} /> },
+    { label: "Programme Settings", path: "/programme-settings", icon: <Settings size={18} /> },
+    { label: "LIA Management", path: "/lia-library", icon: <Scale size={18} /> },
+    { label: "Partner Directory", path: "/partner-directory", icon: <Briefcase size={18} /> },
+    { label: "Reconciliation Tasks", path: "/reconciliation", icon: <GitMerge size={18} /> },
+    { label: "Risk Model", path: "/risk-model", icon: <Shield size={18} /> },
+    { label: "Reports QA Queue", path: "/qa-queue", icon: <Eye size={18} /> },
     { label: "Clients", path: "/clients", icon: <Building2 size={18} /> },
     { label: "Feature Controls", path: "/feature-controls", icon: <Shield size={18} /> },
     { label: "Upgrade Requests", path: "/upgrade-requests", icon: <ArrowUpCircle size={18} /> },
     { label: "Market Lessons", path: "/admin/market-lessons", icon: <Newspaper size={18} /> },
-    { label: "Templates", path: "/templates", icon: <FileText size={18} /> },
-    { label: "Monitoring", path: "/monitoring-rules", icon: <Activity size={18} /> },
-    { label: "Admin", path: "/admin", icon: <Settings size={18} /> },
     { label: "Audit Log", path: "/audit-log", icon: <ClipboardList size={18} /> },
   ];
+
+  // ── Officer nav: scoped visibility ──
+  const officerNav: NavItem[] = [
+    { label: "My Cases", path: "/cases", icon: <ListTodo size={18} /> },
+    { label: "My Tasks", path: "/my-tasks", icon: <ClipboardList size={18} /> },
+    { label: "Entity Lookup", path: "/entities", icon: <Search size={18} /> },
+    { label: "Partner Requests", path: "/partner-requests", icon: <Send size={18} /> },
+    { label: "Knowledge Base", path: "/knowledge-base", icon: <BookOpen size={18} /> },
+    { label: "Submitted to QA", path: "/qa-queue", icon: <Eye size={18} /> },
+  ];
+
+  // Determine which internal nav to show
+  const internalNav: NavItem[] = isManager ? managerNav : officerNav;
 
   const activeView = hasBothRoles ? viewAs : (isInternal ? "internal" : "client");
   const navItems = activeView === "internal" ? internalNav : clientNav;
