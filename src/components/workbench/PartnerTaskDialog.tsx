@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
@@ -8,7 +8,7 @@ import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter,
 } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
-import { Globe, Plus, Trash2 } from "lucide-react";
+import { Globe, Plus, Trash2, Star } from "lucide-react";
 
 interface Props {
   open: boolean;
@@ -30,11 +30,21 @@ export default function PartnerTaskDialog({ open, onOpenChange, caseModuleId, de
   const [questions, setQuestions] = useState<string[]>([""]);
   const [submitting, setSubmitting] = useState(false);
 
-  // Load available partners (internal users only)
-  useState(() => {
-    supabase.from("partners" as any).select("id, name, country").eq("active", true)
+  useEffect(() => {
+    if (!open) return;
+    supabase.from("partners" as any).select("id, name, country, jurisdictions_covered, internal_rating, dd_status")
+      .eq("active", true)
+      .order("name")
       .then(({ data }: any) => setPartners(data ?? []));
-  });
+  }, [open]);
+
+  // Filter partners by country match
+  const relevantPartners = country.trim()
+    ? partners.filter((p: any) =>
+        (p.country ?? "").toLowerCase() === country.toLowerCase() ||
+        (p.jurisdictions_covered ?? []).some((j: string) => j.toLowerCase() === country.toLowerCase())
+      )
+    : partners;
 
   const addQuestion = () => setQuestions((prev) => [...prev, ""]);
   const updateQuestion = (idx: number, val: string) => setQuestions((prev) => prev.map((q, i) => i === idx ? val : q));
@@ -47,7 +57,6 @@ export default function PartnerTaskDialog({ open, onOpenChange, caseModuleId, de
     }
     setSubmitting(true);
 
-    // Resolve partner user id from email if provided
     let partnerUserId: string | null = null;
     if (partnerEmail.trim()) {
       const { data: partnerProfile } = await supabase
@@ -85,7 +94,6 @@ export default function PartnerTaskDialog({ open, onOpenChange, caseModuleId, de
       return;
     }
 
-    // Create checklist items from questions
     if (taskData && filteredQuestions.length > 0) {
       const items = filteredQuestions.map((q, i) => ({
         task_id: (taskData as any).id,
@@ -104,6 +112,17 @@ export default function PartnerTaskDialog({ open, onOpenChange, caseModuleId, de
     setQuestions([""]);
     onOpenChange(false);
     setSubmitting(false);
+  };
+
+  const renderStars = (rating: number | null) => {
+    if (!rating) return null;
+    return (
+      <span className="inline-flex gap-0.5 ml-1">
+        {[1, 2, 3, 4, 5].map((i) => (
+          <Star key={i} size={9} className={i <= rating ? "text-accent fill-accent" : "text-muted-foreground/20"} />
+        ))}
+      </span>
+    );
   };
 
   return (
@@ -141,10 +160,32 @@ export default function PartnerTaskDialog({ open, onOpenChange, caseModuleId, de
               className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
             >
               <option value="">Select partner…</option>
-              {partners.map((p: any) => (
-                <option key={p.id} value={p.id}>{p.name} ({p.country})</option>
-              ))}
+              {relevantPartners.length > 0 && (
+                <optgroup label={country.trim() ? `Matching "${country}"` : "All partners"}>
+                  {relevantPartners.map((p: any) => (
+                    <option key={p.id} value={p.id}>
+                      {p.name} ({p.country ?? "—"}) {p.dd_status === "approved" ? "✓" : ""}
+                    </option>
+                  ))}
+                </optgroup>
+              )}
+              {country.trim() && relevantPartners.length === 0 && (
+                <optgroup label="No partners match this country">
+                  {partners.map((p: any) => (
+                    <option key={p.id} value={p.id}>{p.name} ({p.country ?? "—"})</option>
+                  ))}
+                </optgroup>
+              )}
             </select>
+            {selectedPartnerId && (() => {
+              const sel = partners.find((p: any) => p.id === selectedPartnerId);
+              return sel ? (
+                <div className="flex items-center gap-2 text-[10px] text-muted-foreground mt-1">
+                  <span>DD: {sel.dd_status}</span>
+                  {renderStars(sel.internal_rating)}
+                </div>
+              ) : null;
+            })()}
           </div>
           <div className="space-y-1.5">
             <Label>Assign to Partner User (email)</Label>
