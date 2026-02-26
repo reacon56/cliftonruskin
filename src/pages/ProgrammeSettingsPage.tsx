@@ -440,7 +440,57 @@ export default function ProgrammeSettingsPage() {
             </CardContent>
           </Card>
 
-          {!canEdit && (
+          {/* Report Retention */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-lg flex items-center gap-2">
+                <Clock className="h-4 w-4 text-accent" /> Report Retention
+              </CardTitle>
+              <CardDescription>
+                How long deliverables remain available for client download after delivery. After this window, reports may be expunged.
+                Clients are responsible for retaining downloaded reports.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="flex items-center gap-4">
+                <div className="space-y-1.5 w-48">
+                  <Label className="text-sm">Retention Window (days)</Label>
+                  <Input
+                    type="number"
+                    min={30}
+                    max={365}
+                    value={retentionDays}
+                    onChange={(e) => setRetentionDays(parseInt(e.target.value) || 90)}
+                    disabled={!canEdit}
+                  />
+                </div>
+                <div className="text-xs text-muted-foreground mt-5">
+                  Default: 90 days. Range: 30–365 days.
+                </div>
+              </div>
+              {canEdit && (
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="mt-4"
+                  onClick={async () => {
+                    const { error } = await supabase
+                      .from("organisation_plan")
+                      .update({ report_retention_days: retentionDays } as any)
+                      .eq("org_id", selectedOrgId);
+                    if (error) {
+                      toast({ title: "Error", description: error.message, variant: "destructive" });
+                    } else {
+                      toast({ title: "Retention updated", description: `Reports will be available for ${retentionDays} days.` });
+                    }
+                  }}
+                >
+                  Save Retention Setting
+                </Button>
+              )}
+            </CardContent>
+          </Card>
+
             <Card className="border-dashed border-muted-foreground/30">
               <CardContent className="py-4">
                 <p className="text-sm text-muted-foreground text-center">
