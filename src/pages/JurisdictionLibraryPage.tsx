@@ -203,8 +203,8 @@ export default function JurisdictionLibraryPage() {
     switch (cat) {
       case "Regulatory": return <Scale className="h-3.5 w-3.5 text-primary" />;
       case "Enforcement": return <Shield className="h-3.5 w-3.5 text-destructive" />;
-      case "Political Risk": return <AlertTriangle className="h-3.5 w-3.5 text-amber-500" />;
-      case "Registry Change": return <Database className="h-3.5 w-3.5 text-blue-500" />;
+      case "Political Risk": return <AlertTriangle className="h-3.5 w-3.5 text-accent-foreground" />;
+      case "Registry Change": return <Database className="h-3.5 w-3.5 text-primary" />;
       default: return <FileText className="h-3.5 w-3.5 text-muted-foreground" />;
     }
   };
