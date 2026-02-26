@@ -72,6 +72,7 @@ export default {
           dark: "hsl(var(--navy-dark))",
         },
         ivory: "hsl(var(--ivory))",
+        "cr-light": "hsl(var(--cr-light))",
         success: {
           DEFAULT: "hsl(var(--success))",
           foreground: "hsl(var(--success-foreground))",

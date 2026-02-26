@@ -6,55 +6,56 @@
 
 @layer base {
   :root {
-    /* Far View & Chase — Private Bank Aesthetic */
-    --background: 40 25% 97%;
-    --foreground: 220 30% 15%;
+    /* CR Brand Palette — #0F2A43 · #B79A5A · #E9EEF2 · #FFFFFF */
+    --background: 0 0% 100%;
+    --foreground: 209 63% 16%;
 
-    --card: 40 20% 99%;
-    --card-foreground: 220 30% 15%;
+    --card: 0 0% 100%;
+    --card-foreground: 209 63% 16%;
 
-    --popover: 40 20% 99%;
-    --popover-foreground: 220 30% 15%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 209 63% 16%;
 
-    --primary: 220 35% 18%;
-    --primary-foreground: 40 25% 97%;
+    --primary: 209 63% 16%;
+    --primary-foreground: 0 0% 100%;
 
-    --secondary: 38 20% 92%;
-    --secondary-foreground: 220 30% 15%;
+    --secondary: 207 26% 93%;
+    --secondary-foreground: 209 63% 16%;
 
-    --muted: 40 15% 94%;
-    --muted-foreground: 220 10% 46%;
+    --muted: 207 20% 95%;
+    --muted-foreground: 209 20% 46%;
 
-    --accent: 38 55% 52%;
-    --accent-foreground: 40 25% 97%;
+    --accent: 41 39% 54%;
+    --accent-foreground: 0 0% 100%;
 
     --destructive: 0 60% 48%;
-    --destructive-foreground: 40 25% 97%;
+    --destructive-foreground: 0 0% 100%;
 
-    --border: 38 18% 88%;
-    --input: 38 18% 88%;
-    --ring: 220 35% 18%;
+    --border: 207 20% 88%;
+    --input: 207 20% 88%;
+    --ring: 209 63% 16%;
 
     --radius: 0.5rem;
 
-    --sidebar-background: 220 30% 15%;
-    --sidebar-foreground: 40 15% 85%;
-    --sidebar-primary: 38 55% 52%;
-    --sidebar-primary-foreground: 40 25% 97%;
-    --sidebar-accent: 220 25% 22%;
-    --sidebar-accent-foreground: 40 15% 90%;
-    --sidebar-border: 220 20% 25%;
-    --sidebar-ring: 38 55% 52%;
+    --sidebar-background: 209 63% 16%;
+    --sidebar-foreground: 207 26% 93%;
+    --sidebar-primary: 41 39% 54%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 209 50% 22%;
+    --sidebar-accent-foreground: 207 20% 90%;
+    --sidebar-border: 209 45% 25%;
+    --sidebar-ring: 41 39% 54%;
 
-    /* Custom tokens */
-    --gold: 38 55% 52%;
-    --gold-light: 38 40% 72%;
-    --gold-dark: 38 60% 38%;
-    --navy: 220 35% 18%;
-    --navy-light: 220 25% 30%;
-    --navy-dark: 220 40% 10%;
-    --ivory: 40 25% 97%;
-    --warm-gray: 38 10% 62%;
+    /* Custom tokens — CR brand palette */
+    --gold: 41 39% 54%;
+    --gold-light: 41 30% 72%;
+    --gold-dark: 41 50% 40%;
+    --navy: 209 63% 16%;
+    --navy-light: 209 45% 28%;
+    --navy-dark: 209 70% 10%;
+    --ivory: 0 0% 100%;
+    --cr-light: 207 26% 93%;
+    --warm-gray: 207 10% 62%;
     --success: 152 45% 38%;
     --success-foreground: 40 25% 97%;
     --warning: 38 75% 52%;
@@ -63,15 +64,15 @@
     --info-foreground: 40 25% 97%;
 
     /* Gradients */
-    --gradient-navy: linear-gradient(135deg, hsl(220 40% 10%), hsl(220 35% 18%));
-    --gradient-gold: linear-gradient(135deg, hsl(38 55% 52%), hsl(38 40% 62%));
-    --gradient-ivory: linear-gradient(180deg, hsl(40 25% 97%), hsl(40 20% 93%));
+    --gradient-navy: linear-gradient(135deg, hsl(209 70% 10%), hsl(209 63% 16%));
+    --gradient-gold: linear-gradient(135deg, hsl(41 39% 54%), hsl(41 30% 62%));
+    --gradient-ivory: linear-gradient(180deg, hsl(0 0% 100%), hsl(207 26% 93%));
 
     /* Shadows */
-    --shadow-subtle: 0 1px 2px hsl(220 30% 15% / 0.03), 0 1px 3px hsl(220 30% 15% / 0.04);
-    --shadow-card: 0 1px 3px hsl(220 30% 15% / 0.04), 0 4px 12px hsl(220 30% 15% / 0.03);
-    --shadow-elevated: 0 4px 6px hsl(220 30% 15% / 0.04), 0 12px 32px hsl(220 30% 15% / 0.06);
-    --shadow-gold-glow: 0 0 0 1px hsl(38 55% 52% / 0.15), 0 4px 16px hsl(38 55% 52% / 0.08);
+    --shadow-subtle: 0 1px 2px hsl(209 63% 16% / 0.03), 0 1px 3px hsl(209 63% 16% / 0.04);
+    --shadow-card: 0 1px 3px hsl(209 63% 16% / 0.04), 0 4px 12px hsl(209 63% 16% / 0.03);
+    --shadow-elevated: 0 4px 6px hsl(209 63% 16% / 0.04), 0 12px 32px hsl(209 63% 16% / 0.06);
+    --shadow-gold-glow: 0 0 0 1px hsl(41 39% 54% / 0.15), 0 4px 16px hsl(41 39% 54% / 0.08);
 
     /* Fonts */
     --font-display: 'Cormorant Garamond', Georgia, serif;
@@ -79,42 +80,42 @@
   }
 
   .dark {
-    --background: 220 30% 8%;
-    --foreground: 40 15% 90%;
+    --background: 209 63% 8%;
+    --foreground: 207 20% 90%;
 
-    --card: 220 28% 12%;
-    --card-foreground: 40 15% 90%;
+    --card: 209 55% 12%;
+    --card-foreground: 207 20% 90%;
 
-    --popover: 220 28% 12%;
-    --popover-foreground: 40 15% 90%;
+    --popover: 209 55% 12%;
+    --popover-foreground: 207 20% 90%;
 
-    --primary: 38 55% 52%;
-    --primary-foreground: 220 30% 8%;
+    --primary: 41 39% 54%;
+    --primary-foreground: 209 63% 8%;
 
-    --secondary: 220 25% 18%;
-    --secondary-foreground: 40 15% 90%;
+    --secondary: 209 45% 18%;
+    --secondary-foreground: 207 20% 90%;
 
-    --muted: 220 20% 16%;
-    --muted-foreground: 220 10% 55%;
+    --muted: 209 35% 16%;
+    --muted-foreground: 209 15% 55%;
 
-    --accent: 38 55% 52%;
-    --accent-foreground: 220 30% 8%;
+    --accent: 41 39% 54%;
+    --accent-foreground: 209 63% 8%;
 
     --destructive: 0 60% 48%;
-    --destructive-foreground: 40 25% 97%;
+    --destructive-foreground: 0 0% 100%;
 
-    --border: 220 20% 20%;
-    --input: 220 20% 20%;
-    --ring: 38 55% 52%;
+    --border: 209 30% 20%;
+    --input: 209 30% 20%;
+    --ring: 41 39% 54%;
 
-    --sidebar-background: 220 35% 8%;
-    --sidebar-foreground: 40 15% 80%;
-    --sidebar-primary: 38 55% 52%;
-    --sidebar-primary-foreground: 220 30% 8%;
-    --sidebar-accent: 220 25% 15%;
-    --sidebar-accent-foreground: 40 15% 85%;
-    --sidebar-border: 220 20% 15%;
-    --sidebar-ring: 38 55% 52%;
+    --sidebar-background: 209 63% 8%;
+    --sidebar-foreground: 207 20% 80%;
+    --sidebar-primary: 41 39% 54%;
+    --sidebar-primary-foreground: 209 63% 8%;
+    --sidebar-accent: 209 45% 15%;
+    --sidebar-accent-foreground: 207 20% 85%;
+    --sidebar-border: 209 35% 15%;
+    --sidebar-ring: 41 39% 54%;
   }
 }
 
@@ -139,8 +140,8 @@
 
   /* Refined selection color */
   ::selection {
-    background: hsl(38 55% 52% / 0.2);
-    color: hsl(220 30% 15%);
+    background: hsl(41 39% 54% / 0.2);
+    color: hsl(209 63% 16%);
   }
 
   /* Smooth scrollbar */
@@ -151,11 +152,11 @@
     background: transparent;
   }
   ::-webkit-scrollbar-thumb {
-    background: hsl(38 18% 82%);
+    background: hsl(207 20% 82%);
     border-radius: 3px;
   }
   ::-webkit-scrollbar-thumb:hover {
-    background: hsl(38 18% 72%);
+    background: hsl(207 20% 72%);
   }
 }
 
@@ -229,7 +230,7 @@
   /* Gold accent line */
   .fvc-gold-rule {
     @apply h-px w-12;
-    background: linear-gradient(90deg, hsl(38 55% 52%), hsl(38 55% 52% / 0));
+    background: linear-gradient(90deg, hsl(41 39% 54%), hsl(41 39% 54% / 0));
   }
 
   /* Stagger animation helper */
@@ -253,7 +254,7 @@
   }
 
   .fvc-table-row:hover {
-    background: hsl(38 20% 92% / 0.5);
+    background: hsl(207 26% 93% / 0.5);
   }
 
   /* Link with underline animation */
