@@ -85,6 +85,7 @@ export default function ProgrammeSettingsPage() {
   const [auditLog, setAuditLog] = useState<AuditEntry[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [retentionDays, setRetentionDays] = useState(90);
 
   // Load orgs (internal sees all, client sees own)
   useEffect(() => {
