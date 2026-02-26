@@ -26,7 +26,7 @@ import { Lock } from "lucide-react";
 export default function EntityDetailPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { profile, hasRole } = useAuth();
+  const { profile, hasRole, isInternal } = useAuth();
   const { toast } = useToast();
   const { flags: featureFlags } = useFeatureFlags();
 
