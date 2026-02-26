@@ -11,46 +11,16 @@ import {
 } from "@/components/ui/dialog";
 import {
   Network, Activity, Globe, AlertTriangle, Eye, FileText, Building2,
-  RefreshCw, Lock, Undo2,
+  RefreshCw, Lock, Undo2, Info,
 } from "lucide-react";
 
-/* ── Tier template definitions ── */
-
-const FEATURE_DEFS = [
-  { key: "ownership_structure_intelligence", label: "Ownership & Structure Intelligence", icon: Network, tierDefault: "A" },
-  { key: "monitoring_module", label: "Monitoring Module", icon: Activity, tierDefault: "A" },
-  { key: "jurisdiction_benchmark", label: "Jurisdiction Benchmark", icon: Globe, tierDefault: "A" },
-  { key: "advanced_risk_alerts", label: "Advanced Risk Alerts", icon: AlertTriangle, tierDefault: "B" },
-  { key: "provenance_view", label: "Provenance View", icon: Eye, tierDefault: "A" },
-  { key: "export_pdf_advanced", label: "Export to PDF (Advanced)", icon: FileText, tierDefault: "B" },
-] as const;
-
-/** Tier hierarchy: A includes everything B includes, B includes everything C includes */
-const TIER_RANK: Record<string, number> = { A: 3, B: 2, C: 1 };
-
-function getTierDefaults(tier: string): Record<string, boolean> {
-  const rank = TIER_RANK[tier] ?? 0;
-  const defaults: Record<string, boolean> = {};
-  FEATURE_DEFS.forEach(({ key, tierDefault }) => {
-    const featureRank = TIER_RANK[tierDefault] ?? 0;
-    defaults[key] = rank >= featureRank;
-  });
-  return defaults;
-}
-
-const TIER_LABELS: Record<string, string> = {
-  A: "Tier A — Premium",
-  B: "Tier B — Standard",
-  C: "Tier C — Essential",
-  custom: "Custom",
-};
-
-const TIER_STYLES: Record<string, string> = {
-  A: "bg-primary/10 text-primary border-primary/30",
-  B: "bg-accent/10 text-accent border-accent/30",
-  C: "bg-muted text-muted-foreground border-border",
-  custom: "bg-secondary/10 text-secondary-foreground border-secondary/30",
-};
+import {
+  Tooltip, TooltipContent, TooltipTrigger,
+} from "@/components/ui/tooltip";
+import {
+  PLAN_LABELS, PLAN_STYLES, PLAN_RANK, PLAN_TOOLTIP,
+  FEATURE_DEFS, getPlanDefaults, planShortLabel,
+} from "@/lib/feature-tiers";
 
 /* ── Types ── */
 
@@ -148,13 +118,13 @@ export default function FeatureControlsPanel() {
 
       // If org is on a named tier and flags now differ, auto-promote to custom
       if (org && org.feature_tier !== "custom") {
-        const tierDefaults = getTierDefaults(org.feature_tier);
+        const tierDefaults = getPlanDefaults(org.feature_tier);
         const updatedFlags = { ...org.flags, [featureKey]: newValue };
         const drifted = FEATURE_DEFS.some(({ key }) => (updatedFlags[key] ?? false) !== (tierDefaults[key] ?? false));
         if (drifted) {
           await supabase.from("organisations").update({ feature_tier: "custom" } as any).eq("id", orgId);
           setOrgs((prev) => prev.map((o) => o.org_id === orgId ? { ...o, feature_tier: "custom", flags: updatedFlags } : o));
-          toast({ title: `${featureKey.replace(/_/g, " ")} ${newValue ? "enabled" : "disabled"}`, description: "Tier changed to Custom (bespoke configuration)." });
+          toast({ title: `${featureKey.replace(/_/g, " ")} ${newValue ? "enabled" : "disabled"}`, description: "Plan changed to Bespoke (custom configuration)." });
           setSaving(null);
           return;
         }
@@ -176,7 +146,7 @@ export default function FeatureControlsPanel() {
 
   const handleApplyTierDefaults = async (orgId: string, tier: string) => {
     setSaving(`apply-${orgId}`);
-    const defaults = getTierDefaults(tier);
+    const defaults = getPlanDefaults(tier);
     const org = orgs.find((o) => o.org_id === orgId);
     const previousFlags = { ...org?.flags };
 
@@ -233,9 +203,9 @@ export default function FeatureControlsPanel() {
       prev.map((o) => o.org_id === orgId ? { ...o, feature_tier: tier, flags: defaults } : o)
     );
 
-    toast({
-      title: `Tier ${tier} defaults applied`,
-      description: `${logEntries.length} feature${logEntries.length !== 1 ? "s" : ""} updated for ${org?.org_name}.`,
+     toast({
+       title: `${planShortLabel(tier)} plan defaults applied`,
+       description: `${logEntries.length} feature${logEntries.length !== 1 ? "s" : ""} updated for ${org?.org_name}.`,
     });
     setApplyDialog(null);
     setSaving(null);
@@ -262,9 +232,9 @@ export default function FeatureControlsPanel() {
       prev.map((o) => o.org_id === orgId ? { ...o, feature_tier: "custom" } : o)
     );
 
-    toast({
-      title: "Converted to Custom",
-      description: `${org?.org_name} now has bespoke feature configuration. Tier defaults will not auto-apply.`,
+     toast({
+       title: "Converted to Bespoke",
+       description: `${org?.org_name} now has bespoke feature configuration. Plan defaults will not auto-apply.`,
     });
     setCustomDialog(null);
     setSaving(null);
@@ -295,9 +265,9 @@ export default function FeatureControlsPanel() {
 
       {orgs.map((org) => {
         const isCustom = org.feature_tier === "custom";
-        const tierStyle = TIER_STYLES[org.feature_tier] || TIER_STYLES.custom;
-        const tierLabel = TIER_LABELS[org.feature_tier] || org.feature_tier;
-        const tierDefaults = isCustom ? null : getTierDefaults(org.feature_tier);
+         const tierStyle = PLAN_STYLES[org.feature_tier] || PLAN_STYLES.custom;
+         const tierLabel = PLAN_LABELS[org.feature_tier] || org.feature_tier;
+         const tierDefaults = isCustom ? null : getPlanDefaults(org.feature_tier);
         const flagsDriftedFromTier = !isCustom && tierDefaults && FEATURE_DEFS.some(
           ({ key }) => (org.flags[key] ?? false) !== (tierDefaults[key] ?? false)
         );
@@ -312,10 +282,18 @@ export default function FeatureControlsPanel() {
                   {Object.values(org.flags).filter(Boolean).length} of {FEATURE_DEFS.length} features active
                 </p>
               </div>
-              <Badge variant="outline" className={`text-[10px] uppercase tracking-wider px-2.5 py-1 ${tierStyle}`}>
-                {isCustom && <Lock className="h-3 w-3 mr-1" />}
-                {tierLabel}
-              </Badge>
+               <Badge variant="outline" className={`text-[10px] uppercase tracking-wider px-2.5 py-1 ${tierStyle}`}>
+                 {isCustom && <Lock className="h-3 w-3 mr-1" />}
+                 {tierLabel}
+               </Badge>
+               <Tooltip>
+                 <TooltipTrigger asChild>
+                   <Info className="h-3.5 w-3.5 text-muted-foreground cursor-help" />
+                 </TooltipTrigger>
+                 <TooltipContent side="left" className="max-w-[200px] text-xs">
+                   {PLAN_TOOLTIP}
+                 </TooltipContent>
+               </Tooltip>
             </div>
 
             {/* Tier actions bar */}
@@ -330,7 +308,7 @@ export default function FeatureControlsPanel() {
                     onClick={() => setApplyDialog({ orgId: org.org_id, orgName: org.org_name, tier: org.feature_tier })}
                   >
                     <RefreshCw className="h-3.5 w-3.5" />
-                    {flagsDriftedFromTier ? "Re-apply Tier Defaults" : "Apply Tier Defaults"}
+                    {flagsDriftedFromTier ? "Re-apply Plan Defaults" : "Apply Plan Defaults"}
                   </Button>
                   <Button
                     variant="outline"
@@ -340,28 +318,28 @@ export default function FeatureControlsPanel() {
                     onClick={() => setCustomDialog({ orgId: org.org_id, orgName: org.org_name })}
                   >
                     <Lock className="h-3.5 w-3.5" />
-                    Convert to Custom
+                     Convert to Bespoke
                   </Button>
                   {/* Quick tier switch */}
-                  {(["A", "B", "C"] as const).filter((t) => t !== org.feature_tier).map((t) => (
-                    <Button
-                      key={t}
-                      variant="ghost"
-                      size="sm"
-                      className="h-8 text-xs text-muted-foreground hover:text-foreground"
-                      disabled={!!saving}
-                      onClick={() => setApplyDialog({ orgId: org.org_id, orgName: org.org_name, tier: t })}
-                    >
-                      Switch to {t}
-                    </Button>
+                   {(["A", "B", "C"] as const).filter((t) => t !== org.feature_tier).map((t) => (
+                     <Button
+                       key={t}
+                       variant="ghost"
+                       size="sm"
+                       className="h-8 text-xs text-muted-foreground hover:text-foreground"
+                       disabled={!!saving}
+                       onClick={() => setApplyDialog({ orgId: org.org_id, orgName: org.org_name, tier: t })}
+                     >
+                       Switch to {planShortLabel(t)}
+                     </Button>
                   ))}
                 </>
               ) : (
                 <>
-                  <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                    <Lock className="h-3.5 w-3.5" />
-                    <span>Custom configuration — tier defaults will not auto-apply</span>
-                  </div>
+                   <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                     <Lock className="h-3.5 w-3.5" />
+                     <span>Bespoke configuration — plan defaults will not auto-apply</span>
+                   </div>
                   <Button
                     variant="outline"
                     size="sm"
@@ -370,7 +348,7 @@ export default function FeatureControlsPanel() {
                     onClick={() => handleRevertToTier(org.org_id, org.org_name)}
                   >
                     <Undo2 className="h-3.5 w-3.5" />
-                    Revert to Tier
+                     Revert to Plan
                   </Button>
                 </>
               )}
@@ -378,25 +356,34 @@ export default function FeatureControlsPanel() {
 
             {/* Feature toggles */}
             <div className="space-y-3">
-              {FEATURE_DEFS.map(({ key, label, icon: Icon, tierDefault }) => {
-                const isEnabled = org.flags[key] ?? false;
-                const isSaving = saving === `${org.org_id}-${key}`;
-                const matchesTier = !isCustom && tierDefaults && isEnabled === tierDefaults[key];
+               {FEATURE_DEFS.map(({ key, label, tierDefault }) => {
+                 const isEnabled = org.flags[key] ?? false;
+                 const isSaving = saving === `${org.org_id}-${key}`;
+                 const matchesTier = !isCustom && tierDefaults && isEnabled === tierDefaults[key];
+                 const IconMap: Record<string, any> = {
+                   ownership_structure_intelligence: Network,
+                   monitoring_module: Activity,
+                   jurisdiction_benchmark: Globe,
+                   advanced_risk_alerts: AlertTriangle,
+                   provenance_view: Eye,
+                   export_pdf_advanced: FileText,
+                 };
+                 const Icon = IconMap[key] || FileText;
 
-                return (
-                  <div
-                    key={key}
-                    className="flex items-center justify-between py-2 px-3 rounded-md border border-border/50 hover:border-border transition-colors"
-                  >
-                    <div className="flex items-center gap-3">
-                      <div className="h-7 w-7 rounded flex items-center justify-center bg-muted/50">
-                        <Icon className="h-3.5 w-3.5 text-muted-foreground" />
+                 return (
+                   <div
+                     key={key}
+                     className="flex items-center justify-between py-2 px-3 rounded-md border border-border/50 hover:border-border transition-colors"
+                   >
+                     <div className="flex items-center gap-3">
+                       <div className="h-7 w-7 rounded flex items-center justify-center bg-muted/50">
+                         <Icon className="h-3.5 w-3.5 text-muted-foreground" />
                       </div>
                       <div>
                         <Label className="text-xs font-medium text-foreground cursor-pointer">{label}</Label>
                         <div className="flex items-center gap-2">
-                          <p className="text-[9px] text-muted-foreground uppercase tracking-widest">
-                            Default: Tier {tierDefault}+
+                           <p className="text-[9px] text-muted-foreground uppercase tracking-widest">
+                             Default: {planShortLabel(tierDefault)}+
                           </p>
                           {!isCustom && !matchesTier && (
                             <Badge variant="outline" className="text-[7px] px-1 py-0 tracking-wider text-accent border-accent/40">
@@ -423,18 +410,18 @@ export default function FeatureControlsPanel() {
       <Dialog open={!!applyDialog} onOpenChange={() => setApplyDialog(null)}>
         <DialogContent className="max-w-md">
           <DialogHeader>
-            <DialogTitle className="font-display text-lg">Apply Tier {applyDialog?.tier} Defaults</DialogTitle>
+            <DialogTitle className="font-display text-lg">Apply {planShortLabel(applyDialog?.tier || "")} Plan Defaults</DialogTitle>
             <DialogDescription className="text-sm text-muted-foreground">
-              This will set <strong>{applyDialog?.orgName}</strong>'s feature flags to the standard Tier {applyDialog?.tier} template.
-              Any bespoke overrides will be replaced.
-            </DialogDescription>
+               This will set <strong>{applyDialog?.orgName}</strong>'s feature flags to the {planShortLabel(applyDialog?.tier || "")} plan template.
+               Any bespoke overrides will be replaced.
+             </DialogDescription>
           </DialogHeader>
           <div className="space-y-2 my-3">
-            <p className="text-[10px] uppercase tracking-widest text-muted-foreground font-semibold">
-              Tier {applyDialog?.tier} enables:
+             <p className="text-[10px] uppercase tracking-widest text-muted-foreground font-semibold">
+               {planShortLabel(applyDialog?.tier || "")} plan enables:
             </p>
-            {applyDialog && FEATURE_DEFS.map(({ key, label }) => {
-              const enabled = getTierDefaults(applyDialog.tier)[key];
+             {applyDialog && FEATURE_DEFS.map(({ key, label }) => {
+               const enabled = getPlanDefaults(applyDialog.tier)[key];
               return (
                 <div key={key} className="flex items-center gap-2 text-xs">
                   <span className={`h-1.5 w-1.5 rounded-full ${enabled ? "bg-primary" : "bg-muted-foreground/30"}`} />
@@ -444,7 +431,7 @@ export default function FeatureControlsPanel() {
             })}
           </div>
           <p className="text-xs text-muted-foreground">
-            This action is logged and can be reversed by re-applying a different tier or converting to Custom.
+            This action is logged and can be reversed by re-applying a different plan or converting to Bespoke.
           </p>
           <DialogFooter className="gap-2">
             <Button variant="outline" size="sm" onClick={() => setApplyDialog(null)}>Cancel</Button>
@@ -453,7 +440,7 @@ export default function FeatureControlsPanel() {
               disabled={!!saving}
               onClick={() => applyDialog && handleApplyTierDefaults(applyDialog.orgId, applyDialog.tier)}
             >
-              {saving?.startsWith("apply-") ? "Applying…" : `Apply Tier ${applyDialog?.tier} Defaults`}
+              {saving?.startsWith("apply-") ? "Applying…" : `Apply ${planShortLabel(applyDialog?.tier || "")} Defaults`}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -463,14 +450,14 @@ export default function FeatureControlsPanel() {
       <Dialog open={!!customDialog} onOpenChange={() => setCustomDialog(null)}>
         <DialogContent className="max-w-md">
           <DialogHeader>
-            <DialogTitle className="font-display text-lg">Convert to Custom</DialogTitle>
+            <DialogTitle className="font-display text-lg">Convert to Bespoke</DialogTitle>
             <DialogDescription className="text-sm text-muted-foreground">
-              This will freeze <strong>{customDialog?.orgName}</strong>'s current feature flags as a bespoke configuration.
-              Tier defaults will no longer auto-apply to this organisation.
+               This will freeze <strong>{customDialog?.orgName}</strong>'s current feature flags as a bespoke configuration.
+               Plan defaults will no longer auto-apply to this organisation.
             </DialogDescription>
           </DialogHeader>
           <p className="text-xs text-muted-foreground my-2">
-            You can revert to a standard tier at any time by clicking "Revert to Tier."
+            You can revert to a standard plan at any time by clicking "Revert to Plan."
           </p>
           <DialogFooter className="gap-2">
             <Button variant="outline" size="sm" onClick={() => setCustomDialog(null)}>Cancel</Button>
@@ -479,7 +466,7 @@ export default function FeatureControlsPanel() {
               disabled={!!saving}
               onClick={() => customDialog && handleConvertToCustom(customDialog.orgId)}
             >
-              {saving?.startsWith("custom-") ? "Converting…" : "Convert to Custom"}
+              {saving?.startsWith("custom-") ? "Converting…" : "Convert to Bespoke"}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -488,12 +475,12 @@ export default function FeatureControlsPanel() {
       {/* ── Revert to Tier (pick tier, then applies defaults) ── */}
       <Dialog open={!!revertDialog} onOpenChange={() => setRevertDialog(null)}>
         <DialogContent className="max-w-md">
-          <DialogHeader>
-            <DialogTitle className="font-display text-lg">Revert to Standard Tier</DialogTitle>
-            <DialogDescription className="text-sm text-muted-foreground">
-              Choose a tier to apply to <strong>{revertDialog?.orgName}</strong>. This will overwrite the current custom settings with the selected tier's defaults.
-            </DialogDescription>
-          </DialogHeader>
+           <DialogHeader>
+             <DialogTitle className="font-display text-lg">Revert to Standard Plan</DialogTitle>
+             <DialogDescription className="text-sm text-muted-foreground">
+               Choose a plan to apply to <strong>{revertDialog?.orgName}</strong>. This will overwrite the current bespoke settings with the selected plan's defaults.
+             </DialogDescription>
+           </DialogHeader>
           <div className="grid grid-cols-3 gap-3 my-4">
             {(["A", "B", "C"] as const).map((t) => (
               <button
@@ -504,11 +491,11 @@ export default function FeatureControlsPanel() {
                     : "border-border hover:border-muted-foreground"
                 }`}
                 onClick={() => setRevertDialog((prev) => prev ? { ...prev, tier: t } : null)}
-              >
-                <p className="font-display text-sm font-semibold text-foreground">Tier {t}</p>
-                <p className="text-[9px] text-muted-foreground mt-0.5">
-                  {Object.values(getTierDefaults(t)).filter(Boolean).length} features
-                </p>
+               >
+                 <p className="font-display text-sm font-semibold text-foreground">{planShortLabel(t)}</p>
+                 <p className="text-[9px] text-muted-foreground mt-0.5">
+                   {Object.values(getPlanDefaults(t)).filter(Boolean).length} features
+                 </p>
               </button>
             ))}
           </div>
@@ -519,7 +506,7 @@ export default function FeatureControlsPanel() {
               disabled={!!saving}
               onClick={() => revertDialog && handleApplyTierDefaults(revertDialog.orgId, revertDialog.tier).then(() => setRevertDialog(null))}
             >
-              {saving?.startsWith("apply-") ? "Applying…" : `Apply Tier ${revertDialog?.tier}`}
+              {saving?.startsWith("apply-") ? "Applying…" : `Apply ${planShortLabel(revertDialog?.tier || "")}`}
             </Button>
           </DialogFooter>
         </DialogContent>

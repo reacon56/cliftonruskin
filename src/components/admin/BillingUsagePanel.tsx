@@ -151,9 +151,9 @@ export default function BillingUsagePanel({ className }: Props) {
                 <div className="flex items-center gap-2">
                   <Building2 className="h-4 w-4 text-muted-foreground" />
                   <h3 className="font-display text-base font-semibold text-foreground">{summary.org_name}</h3>
-                  <Badge variant="outline" className="text-[9px] uppercase tracking-wider">
-                    {summary.feature_tier === "custom" ? "Custom" : `Tier ${summary.feature_tier}`}
-                  </Badge>
+                   <Badge variant="outline" className="text-[9px] uppercase tracking-wider">
+                     {summary.feature_tier === "custom" ? "Plan: Bespoke" : `Plan: ${({A:"Premium",B:"Standard",C:"Essential"} as Record<string,string>)[summary.feature_tier] || summary.feature_tier}`}
+                   </Badge>
                 </div>
                 <span className="text-[10px] text-muted-foreground uppercase tracking-widest">
                   {summary.events.length} event{summary.events.length !== 1 ? "s" : ""}
