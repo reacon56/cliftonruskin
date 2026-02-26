@@ -55,7 +55,7 @@ export default function MasterEntitiesPage() {
       if (e.has_master_conflict) countMap[e.master_entity_id].conflicts++;
     });
 
-    setEntities(data.map((d: any) => ({
+    setEntities((data as any[]).map((d: any) => ({
       ...d,
       linked_count: countMap[d.id]?.linked ?? 0,
       conflict_count: countMap[d.id]?.conflicts ?? 0,
