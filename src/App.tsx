@@ -38,6 +38,7 @@ import AboutPage from "@/pages/website/AboutPage";
 import ServicesPage from "@/pages/website/ServicesPage";
 import SectorsPage from "@/pages/website/SectorsPage";
 import InsightsPage from "@/pages/website/InsightsPage";
+import ObservationsPage from "@/pages/website/ObservationsPage";
 import ContactPage from "@/pages/website/ContactPage";
 
 const queryClient = new QueryClient();
@@ -65,6 +66,7 @@ function AppRoutes() {
         <Route path="/services" element={<ServicesPage />} />
         <Route path="/sectors" element={<SectorsPage />} />
         <Route path="/insights" element={<InsightsPage />} />
+        <Route path="/observations" element={<ObservationsPage />} />
         <Route path="/contact" element={<ContactPage />} />
       </Route>
 
