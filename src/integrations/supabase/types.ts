@@ -1946,6 +1946,94 @@ export type Database = {
           },
         ]
       }
+      programme_audit_log: {
+        Row: {
+          changed_by: string
+          created_at: string
+          field_changed: string
+          id: string
+          new_value: string | null
+          old_value: string | null
+          org_id: string
+        }
+        Insert: {
+          changed_by: string
+          created_at?: string
+          field_changed: string
+          id?: string
+          new_value?: string | null
+          old_value?: string | null
+          org_id: string
+        }
+        Update: {
+          changed_by?: string
+          created_at?: string
+          field_changed?: string
+          id?: string
+          new_value?: string | null
+          old_value?: string | null
+          org_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "programme_audit_log_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organisations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      programme_settings: {
+        Row: {
+          addons: Json
+          cadence_tier_a: number
+          cadence_tier_b: number
+          cadence_tier_c: number
+          created_at: string
+          id: string
+          org_id: string
+          report_tier_a: string
+          report_tier_b: string
+          report_tier_c: string
+          updated_at: string
+        }
+        Insert: {
+          addons?: Json
+          cadence_tier_a?: number
+          cadence_tier_b?: number
+          cadence_tier_c?: number
+          created_at?: string
+          id?: string
+          org_id: string
+          report_tier_a?: string
+          report_tier_b?: string
+          report_tier_c?: string
+          updated_at?: string
+        }
+        Update: {
+          addons?: Json
+          cadence_tier_a?: number
+          cadence_tier_b?: number
+          cadence_tier_c?: number
+          created_at?: string
+          id?: string
+          org_id?: string
+          report_tier_a?: string
+          report_tier_b?: string
+          report_tier_c?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "programme_settings_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: true
+            referencedRelation: "organisations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       quotes: {
         Row: {
           case_id: string
