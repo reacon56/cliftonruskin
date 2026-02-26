@@ -43,6 +43,8 @@ import MyTasksPage from "@/pages/MyTasksPage";
 import PartnerRequestsPage from "@/pages/PartnerRequestsPage";
 import KnowledgeBasePage from "@/pages/KnowledgeBasePage";
 import MasterEntityDetailPage from "@/pages/MasterEntityDetailPage";
+import SourceRegistryPage from "@/pages/SourceRegistryPage";
+import ResearchConsolePage from "@/pages/ResearchConsolePage";
 
 // Website pages
 import WebsiteLayout from "@/components/website/WebsiteLayout";
