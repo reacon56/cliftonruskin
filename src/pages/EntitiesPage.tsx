@@ -4,7 +4,8 @@ import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Search, Building2, List, Map, Globe, MapPin, ExternalLink, User, Sparkles, ArrowRight, CheckCircle2, Zap, Table2 } from "lucide-react";
+import { Plus, Search, Building2, List, Map, Globe, MapPin, ExternalLink, User, Sparkles, ArrowRight, CheckCircle2, Zap, Table2, Upload } from "lucide-react";
+import BulkEntityUpload from "@/components/BulkEntityUpload";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import {
@@ -37,6 +38,7 @@ export default function EntitiesPage() {
   const [filterHqCountry, setFilterHqCountry] = useState<string>("all");
   const [activeViewName, setActiveViewName] = useState<string | undefined>();
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [bulkUploadOpen, setBulkUploadOpen] = useState(false);
   const [viewMode, setViewMode] = useState<"list" | "map" | "table">("list");
   const [highlightEntityId, setHighlightEntityId] = useState<string | null>(null);
   const [postSaveEntity, setPostSaveEntity] = useState<{ id: string; name: string; country?: string; risk_tier?: string; data_access_level?: string } | null>(null);
@@ -269,6 +271,11 @@ export default function EntitiesPage() {
             </button>
           </div>
           <SavedViewsDropdown pageType="entities" currentFilters={currentFilters} onApplyFilters={handleApplyFilters} />
+          {hasRole("client_admin") && (
+            <Button variant="outline" onClick={() => setBulkUploadOpen(true)}>
+              <Upload size={15} className="mr-2" />Bulk Upload
+            </Button>
+          )}
           {canAdd && (
             <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
               <DialogTrigger asChild>
@@ -694,6 +701,12 @@ export default function EntitiesPage() {
           </div>
         </DialogContent>
       </Dialog>
+
+      <BulkEntityUpload
+        open={bulkUploadOpen}
+        onOpenChange={setBulkUploadOpen}
+        onImportComplete={loadEntities}
+      />
     </div>
   );
 }

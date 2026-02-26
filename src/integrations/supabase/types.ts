@@ -726,6 +726,53 @@ export type Database = {
           },
         ]
       }
+      entity_import_logs: {
+        Row: {
+          created_at: string
+          created_count: number
+          error_count: number
+          error_details: Json | null
+          file_name: string
+          id: string
+          org_id: string
+          skipped_count: number
+          total_rows: number
+          uploaded_by: string
+        }
+        Insert: {
+          created_at?: string
+          created_count?: number
+          error_count?: number
+          error_details?: Json | null
+          file_name: string
+          id?: string
+          org_id: string
+          skipped_count?: number
+          total_rows?: number
+          uploaded_by: string
+        }
+        Update: {
+          created_at?: string
+          created_count?: number
+          error_count?: number
+          error_details?: Json | null
+          file_name?: string
+          id?: string
+          org_id?: string
+          skipped_count?: number
+          total_rows?: number
+          uploaded_by?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "entity_import_logs_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organisations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       entity_operating_countries: {
         Row: {
           added_by: string | null
