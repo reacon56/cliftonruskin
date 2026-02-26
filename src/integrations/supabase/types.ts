@@ -2225,6 +2225,118 @@ export type Database = {
           },
         ]
       }
+      research_sources: {
+        Row: {
+          access_type: string
+          category: string
+          cost_level: string
+          created_at: string
+          created_by: string | null
+          enabled: boolean
+          id: string
+          jurisdictions_covered: string[]
+          linked_package: string
+          permitted_use_notes: string | null
+          source_name: string
+          tier: string
+          updated_at: string
+        }
+        Insert: {
+          access_type?: string
+          category?: string
+          cost_level?: string
+          created_at?: string
+          created_by?: string | null
+          enabled?: boolean
+          id?: string
+          jurisdictions_covered?: string[]
+          linked_package?: string
+          permitted_use_notes?: string | null
+          source_name: string
+          tier?: string
+          updated_at?: string
+        }
+        Update: {
+          access_type?: string
+          category?: string
+          cost_level?: string
+          created_at?: string
+          created_by?: string | null
+          enabled?: boolean
+          id?: string
+          jurisdictions_covered?: string[]
+          linked_package?: string
+          permitted_use_notes?: string | null
+          source_name?: string
+          tier?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      retrieval_logs: {
+        Row: {
+          case_id: string
+          created_at: string
+          entity_id: string
+          id: string
+          notes_internal: string | null
+          officer_id: string
+          outcome_status: string
+          promoted_to: string | null
+          purpose_of_search: string
+          query_text: string | null
+          source_id: string
+        }
+        Insert: {
+          case_id: string
+          created_at?: string
+          entity_id: string
+          id?: string
+          notes_internal?: string | null
+          officer_id: string
+          outcome_status?: string
+          promoted_to?: string | null
+          purpose_of_search?: string
+          query_text?: string | null
+          source_id: string
+        }
+        Update: {
+          case_id?: string
+          created_at?: string
+          entity_id?: string
+          id?: string
+          notes_internal?: string | null
+          officer_id?: string
+          outcome_status?: string
+          promoted_to?: string | null
+          purpose_of_search?: string
+          query_text?: string | null
+          source_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "retrieval_logs_case_id_fkey"
+            columns: ["case_id"]
+            isOneToOne: false
+            referencedRelation: "cases"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "retrieval_logs_entity_id_fkey"
+            columns: ["entity_id"]
+            isOneToOne: false
+            referencedRelation: "entities"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "retrieval_logs_source_id_fkey"
+            columns: ["source_id"]
+            isOneToOne: false
+            referencedRelation: "research_sources"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       review_reminders: {
         Row: {
           entity_id: string
