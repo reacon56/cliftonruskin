@@ -20,7 +20,7 @@ import CommercialPostureTab from "@/components/entity-detail/CommercialPostureTa
 import JurisdictionBenchmarkTab from "@/components/entity-detail/JurisdictionBenchmarkTab";
 import OwnershipStructureTab from "@/components/entity-detail/OwnershipStructureTab";
 import { useFeatureFlags } from "@/hooks/use-feature-flags";
-import MasterEntityLinkPanel from "@/components/entity-detail/MasterEntityLinkPanel";
+
 import { Lock } from "lucide-react";
 
 export default function EntityDetailPage() {
@@ -157,12 +157,6 @@ export default function EntityDetailPage() {
         onChangeTier={() => setTierOpen(true)}
       />
 
-      {/* Master Entity Link Panel (CR internal only) */}
-      {isInternal && (
-        <div className="mt-4 max-w-sm">
-          <MasterEntityLinkPanel entityId={entity.id} entityName={entity.name} entityJurisdiction={entity.incorporation_country_name || entity.country} onRefresh={loadAll} />
-        </div>
-      )}
 
       <Tabs defaultValue="overview" className="mt-8">
         <TabsList className="bg-muted/50">
