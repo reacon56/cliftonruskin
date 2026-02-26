@@ -32,6 +32,8 @@ export default function EntitiesPage() {
   const [filterTier, setFilterTier] = useState<string>("all");
   const [filterType, setFilterType] = useState<string>("all");
   const [filterStatus, setFilterStatus] = useState<string>("all");
+  const [filterIncCountry, setFilterIncCountry] = useState<string>("all");
+  const [filterHqCountry, setFilterHqCountry] = useState<string>("all");
   const [activeViewName, setActiveViewName] = useState<string | undefined>();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [viewMode, setViewMode] = useState<"list" | "map">("list");
@@ -182,6 +184,8 @@ export default function EntitiesPage() {
       (e.head_office_city || "").toLowerCase().includes(search.toLowerCase());
     const matchTier = filterTier === "all" || e.risk_tier === filterTier;
     const matchType = filterType === "all" || e.entity_type === filterType;
+    const matchInc = filterIncCountry === "all" || e.incorporation_country_name === filterIncCountry;
+    const matchHq = filterHqCountry === "all" || e.hq_country_name === filterHqCountry;
 
     let matchStatus = true;
     if (filterStatus === "overdue") {
@@ -194,7 +198,7 @@ export default function EntitiesPage() {
       matchStatus = e.owner_user_id === profile?.user_id;
     }
 
-    return matchSearch && matchTier && matchType && matchStatus;
+    return matchSearch && matchTier && matchType && matchStatus && matchInc && matchHq;
   });
 
   const tierColor = (tier: string) => {
@@ -426,6 +430,24 @@ export default function EntitiesPage() {
             <SelectItem value="due_soon">Due within 30 days</SelectItem>
             <SelectItem value="due_60">Due within 60 days</SelectItem>
             <SelectItem value="mine">My entities</SelectItem>
+          </SelectContent>
+        </Select>
+        <Select value={filterIncCountry} onValueChange={setFilterIncCountry}>
+          <SelectTrigger className="w-44"><SelectValue placeholder="INC country" /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All INC countries</SelectItem>
+            {[...new Set(entities.map(e => e.incorporation_country_name).filter(Boolean))].sort().map(c => (
+              <SelectItem key={c} value={c}>{c}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        <Select value={filterHqCountry} onValueChange={setFilterHqCountry}>
+          <SelectTrigger className="w-44"><SelectValue placeholder="HQ country" /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All HQ countries</SelectItem>
+            {[...new Set(entities.map(e => e.hq_country_name).filter(Boolean))].sort().map(c => (
+              <SelectItem key={c} value={c}>{c}</SelectItem>
+            ))}
           </SelectContent>
         </Select>
       </div>
