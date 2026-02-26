@@ -140,14 +140,9 @@ export default function MasterEntitiesPage() {
     const juris = e.incorporation_country_name ?? e.country ?? "";
     const matchesJurisdiction = !jurisdictionFilter || juris === jurisdictionFilter;
     const matchesClient = !clientFilter || e.org_name === clientFilter;
-    const matchesLink = !linkStatusFilter ||
-      (linkStatusFilter === "linked" && e.master_entity_id) ||
-      (linkStatusFilter === "unlinked" && !e.master_entity_id) ||
-      (linkStatusFilter === "conflict" && e.has_master_conflict);
-    return matchesSearch && matchesJurisdiction && matchesClient && matchesLink;
+    return matchesSearch && matchesJurisdiction && matchesClient;
   });
 
-  const unlinkedCount = clientEntities.filter((e) => !e.master_entity_id).length;
   const conflictCount = clientEntities.filter((e) => e.has_master_conflict).length;
 
   return (
