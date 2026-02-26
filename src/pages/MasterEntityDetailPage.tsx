@@ -72,11 +72,11 @@ export default function MasterEntityDetailPage() {
       registered_address_line1, registered_city, registered_country, registered_postcode,
       hq_address_line1, hq_city, hq_country, hq_postcode } = form;
 
-    const { error } = await supabase.from("master_entities" as any).update({
+    const { error } = await (supabase as any).from("master_entities").update({
       canonical_name, jurisdiction_incorporation, canonical_registration_number, website, notes_internal,
       registered_address_line1, registered_city, registered_country, registered_postcode,
       hq_address_line1, hq_city, hq_country, hq_postcode, updated_at: new Date().toISOString(),
-    } as any).eq("id", id!);
+    }).eq("id", id!);
 
     setSaving(false);
     if (error) {

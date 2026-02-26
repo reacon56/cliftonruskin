@@ -64,7 +64,7 @@ export default function MasterEntitiesPage() {
 
   const handleCreate = async () => {
     if (!form.canonical_name.trim()) return;
-    const { error } = await supabase.from("master_entities" as any).insert(form as any);
+    const { error } = await (supabase as any).from("master_entities").insert(form);
     if (error) {
       toast({ title: "Error", description: error.message, variant: "destructive" });
     } else {
