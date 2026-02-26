@@ -160,7 +160,7 @@ export default function EntityDetailPage() {
       {/* Master Entity Link Panel (CR internal only) */}
       {isInternal && (
         <div className="mt-4 max-w-sm">
-          <MasterEntityLinkPanel entityId={entity.id} entityName={entity.name} onRefresh={loadAll} />
+          <MasterEntityLinkPanel entityId={entity.id} entityName={entity.name} entityJurisdiction={entity.incorporation_country_name || entity.country} onRefresh={loadAll} />
         </div>
       )}
 
