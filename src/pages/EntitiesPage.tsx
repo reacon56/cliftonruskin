@@ -4,7 +4,8 @@ import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Search, Building2, List, Map, Globe, MapPin, ExternalLink, User, Sparkles, ArrowRight, CheckCircle2, Zap } from "lucide-react";
+import { Plus, Search, Building2, List, Map, Globe, MapPin, ExternalLink, User, Sparkles, ArrowRight, CheckCircle2, Zap, Table2 } from "lucide-react";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger,
@@ -36,7 +37,7 @@ export default function EntitiesPage() {
   const [filterHqCountry, setFilterHqCountry] = useState<string>("all");
   const [activeViewName, setActiveViewName] = useState<string | undefined>();
   const [dialogOpen, setDialogOpen] = useState(false);
-  const [viewMode, setViewMode] = useState<"list" | "map">("list");
+  const [viewMode, setViewMode] = useState<"list" | "map" | "table">("list");
   const [highlightEntityId, setHighlightEntityId] = useState<string | null>(null);
   const [postSaveEntity, setPostSaveEntity] = useState<{ id: string; name: string; country?: string; risk_tier?: string; data_access_level?: string } | null>(null);
 
@@ -251,6 +252,14 @@ export default function EntitiesPage() {
               <List size={12} /> List
             </button>
             <button
+              onClick={() => setViewMode("table")}
+              className={`flex items-center gap-1 px-2.5 py-1.5 text-[11px] font-medium transition-colors ${
+                viewMode === "table" ? "bg-accent/10 text-accent" : "text-muted-foreground hover:bg-muted/50"
+              }`}
+            >
+              <Table2 size={12} /> Table
+            </button>
+            <button
               onClick={() => setViewMode("map")}
               className={`flex items-center gap-1 px-2.5 py-1.5 text-[11px] font-medium transition-colors ${
                 viewMode === "map" ? "bg-accent/10 text-accent" : "text-muted-foreground hover:bg-muted/50"
@@ -456,6 +465,73 @@ export default function EntitiesPage() {
       {viewMode === "map" ? (
         <div className="fvc-card">
           <EntityMapView entities={filtered} highlightId={highlightEntityId} />
+        </div>
+      ) : viewMode === "table" ? (
+        <div className="fvc-card overflow-x-auto">
+          {filtered.length === 0 ? (
+            <div className="text-center py-16">
+              <Building2 size={36} className="mx-auto text-muted-foreground/30 mb-4" />
+              <p className="text-sm text-muted-foreground">No entities found.</p>
+            </div>
+          ) : (
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead className="text-[10px] uppercase tracking-wider">Entity</TableHead>
+                  <TableHead className="text-[10px] uppercase tracking-wider">Type</TableHead>
+                  <TableHead className="text-[10px] uppercase tracking-wider">Risk Tier</TableHead>
+                  <TableHead className="text-[10px] uppercase tracking-wider">INC</TableHead>
+                  <TableHead className="text-[10px] uppercase tracking-wider">HQ</TableHead>
+                  <TableHead className="text-[10px] uppercase tracking-wider">Criticality</TableHead>
+                  <TableHead className="text-[10px] uppercase tracking-wider">Last Reviewed</TableHead>
+                  <TableHead className="text-[10px] uppercase tracking-wider">Next Review</TableHead>
+                  <TableHead className="text-[10px] uppercase tracking-wider">Status</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {filtered.map((e) => {
+                  const dueStatus = getDueStatus(e);
+                  const formatDate = (d: string | null) => d ? new Date(d).toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" }) : "—";
+                  return (
+                    <TableRow
+                      key={e.id}
+                      className="cursor-pointer hover:bg-muted/30 transition-colors"
+                      onClick={() => navigate(`/entities/${e.id}`)}
+                    >
+                      <TableCell>
+                        <div>
+                          <span className="text-sm font-semibold text-foreground">{e.name}</span>
+                          {e.registration_number && (
+                            <span className="block text-[10px] text-muted-foreground/60 mt-0.5">{e.registration_number}</span>
+                          )}
+                        </div>
+                      </TableCell>
+                      <TableCell className="text-xs text-muted-foreground capitalize">{e.entity_type}</TableCell>
+                      <TableCell>
+                        <Badge className={`fvc-status-badge ${tierColor(e.risk_tier)}`}>Tier {e.risk_tier}</Badge>
+                      </TableCell>
+                      <TableCell>
+                        <CountryFlagBadge code={e.incorporation_country_code} name={e.incorporation_country_name} label="INC" />
+                      </TableCell>
+                      <TableCell>
+                        <CountryFlagBadge code={e.hq_country_code} name={e.hq_country_name} label="HQ" />
+                      </TableCell>
+                      <TableCell>
+                        <span className={`text-xs capitalize ${e.criticality === "high" ? "text-destructive" : e.criticality === "med" ? "text-warning" : "text-muted-foreground"}`}>
+                          {e.criticality}
+                        </span>
+                      </TableCell>
+                      <TableCell className="text-xs text-muted-foreground">{formatDate(e.last_review_date)}</TableCell>
+                      <TableCell className="text-xs text-muted-foreground">{formatDate(e.next_review_date)}</TableCell>
+                      <TableCell>
+                        <Badge className={`fvc-status-badge ${dueStatus.color}`}>{dueStatus.label}</Badge>
+                      </TableCell>
+                    </TableRow>
+                  );
+                })}
+              </TableBody>
+            </Table>
+          )}
         </div>
       ) : (
         <>
