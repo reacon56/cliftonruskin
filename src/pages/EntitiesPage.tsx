@@ -18,6 +18,7 @@ import { useToast } from "@/hooks/use-toast";
 import SavedViewsDropdown, { type FilterState } from "@/components/SavedViewsDropdown";
 import EntityMapView from "@/components/EntityMapView";
 import EnhancementSuggestionPanel from "@/components/EnhancementSuggestionPanel";
+import { countryCodeToFlag } from "@/lib/country-flag";
 
 export default function EntitiesPage() {
   const { profile, hasRole, isInternal } = useAuth();
@@ -446,6 +447,16 @@ export default function EntitiesPage() {
                     <div className="flex items-start justify-between mb-3">
                       <div className="min-w-0 flex-1 mr-3">
                         <div className="flex items-center gap-2">
+                          <span
+                            className="shrink-0 text-base leading-none"
+                            title={e.incorporation_country_name ? `Incorporated in: ${e.incorporation_country_name}` : "Incorporation not confirmed"}
+                            role="img"
+                            aria-label={e.incorporation_country_name ? `Flag of ${e.incorporation_country_name}` : "Incorporation not confirmed"}
+                          >
+                            {countryCodeToFlag(e.incorporation_country_code) || (
+                              <Globe size={16} className="text-muted-foreground/40" />
+                            )}
+                          </span>
                           <h3 className="text-sm font-semibold text-foreground truncate">{e.name}</h3>
                           <span className="text-[10px] text-muted-foreground capitalize shrink-0">{e.entity_type}</span>
                         </div>
