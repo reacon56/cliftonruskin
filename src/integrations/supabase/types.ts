@@ -586,6 +586,7 @@ export type Database = {
           criticality: string
           data_access_level: string | null
           entity_type: string
+          has_master_conflict: boolean
           head_office_address_line1: string | null
           head_office_address_line2: string | null
           head_office_city: string | null
@@ -601,6 +602,7 @@ export type Database = {
           incorporation_country_name: string | null
           internal_contacts: Json | null
           last_review_date: string | null
+          master_entity_id: string | null
           name: string
           next_review_date: string | null
           onboarded_date: string | null
@@ -632,6 +634,7 @@ export type Database = {
           criticality?: string
           data_access_level?: string | null
           entity_type?: string
+          has_master_conflict?: boolean
           head_office_address_line1?: string | null
           head_office_address_line2?: string | null
           head_office_city?: string | null
@@ -647,6 +650,7 @@ export type Database = {
           incorporation_country_name?: string | null
           internal_contacts?: Json | null
           last_review_date?: string | null
+          master_entity_id?: string | null
           name: string
           next_review_date?: string | null
           onboarded_date?: string | null
@@ -678,6 +682,7 @@ export type Database = {
           criticality?: string
           data_access_level?: string | null
           entity_type?: string
+          has_master_conflict?: boolean
           head_office_address_line1?: string | null
           head_office_address_line2?: string | null
           head_office_city?: string | null
@@ -693,6 +698,7 @@ export type Database = {
           incorporation_country_name?: string | null
           internal_contacts?: Json | null
           last_review_date?: string | null
+          master_entity_id?: string | null
           name?: string
           next_review_date?: string | null
           onboarded_date?: string | null
@@ -717,6 +723,13 @@ export type Database = {
           website?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "entities_master_entity_id_fkey"
+            columns: ["master_entity_id"]
+            isOneToOne: false
+            referencedRelation: "master_entities"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "entities_org_id_fkey"
             columns: ["org_id"]
@@ -1152,6 +1165,63 @@ export type Database = {
           summary_text?: string | null
           title?: string
           updated_at?: string
+        }
+        Relationships: []
+      }
+      master_entities: {
+        Row: {
+          canonical_name: string
+          canonical_registration_number: string | null
+          created_at: string
+          hq_address_line1: string | null
+          hq_city: string | null
+          hq_country: string | null
+          hq_postcode: string | null
+          id: string
+          jurisdiction_incorporation: string | null
+          notes_internal: string | null
+          registered_address_line1: string | null
+          registered_city: string | null
+          registered_country: string | null
+          registered_postcode: string | null
+          updated_at: string
+          website: string | null
+        }
+        Insert: {
+          canonical_name: string
+          canonical_registration_number?: string | null
+          created_at?: string
+          hq_address_line1?: string | null
+          hq_city?: string | null
+          hq_country?: string | null
+          hq_postcode?: string | null
+          id?: string
+          jurisdiction_incorporation?: string | null
+          notes_internal?: string | null
+          registered_address_line1?: string | null
+          registered_city?: string | null
+          registered_country?: string | null
+          registered_postcode?: string | null
+          updated_at?: string
+          website?: string | null
+        }
+        Update: {
+          canonical_name?: string
+          canonical_registration_number?: string | null
+          created_at?: string
+          hq_address_line1?: string | null
+          hq_city?: string | null
+          hq_country?: string | null
+          hq_postcode?: string | null
+          id?: string
+          jurisdiction_incorporation?: string | null
+          notes_internal?: string | null
+          registered_address_line1?: string | null
+          registered_city?: string | null
+          registered_country?: string | null
+          registered_postcode?: string | null
+          updated_at?: string
+          website?: string | null
         }
         Relationships: []
       }
