@@ -6,45 +6,45 @@
 
 @layer base {
   :root {
-    /* Far View & Chase — Private Bank Aesthetic */
-    --background: 40 25% 97%;
-    --foreground: 220 30% 15%;
+    /* CR Brand Palette — #0F2A43 · #B79A5A · #E9EEF2 · #FFFFFF */
+    --background: 0 0% 100%;
+    --foreground: 209 63% 16%;
 
-    --card: 40 20% 99%;
-    --card-foreground: 220 30% 15%;
+    --card: 0 0% 100%;
+    --card-foreground: 209 63% 16%;
 
-    --popover: 40 20% 99%;
-    --popover-foreground: 220 30% 15%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 209 63% 16%;
 
-    --primary: 220 35% 18%;
-    --primary-foreground: 40 25% 97%;
+    --primary: 209 63% 16%;
+    --primary-foreground: 0 0% 100%;
 
-    --secondary: 38 20% 92%;
-    --secondary-foreground: 220 30% 15%;
+    --secondary: 207 26% 93%;
+    --secondary-foreground: 209 63% 16%;
 
-    --muted: 40 15% 94%;
-    --muted-foreground: 220 10% 46%;
+    --muted: 207 20% 95%;
+    --muted-foreground: 209 20% 46%;
 
-    --accent: 38 55% 52%;
-    --accent-foreground: 40 25% 97%;
+    --accent: 41 39% 54%;
+    --accent-foreground: 0 0% 100%;
 
     --destructive: 0 60% 48%;
-    --destructive-foreground: 40 25% 97%;
+    --destructive-foreground: 0 0% 100%;
 
-    --border: 38 18% 88%;
-    --input: 38 18% 88%;
-    --ring: 220 35% 18%;
+    --border: 207 20% 88%;
+    --input: 207 20% 88%;
+    --ring: 209 63% 16%;
 
     --radius: 0.5rem;
 
-    --sidebar-background: 220 30% 15%;
-    --sidebar-foreground: 40 15% 85%;
-    --sidebar-primary: 38 55% 52%;
-    --sidebar-primary-foreground: 40 25% 97%;
-    --sidebar-accent: 220 25% 22%;
-    --sidebar-accent-foreground: 40 15% 90%;
-    --sidebar-border: 220 20% 25%;
-    --sidebar-ring: 38 55% 52%;
+    --sidebar-background: 209 63% 16%;
+    --sidebar-foreground: 207 26% 93%;
+    --sidebar-primary: 41 39% 54%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 209 50% 22%;
+    --sidebar-accent-foreground: 207 20% 90%;
+    --sidebar-border: 209 45% 25%;
+    --sidebar-ring: 41 39% 54%;
 
     /* Custom tokens — CR brand palette */
     --gold: 41 39% 54%;
