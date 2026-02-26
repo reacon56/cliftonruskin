@@ -17,6 +17,7 @@ import { useToast } from "@/hooks/use-toast";
 import AssuranceNoteReport from "@/components/AssuranceNoteReport";
 import CaseActivityTimeline from "@/components/CaseActivityTimeline";
 import DataProtectionSummary from "@/components/case-detail/DataProtectionSummary";
+import CaseProcessingRecord from "@/components/case-detail/CaseProcessingRecord";
 import QuotePanel from "@/components/case-detail/QuotePanel";
 import {
   CASE_STATUSES, STATUS_LABELS, STATUS_COLORS, STATUS_AUDIT_MAP,
