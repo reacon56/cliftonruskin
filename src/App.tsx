@@ -26,6 +26,7 @@ import LiaLibraryPage from "@/pages/LiaLibraryPage";
 import AutoApprovalSettingsPage from "@/pages/AutoApprovalSettingsPage";
 import OrgSettingsPage from "@/pages/OrgSettingsPage";
 import FeatureControlsPage from "@/pages/FeatureControlsPage";
+import UpgradeRequestsPage from "@/pages/UpgradeRequestsPage";
 import PartnerTaskListPage from "@/pages/partner/PartnerTaskListPage";
 import PartnerTaskDetailPage from "@/pages/partner/PartnerTaskDetailPage";
 import NotFound from "@/pages/NotFound";
@@ -90,6 +91,7 @@ function AppRoutes() {
         <Route path="/approval-settings" element={<AutoApprovalSettingsPage />} />
         <Route path="/org-settings" element={<OrgSettingsPage />} />
         <Route path="/feature-controls" element={<FeatureControlsPage />} />
+        <Route path="/upgrade-requests" element={<UpgradeRequestsPage />} />
         <Route path="/cases" element={<CaseQueuePage />} />
         <Route path="/cases/:id" element={<CaseDetailPage />} />
         <Route path="/cases/:caseId/modules/:moduleId" element={<ModuleWorkbenchPage />} />

@@ -42,6 +42,7 @@ export default function EntityDetailPage() {
   const [tierOpen, setTierOpen] = useState(false);
   const [editForm, setEditForm] = useState<any>({});
   const [newTier, setNewTier] = useState("B");
+  const [upgradeRequesting, setUpgradeRequesting] = useState(false);
 
   const canEdit = hasRole("client_admin") || hasRole("client_requester");
   const canAdmin = hasRole("client_admin");
@@ -215,11 +216,25 @@ export default function EntityDetailPage() {
                 variant="outline"
                 size="sm"
                 className="gap-1.5"
-                onClick={() => {
-                  toast({ title: "Upgrade Requested", description: "Your Assurance Manager has been notified." });
+                disabled={upgradeRequesting}
+                onClick={async () => {
+                  if (!profile?.org_id || !profile?.user_id) return;
+                  setUpgradeRequesting(true);
+                  const { error } = await supabase.from("upgrade_requests" as any).insert({
+                    org_id: profile.org_id,
+                    requested_feature: "ownership_structure_intelligence",
+                    requested_by: profile.user_id,
+                    notes: `Upgrade requested for entity: ${entity?.name}`,
+                  } as any);
+                  setUpgradeRequesting(false);
+                  if (error) {
+                    toast({ title: "Error", description: error.message, variant: "destructive" });
+                  } else {
+                    toast({ title: "Upgrade Requested", description: "Your Assurance Manager has been notified." });
+                  }
                 }}
               >
-                Request Upgrade
+                {upgradeRequesting ? "Submitting…" : "Request Upgrade"}
               </Button>
             </div>
           )}
