@@ -45,6 +45,7 @@ import KnowledgeBasePage from "@/pages/KnowledgeBasePage";
 import MasterEntityDetailPage from "@/pages/MasterEntityDetailPage";
 import SourceRegistryPage from "@/pages/SourceRegistryPage";
 import ResearchConsolePage from "@/pages/ResearchConsolePage";
+import JurisdictionLibraryPage from "@/pages/JurisdictionLibraryPage";
 
 // Website pages
 import WebsiteLayout from "@/components/website/WebsiteLayout";
