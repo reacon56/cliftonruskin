@@ -162,15 +162,9 @@ export default function MasterEntitiesPage() {
         </Button>
       </div>
 
-      {/* Summary badges */}
       <div className="flex items-center gap-3 text-xs">
         <Badge variant="secondary">{masterEntities.length} master records</Badge>
         <Badge variant="secondary">{clientEntities.length} client entities</Badge>
-        {unlinkedCount > 0 && (
-          <Badge variant="outline" className="text-amber-600 border-amber-300 gap-1">
-            <Link2Off className="h-3 w-3" /> {unlinkedCount} unlinked
-          </Badge>
-        )}
         {conflictCount > 0 && (
           <Badge variant="destructive" className="gap-1">
             <AlertTriangle className="h-3 w-3" /> {conflictCount} conflicts
