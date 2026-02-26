@@ -1294,6 +1294,7 @@ export type Database = {
           auto_suggest_benchmark: boolean
           auto_suggest_posture: boolean
           created_at: string
+          feature_tier: string
           id: string
           industry: string | null
           name: string
@@ -1305,6 +1306,7 @@ export type Database = {
           auto_suggest_benchmark?: boolean
           auto_suggest_posture?: boolean
           created_at?: string
+          feature_tier?: string
           id?: string
           industry?: string | null
           name: string
@@ -1316,6 +1318,7 @@ export type Database = {
           auto_suggest_benchmark?: boolean
           auto_suggest_posture?: boolean
           created_at?: string
+          feature_tier?: string
           id?: string
           industry?: string | null
           name?: string
