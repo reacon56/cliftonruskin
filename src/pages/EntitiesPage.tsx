@@ -19,6 +19,7 @@ import SavedViewsDropdown, { type FilterState } from "@/components/SavedViewsDro
 import EntityMapView from "@/components/EntityMapView";
 import EnhancementSuggestionPanel from "@/components/EnhancementSuggestionPanel";
 import { CountryFlagBadge, FlagBadgesInfo } from "@/components/CountryFlagBadge";
+import { OperatingCountryChips, type OperatingCountry } from "@/components/OperatingCountries";
 
 export default function EntitiesPage() {
   const { profile, hasRole, isInternal } = useAuth();
@@ -26,6 +27,7 @@ export default function EntitiesPage() {
   const [searchParams, setSearchParams] = useSearchParams();
   const { toast } = useToast();
   const [entities, setEntities] = useState<any[]>([]);
+  const [opCountriesMap, setOpCountriesMap] = useState<Record<string, OperatingCountry[]>>({});
   const [search, setSearch] = useState("");
   const [filterTier, setFilterTier] = useState<string>("all");
   const [filterType, setFilterType] = useState<string>("all");
@@ -70,8 +72,17 @@ export default function EntitiesPage() {
   }, [profile?.org_id]);
 
   const loadEntities = async () => {
-    const { data } = await supabase.from("entities").select("*").eq("org_id", profile!.org_id!).order("name");
-    setEntities(data ?? []);
+    const [entRes, ocRes] = await Promise.all([
+      supabase.from("entities").select("*").eq("org_id", profile!.org_id!).order("name"),
+      supabase.from("entity_operating_countries" as any).select("*").order("country_name"),
+    ]);
+    setEntities(entRes.data ?? []);
+    // Group operating countries by entity_id
+    const map: Record<string, OperatingCountry[]> = {};
+    for (const oc of ((ocRes.data ?? []) as unknown as OperatingCountry[])) {
+      (map[oc.entity_id] ??= []).push(oc);
+    }
+    setOpCountriesMap(map);
   };
 
   const handleAdd = async (e: React.FormEvent) => {
@@ -450,10 +461,14 @@ export default function EntitiesPage() {
                           <h3 className="text-sm font-semibold text-foreground truncate">{e.name}</h3>
                           <span className="text-[10px] text-muted-foreground capitalize shrink-0">{e.entity_type}</span>
                         </div>
-                        <div className="flex items-center gap-1.5 mt-1.5">
+                        <div className="flex items-center gap-1.5 mt-1.5 flex-wrap">
                           <CountryFlagBadge code={e.incorporation_country_code} name={e.incorporation_country_name} label="INC" />
                           <CountryFlagBadge code={e.hq_country_code} name={e.hq_country_name} label="HQ" />
                           <FlagBadgesInfo />
+                          {(opCountriesMap[e.id]?.length ?? 0) > 0 && (
+                            <span className="text-muted-foreground/30 mx-0.5">|</span>
+                          )}
+                          <OperatingCountryChips countries={opCountriesMap[e.id] ?? []} />
                         </div>
                       </div>
                       <div className="flex items-center gap-1.5 shrink-0">
