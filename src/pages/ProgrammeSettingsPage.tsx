@@ -154,6 +154,19 @@ export default function ProgrammeSettingsPage() {
         .order("created_at", { ascending: false })
         .limit(100);
       setAuditLog((logs as unknown as AuditEntry[]) ?? []);
+
+      // Load retention days
+      const { data: planData } = await supabase
+        .from("organisation_plan")
+        .select("report_retention_days")
+        .eq("org_id", selectedOrgId)
+        .maybeSingle();
+      if (planData && (planData as any).report_retention_days) {
+        setRetentionDays((planData as any).report_retention_days);
+      } else {
+        setRetentionDays(90);
+      }
+
       setLoading(false);
     };
     load();
