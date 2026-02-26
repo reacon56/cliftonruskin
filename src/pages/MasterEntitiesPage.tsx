@@ -8,7 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
-import { Layers, Plus, Search, Building2, Globe, AlertTriangle, Link2Off, Users } from "lucide-react";
+import { Layers, Plus, Search, Building2, Globe, AlertTriangle, Users } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 
 interface MasterEntity {
@@ -45,7 +45,6 @@ export default function MasterEntitiesPage() {
   const [search, setSearch] = useState("");
   const [jurisdictionFilter, setJurisdictionFilter] = useState("");
   const [clientFilter, setClientFilter] = useState("");
-  const [linkStatusFilter, setLinkStatusFilter] = useState("");
   const [createOpen, setCreateOpen] = useState(false);
   const [form, setForm] = useState({ canonical_name: "", jurisdiction_incorporation: "", canonical_registration_number: "", website: "", notes_internal: "" });
   const { toast } = useToast();
@@ -140,14 +139,9 @@ export default function MasterEntitiesPage() {
     const juris = e.incorporation_country_name ?? e.country ?? "";
     const matchesJurisdiction = !jurisdictionFilter || juris === jurisdictionFilter;
     const matchesClient = !clientFilter || e.org_name === clientFilter;
-    const matchesLink = !linkStatusFilter ||
-      (linkStatusFilter === "linked" && e.master_entity_id) ||
-      (linkStatusFilter === "unlinked" && !e.master_entity_id) ||
-      (linkStatusFilter === "conflict" && e.has_master_conflict);
-    return matchesSearch && matchesJurisdiction && matchesClient && matchesLink;
+    return matchesSearch && matchesJurisdiction && matchesClient;
   });
 
-  const unlinkedCount = clientEntities.filter((e) => !e.master_entity_id).length;
   const conflictCount = clientEntities.filter((e) => e.has_master_conflict).length;
 
   return (
@@ -167,15 +161,9 @@ export default function MasterEntitiesPage() {
         </Button>
       </div>
 
-      {/* Summary badges */}
       <div className="flex items-center gap-3 text-xs">
         <Badge variant="secondary">{masterEntities.length} master records</Badge>
         <Badge variant="secondary">{clientEntities.length} client entities</Badge>
-        {unlinkedCount > 0 && (
-          <Badge variant="outline" className="text-amber-600 border-amber-300 gap-1">
-            <Link2Off className="h-3 w-3" /> {unlinkedCount} unlinked
-          </Badge>
-        )}
         {conflictCount > 0 && (
           <Badge variant="destructive" className="gap-1">
             <AlertTriangle className="h-3 w-3" /> {conflictCount} conflicts
@@ -212,17 +200,6 @@ export default function MasterEntitiesPage() {
               <SelectContent>
                 <SelectItem value="all">All jurisdictions</SelectItem>
                 {allJurisdictions.map((j) => <SelectItem key={j} value={j}>{j}</SelectItem>)}
-              </SelectContent>
-            </Select>
-            <Select value={linkStatusFilter} onValueChange={(v) => setLinkStatusFilter(v === "all" ? "" : v)}>
-              <SelectTrigger className="w-40">
-                <SelectValue placeholder="Link status" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All statuses</SelectItem>
-                <SelectItem value="linked">Linked</SelectItem>
-                <SelectItem value="unlinked">Unlinked</SelectItem>
-                <SelectItem value="conflict">Has conflict</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -263,11 +240,6 @@ export default function MasterEntitiesPage() {
                       <Badge variant="destructive" className="text-[10px] gap-0.5">
                         <AlertTriangle className="h-3 w-3" /> Conflict
                       </Badge>
-                    )}
-                    {ce.master_entity_id ? (
-                      <Badge variant="secondary" className="text-[10px]">Linked</Badge>
-                    ) : (
-                      <Badge variant="outline" className="text-[10px] text-amber-600 border-amber-300">Unlinked</Badge>
                     )}
                   </div>
                 </button>
