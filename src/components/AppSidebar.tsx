@@ -32,6 +32,10 @@ export default function AppSidebar() {
   const isManager = hasRole("fvc_assurance_manager" as any) || hasRole("fvc_ops_admin" as any);
   const isOfficer = hasRole("fvc_assurance_officer" as any) || hasRole("fvc_analyst" as any);
 
+  // Dev-mode: allow switching between manager and officer views
+  const [devRoleOverride, setDevRoleOverride] = useState<"manager" | "officer" | null>(null);
+  const effectiveIsManager = devRoleOverride === "manager" ? true : devRoleOverride === "officer" ? false : isManager;
+
   useEffect(() => {
     if (!profile?.org_id || !hasRole("client_admin")) return;
     supabase
