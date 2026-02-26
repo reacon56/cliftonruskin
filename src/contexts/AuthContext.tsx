@@ -6,6 +6,9 @@ import {
   canQuoteAndScope, canAssignOfficers, canWorkCases,
   canCreatePartnerTasks, canQcSignoff, canCloseCases,
   canAdjustDueDates, getPrimaryRoleLabel,
+  canViewOwnershipStructure, canExportOwnershipStructure,
+  canFilterOwnershipStructure, canToggleProvenance,
+  canEditRelationships,
 } from "@/lib/fvc-roles";
 
 type AppRole = Database["public"]["Enums"]["app_role"];
@@ -36,6 +39,12 @@ interface AuthContextType {
   canQc: boolean;
   canClose: boolean;
   canAdjustDates: boolean;
+  /** Ownership & Structure permissions */
+  canViewOwnership: boolean;
+  canExportOwnership: boolean;
+  canFilterOwnership: boolean;
+  canProvenance: boolean;
+  canEditRels: boolean;
   primaryRoleLabel: string;
 }
 
@@ -116,6 +125,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         canQc: canQcSignoff(roleStrings),
         canClose: canCloseCases(roleStrings),
         canAdjustDates: canAdjustDueDates(roleStrings),
+        canViewOwnership: canViewOwnershipStructure(roleStrings),
+        canExportOwnership: canExportOwnershipStructure(roleStrings),
+        canFilterOwnership: canFilterOwnershipStructure(roleStrings),
+        canProvenance: canToggleProvenance(roleStrings),
+        canEditRels: canEditRelationships(roleStrings),
         primaryRoleLabel: getPrimaryRoleLabel(roleStrings),
       }}
     >
