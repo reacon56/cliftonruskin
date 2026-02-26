@@ -185,6 +185,35 @@ export default function AppSidebar() {
 
       {/* Theme Toggle & User / Sign Out */}
       <div className="border-t border-sidebar-border p-3 space-y-2">
+        {/* Dev-mode internal role switcher */}
+        {isInternal && activeView === "internal" && (
+          <div className={`flex ${collapsed ? "flex-col" : ""} gap-1`}>
+            <Button
+              variant={effectiveIsManager ? "default" : "ghost"}
+              size="sm"
+              onClick={() => {
+                setDevRoleOverride("manager");
+                navigate("/cases");
+              }}
+              className={`flex-1 text-[11px] ${collapsed ? "px-1" : ""} ${effectiveIsManager ? "bg-sidebar-primary text-sidebar-primary-foreground" : "text-sidebar-foreground/50"}`}
+              title="View as Manager"
+            >
+              {collapsed ? "M" : "Manager"}
+            </Button>
+            <Button
+              variant={!effectiveIsManager ? "default" : "ghost"}
+              size="sm"
+              onClick={() => {
+                setDevRoleOverride("officer");
+                navigate("/cases");
+              }}
+              className={`flex-1 text-[11px] ${collapsed ? "px-1" : ""} ${!effectiveIsManager ? "bg-sidebar-primary text-sidebar-primary-foreground" : "text-sidebar-foreground/50"}`}
+              title="View as Officer"
+            >
+              {collapsed ? "O" : "Officer"}
+            </Button>
+          </div>
+        )}
         {hasBothRoles && (
           <Button
             variant="ghost"
