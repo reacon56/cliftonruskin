@@ -534,7 +534,6 @@ export default function CaseDetailPage() {
                 <Button className="w-full" onClick={simulateDelivery} disabled={simulating || scopeChangeBlocking}>
                   <FileText size={14} className="mr-1" /> {simulating ? "Releasing…" : "Approve & Release"}
                 </Button>
-                </Button>
                 <Button variant="outline" className="w-full" onClick={() => transitionTo("in_progress")}>
                   <X size={14} className="mr-1" /> Return to Officer
                 </Button>
