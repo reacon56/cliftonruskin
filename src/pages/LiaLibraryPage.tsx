@@ -641,22 +641,33 @@ export default function LiaLibraryPage() {
               <div className="flex-1 min-w-0 mr-4">
                 <div className="flex items-center gap-2 mb-1">
                   <span className="text-sm font-medium text-foreground truncate">{t.name || "Untitled template"}</span>
-                  <Badge className={`fvc-status-badge text-[10px] ${t.status === "final" ? "bg-success/10 text-success" : "bg-muted text-muted-foreground"}`}>
-                    {t.status}
+                  <Badge className="text-[10px] bg-muted text-muted-foreground">v{(t as any).version_number || 1}</Badge>
+                  <Badge className={`fvc-status-badge text-[10px] ${
+                    t.status === "final" ? "bg-success/10 text-success" :
+                    t.status === "superseded" ? "bg-muted text-muted-foreground/60" :
+                    "bg-warning/10 text-warning"
+                  }`}>
+                    {t.status === "final" ? "Active" : t.status === "superseded" ? "Superseded" : "Draft"}
                   </Badge>
                   {t.outcome && (
                     <Badge variant="outline" className="text-[10px] capitalize">{t.outcome.replace(/_/g, " ")}</Badge>
-                  )}
-                  {t.approved_at && (
-                    <Badge className="bg-accent/10 text-accent text-[10px] gap-1"><CheckCircle2 size={9} /> Approved</Badge>
                   )}
                 </div>
                 <div className="text-[11px] text-muted-foreground">
                   {t.purpose_category || "No purpose set"}
                   {" · "}{t.lawful_basis === "legitimate_interests" ? "Legitimate interests" : t.lawful_basis}
-                  {" · "}{new Date(t.created_at).toLocaleDateString()}
+                  {(t as any).effective_date ? ` · Effective ${new Date((t as any).effective_date).toLocaleDateString()}` : ` · Created ${new Date(t.created_at).toLocaleDateString()}`}
+                  {(t as any).approved_by_name && ` · Approved by ${(t as any).approved_by_name}`}
                 </div>
+                {(t as any).scope_summary && (
+                  <div className="text-[11px] text-muted-foreground/70 mt-0.5 truncate">{(t as any).scope_summary}</div>
+                )}
               </div>
+              {canEdit && t.status === "final" && (
+                <Button variant="outline" size="sm" className="text-xs shrink-0" onClick={(e) => { e.stopPropagation(); handleCreateNewVersion(t); }}>
+                  New Version
+                </Button>
+              )}
             </div>
           ))}
         </div>
