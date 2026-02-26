@@ -4,7 +4,6 @@ import { useAuth } from "@/contexts/AuthContext";
 import {
   Building2, AlertTriangle, FileCheck, Activity, Clock, TrendingUp, MapPin,
   CalendarClock, ShieldCheck, CalendarDays, BarChart3, Globe, Printer, PieChart as PieChartIcon,
-  Heartbeat,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
