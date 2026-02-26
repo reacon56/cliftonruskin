@@ -709,6 +709,57 @@ export type Database = {
           },
         ]
       }
+      entity_relationships: {
+        Row: {
+          confidence_level: string
+          created_at: string
+          id: string
+          last_verified_date: string | null
+          percentage: number | null
+          relationship_type: string
+          source_entity_id: string
+          source_reference: string | null
+          target_entity_id: string
+        }
+        Insert: {
+          confidence_level?: string
+          created_at?: string
+          id?: string
+          last_verified_date?: string | null
+          percentage?: number | null
+          relationship_type?: string
+          source_entity_id: string
+          source_reference?: string | null
+          target_entity_id: string
+        }
+        Update: {
+          confidence_level?: string
+          created_at?: string
+          id?: string
+          last_verified_date?: string | null
+          percentage?: number | null
+          relationship_type?: string
+          source_entity_id?: string
+          source_reference?: string | null
+          target_entity_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "entity_relationships_source_entity_id_fkey"
+            columns: ["source_entity_id"]
+            isOneToOne: false
+            referencedRelation: "entities"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "entity_relationships_target_entity_id_fkey"
+            columns: ["target_entity_id"]
+            isOneToOne: false
+            referencedRelation: "entities"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       jurisdiction_benchmark_inputs: {
         Row: {
           abnormal_patterns: string | null
