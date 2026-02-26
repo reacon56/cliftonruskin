@@ -1073,6 +1073,95 @@ export type Database = {
           },
         ]
       }
+      jurisdiction_profiles: {
+        Row: {
+          beneficial_ownership_transparency_level: string | null
+          country_code: string
+          country_name: string
+          created_at: string
+          created_by: string | null
+          enforcement_environment_notes: string | null
+          id: string
+          incorporation_regime_summary: string | null
+          public_registry_depth: string | null
+          sanctions_exposure_notes: string | null
+          source_availability_notes: string | null
+          updated_at: string
+        }
+        Insert: {
+          beneficial_ownership_transparency_level?: string | null
+          country_code: string
+          country_name: string
+          created_at?: string
+          created_by?: string | null
+          enforcement_environment_notes?: string | null
+          id?: string
+          incorporation_regime_summary?: string | null
+          public_registry_depth?: string | null
+          sanctions_exposure_notes?: string | null
+          source_availability_notes?: string | null
+          updated_at?: string
+        }
+        Update: {
+          beneficial_ownership_transparency_level?: string | null
+          country_code?: string
+          country_name?: string
+          created_at?: string
+          created_by?: string | null
+          enforcement_environment_notes?: string | null
+          id?: string
+          incorporation_regime_summary?: string | null
+          public_registry_depth?: string | null
+          sanctions_exposure_notes?: string | null
+          source_availability_notes?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      jurisdiction_updates: {
+        Row: {
+          category: string
+          created_at: string
+          created_by: string | null
+          factual_summary: string | null
+          id: string
+          internal_source_reference: string | null
+          jurisdiction_id: string
+          title: string
+          update_date: string
+        }
+        Insert: {
+          category?: string
+          created_at?: string
+          created_by?: string | null
+          factual_summary?: string | null
+          id?: string
+          internal_source_reference?: string | null
+          jurisdiction_id: string
+          title: string
+          update_date?: string
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          created_by?: string | null
+          factual_summary?: string | null
+          id?: string
+          internal_source_reference?: string | null
+          jurisdiction_id?: string
+          title?: string
+          update_date?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "jurisdiction_updates_jurisdiction_id_fkey"
+            columns: ["jurisdiction_id"]
+            isOneToOne: false
+            referencedRelation: "jurisdiction_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       lia_assessments: {
         Row: {
           approved_at: string | null

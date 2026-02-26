@@ -6,7 +6,7 @@ import {
   Settings, FileText, LogOut, ChevronLeft, ChevronRight, Moon, Sun,
   ArrowLeftRight, CheckCircle2, Scale, ArrowUpCircle, Newspaper,
   Briefcase, Eye, BookOpen, GitMerge, BarChart3, Search,
-  Send, Layers, Database, FlaskConical,
+  Send, Layers, Database, FlaskConical, Globe,
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
@@ -88,6 +88,7 @@ export default function AppSidebar() {
     { label: "Upgrade Requests", path: "/upgrade-requests", icon: <ArrowUpCircle size={18} /> },
     { label: "Market Lessons", path: "/admin/market-lessons", icon: <Newspaper size={18} /> },
     { label: "Source Registry", path: "/source-registry", icon: <Database size={18} /> },
+    { label: "Jurisdiction Library", path: "/jurisdiction-library", icon: <Globe size={18} /> },
     { label: "Audit Log", path: "/audit-log", icon: <ClipboardList size={18} /> },
   ];
 
@@ -99,6 +100,7 @@ export default function AppSidebar() {
     { label: "Partner Requests", path: "/partner-requests", icon: <Send size={18} /> },
     { label: "Knowledge Base", path: "/knowledge-base", icon: <BookOpen size={18} /> },
     { label: "Research Console", path: "/research-console", icon: <FlaskConical size={18} /> },
+    { label: "Jurisdiction Library", path: "/jurisdiction-library", icon: <Globe size={18} /> },
     { label: "Submitted to QA", path: "/qa-queue", icon: <Eye size={18} /> },
   ];
 

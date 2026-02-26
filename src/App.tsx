@@ -45,6 +45,7 @@ import KnowledgeBasePage from "@/pages/KnowledgeBasePage";
 import MasterEntityDetailPage from "@/pages/MasterEntityDetailPage";
 import SourceRegistryPage from "@/pages/SourceRegistryPage";
 import ResearchConsolePage from "@/pages/ResearchConsolePage";
+import JurisdictionLibraryPage from "@/pages/JurisdictionLibraryPage";
 
 // Website pages
 import WebsiteLayout from "@/components/website/WebsiteLayout";
@@ -124,6 +125,7 @@ function AppRoutes() {
         <Route path="/partner-directory" element={<InternalRouteGuard managerOnly><PartnerDirectoryPage /></InternalRouteGuard>} />
         <Route path="/reconciliation" element={<InternalRouteGuard managerOnly><ReconciliationPage /></InternalRouteGuard>} />
         <Route path="/risk-model" element={<InternalRouteGuard managerOnly><RiskModelPage /></InternalRouteGuard>} />
+        <Route path="/jurisdiction-library" element={<InternalRouteGuard><JurisdictionLibraryPage /></InternalRouteGuard>} />
 
         {/* ── Internal routes (officer + manager) ── */}
         <Route path="/qa-queue" element={<InternalRouteGuard><QaQueuePage /></InternalRouteGuard>} />
