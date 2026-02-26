@@ -19,12 +19,15 @@ import ActivityTab from "@/components/entity-detail/ActivityTab";
 import CommercialPostureTab from "@/components/entity-detail/CommercialPostureTab";
 import JurisdictionBenchmarkTab from "@/components/entity-detail/JurisdictionBenchmarkTab";
 import OwnershipStructureTab from "@/components/entity-detail/OwnershipStructureTab";
+import { useFeatureFlags } from "@/hooks/use-feature-flags";
+import { Lock } from "lucide-react";
 
 export default function EntityDetailPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { profile, hasRole } = useAuth();
   const { toast } = useToast();
+  const { flags: featureFlags } = useFeatureFlags();
 
   const [entity, setEntity] = useState<any>(null);
   const [cases, setCases] = useState<any[]>([]);
@@ -158,7 +161,10 @@ export default function EntityDetailPage() {
           <TabsTrigger value="profile">Profile</TabsTrigger>
           <TabsTrigger value="review">Review Cycle</TabsTrigger>
           <TabsTrigger value="monitoring">Monitoring ({monitoringEvents.length})</TabsTrigger>
-          <TabsTrigger value="ownership" className="gap-1">Ownership & Structure</TabsTrigger>
+          <TabsTrigger value="ownership" className="gap-1">
+            Ownership & Structure
+            {!featureFlags.ownership_structure_intelligence && <Lock className="h-3 w-3 ml-1 text-muted-foreground" />}
+          </TabsTrigger>
           <TabsTrigger value="posture" className="gap-1">Commercial Posture</TabsTrigger>
           <TabsTrigger value="benchmark" className="gap-1">Jurisdiction Benchmark</TabsTrigger>
           <TabsTrigger value="deliverables">Deliverables ({deliverables.length + changeLogs.length})</TabsTrigger>
@@ -189,7 +195,34 @@ export default function EntityDetailPage() {
         </TabsContent>
 
         <TabsContent value="ownership" className="mt-6">
-          <OwnershipStructureTab entity={entity} />
+          {featureFlags.ownership_structure_intelligence ? (
+            <OwnershipStructureTab entity={entity} />
+          ) : (
+            <div className="fvc-card text-center py-16 max-w-lg mx-auto">
+              <div className="h-12 w-12 rounded-full bg-muted/50 flex items-center justify-center mx-auto mb-4">
+                <Lock className="h-5 w-5 text-muted-foreground" />
+              </div>
+              <h3 className="font-display text-lg font-semibold text-foreground mb-2">
+                Ownership & Structural Intelligence
+              </h3>
+              <p className="text-sm text-muted-foreground leading-relaxed mb-6">
+                This premium module provides sophisticated visual analysis of corporate ownership, UBO clarity, and jurisdictional exposure. Available as an advanced enhancement to your engagement.
+              </p>
+              <p className="text-xs text-muted-foreground mb-4">
+                Please contact your Assurance Manager to enable this feature.
+              </p>
+              <Button
+                variant="outline"
+                size="sm"
+                className="gap-1.5"
+                onClick={() => {
+                  toast({ title: "Upgrade Requested", description: "Your Assurance Manager has been notified." });
+                }}
+              >
+                Request Upgrade
+              </Button>
+            </div>
+          )}
         </TabsContent>
 
         <TabsContent value="posture" className="mt-6">

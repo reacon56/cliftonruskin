@@ -1,4 +1,4 @@
-import { FileText, BookOpen, RefreshCw, CheckCircle, Clock, Target, Layers } from "lucide-react";
+import { FileText, BookOpen, RefreshCw, CheckCircle, Clock, Target, Layers, Network, Globe, Eye, Shield } from "lucide-react";
 
 const GoldRule = ({ className = "" }: { className?: string }) => (
   <div className={`h-px w-16 bg-gradient-to-r from-[#c9a962] to-[#c9a962]/0 ${className}`} />
@@ -58,6 +58,7 @@ const addOns = [
   "Adverse media timeline",
   "Insolvency & litigation signals",
   "Monitoring cadence setup",
+  "Ownership & Structural Intelligence",
 ];
 
 export default function ServicesPage() {
@@ -157,6 +158,92 @@ export default function ServicesPage() {
                 </div>
               </div>
             ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Ownership & Structural Intelligence */}
+      <section className="bg-[#1a1a2e] py-24">
+        <div className="mx-auto max-w-7xl px-6">
+          <div className="grid md:grid-cols-2 gap-16 items-center">
+            <div>
+              <p className="text-[#c9a962] text-xs font-semibold uppercase tracking-[0.2em] mb-3">Premium Enhancement</p>
+              <h2 className="font-display text-3xl font-semibold text-white tracking-tight leading-tight">
+                Visualising Control.<br />Revealing Structure.<br />Clarifying Risk.
+              </h2>
+              <GoldRule className="mt-5 mb-6" />
+              <p className="text-white/60 leading-relaxed mb-6">
+                Clifton Ruskin's Ownership & Structural Intelligence module provides a sophisticated visual analysis of corporate ownership, ultimate beneficial ownership, jurisdictional exposure and operational footprint.
+              </p>
+              <p className="text-white/50 leading-relaxed mb-8 text-sm">
+                Designed for institutional clients and complex cross-border mandates, the module enables:
+              </p>
+              <ul className="space-y-3 mb-8">
+                {[
+                  { icon: Network, text: "Structured ownership mapping" },
+                  { icon: Eye, text: "UBO clarity and provenance-backed data" },
+                  { icon: Globe, text: "Jurisdictional exposure analysis" },
+                  { icon: Shield, text: "Office and operational footprint visualisation" },
+                ].map(({ icon: Icon, text }) => (
+                  <li key={text} className="flex items-center gap-3">
+                    <div className="h-7 w-7 rounded flex items-center justify-center bg-[#c9a962]/10">
+                      <Icon className="h-3.5 w-3.5 text-[#c9a962]" />
+                    </div>
+                    <span className="text-sm text-white/70">{text}</span>
+                  </li>
+                ))}
+              </ul>
+              <p className="text-[10px] uppercase tracking-[0.15em] text-[#c9a962]/60">
+                Available as an advanced add-on to Enhanced Due Diligence engagements.
+              </p>
+            </div>
+            <div className="relative">
+              {/* Placeholder network visualisation mock */}
+              <div
+                className="rounded-xl overflow-hidden border border-white/5"
+                style={{
+                  background: "hsl(220, 40%, 10%)",
+                  backgroundImage: "radial-gradient(circle, hsl(220, 30%, 18%) 1px, transparent 1px)",
+                  backgroundSize: "20px 20px",
+                  minHeight: 360,
+                }}
+              >
+                <svg viewBox="0 0 400 360" className="w-full h-full" style={{ minHeight: 360 }}>
+                  {/* Central node */}
+                  <rect x="175" y="155" width="50" height="40" rx="4" fill="hsl(220, 30%, 18%)" stroke="hsl(38, 55%, 52%)" strokeWidth="2" />
+                  <text x="200" y="180" textAnchor="middle" fill="hsl(40, 15%, 85%)" fontSize="8" fontFamily="var(--font-display)" fontWeight="600">Subject</text>
+                  
+                  {/* Parent nodes */}
+                  <rect x="85" y="50" width="46" height="34" rx="3" fill="hsl(220, 30%, 18%)" stroke="hsl(220, 20%, 35%)" strokeWidth="1.5" />
+                  <text x="108" y="71" textAnchor="middle" fill="hsl(40, 10%, 65%)" fontSize="7" fontFamily="var(--font-body)">Parent A</text>
+                  
+                  <rect x="270" y="50" width="46" height="34" rx="3" fill="hsl(220, 30%, 18%)" stroke="hsl(0, 55%, 50%)" strokeWidth="1.5" />
+                  <text x="293" y="71" textAnchor="middle" fill="hsl(40, 10%, 65%)" fontSize="7" fontFamily="var(--font-body)">UBO</text>
+                  
+                  {/* Child nodes */}
+                  <rect x="60" y="270" width="46" height="34" rx="3" fill="hsl(220, 30%, 18%)" stroke="hsl(152, 45%, 42%)" strokeWidth="1.5" />
+                  <text x="83" y="291" textAnchor="middle" fill="hsl(40, 10%, 65%)" fontSize="7" fontFamily="var(--font-body)">Sub 1</text>
+                  
+                  <rect x="175" y="270" width="50" height="34" rx="3" fill="hsl(220, 30%, 18%)" stroke="hsl(38, 55%, 52%)" strokeWidth="1.5" />
+                  <text x="200" y="291" textAnchor="middle" fill="hsl(40, 10%, 65%)" fontSize="7" fontFamily="var(--font-body)">Sub 2</text>
+                  
+                  <rect x="295" y="270" width="46" height="34" rx="3" fill="transparent" stroke="hsl(220, 20%, 35%)" strokeWidth="1.5" strokeDasharray="4,3" />
+                  <text x="318" y="291" textAnchor="middle" fill="hsl(40, 10%, 65%)" fontSize="7" fontFamily="var(--font-body)">Branch</text>
+
+                  {/* Edges */}
+                  <line x1="108" y1="84" x2="195" y2="155" stroke="hsl(220, 20%, 35%)" strokeWidth="1" />
+                  <text x="145" y="115" fill="hsl(40, 10%, 65%)" fontSize="7" textAnchor="middle">35%</text>
+                  <line x1="293" y1="84" x2="210" y2="155" stroke="hsl(220, 20%, 35%)" strokeWidth="1" />
+                  <text x="258" y="115" fill="hsl(40, 10%, 65%)" fontSize="7" textAnchor="middle">20%</text>
+                  <line x1="195" y1="195" x2="83" y2="270" stroke="hsl(220, 20%, 35%)" strokeWidth="1" />
+                  <text x="132" y="240" fill="hsl(40, 10%, 65%)" fontSize="7" textAnchor="middle">100%</text>
+                  <line x1="200" y1="195" x2="200" y2="270" stroke="hsl(220, 20%, 35%)" strokeWidth="1" />
+                  <text x="210" y="240" fill="hsl(40, 10%, 65%)" fontSize="7" textAnchor="middle">75%</text>
+                  <line x1="210" y1="195" x2="318" y2="270" stroke="hsl(220, 20%, 35%)" strokeWidth="1" strokeDasharray="2,3" />
+                </svg>
+              </div>
+              <div className="absolute -bottom-2 -right-2 h-full w-full rounded-xl border border-[#c9a962]/10 -z-10" />
+            </div>
           </div>
         </div>
       </section>

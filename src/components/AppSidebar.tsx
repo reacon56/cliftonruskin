@@ -65,6 +65,7 @@ export default function AppSidebar() {
   const internalNav: NavItem[] = [
     { label: "Case Queue", path: "/cases", icon: <ListTodo size={18} /> },
     { label: "Clients", path: "/clients", icon: <Building2 size={18} /> },
+    { label: "Feature Controls", path: "/feature-controls", icon: <Shield size={18} /> },
     { label: "Templates", path: "/templates", icon: <FileText size={18} /> },
     { label: "Monitoring", path: "/monitoring-rules", icon: <Activity size={18} /> },
     { label: "Admin", path: "/admin", icon: <Settings size={18} /> },
