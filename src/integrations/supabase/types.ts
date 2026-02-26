@@ -1893,6 +1893,56 @@ export type Database = {
           },
         ]
       }
+      upgrade_requests: {
+        Row: {
+          created_at: string
+          id: string
+          notes: string | null
+          org_id: string
+          requested_by: string
+          requested_feature: string
+          resolution_notes: string | null
+          resolved_at: string | null
+          resolved_by: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          notes?: string | null
+          org_id: string
+          requested_by: string
+          requested_feature: string
+          resolution_notes?: string | null
+          resolved_at?: string | null
+          resolved_by?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          notes?: string | null
+          org_id?: string
+          requested_by?: string
+          requested_feature?: string
+          resolution_notes?: string | null
+          resolved_at?: string | null
+          resolved_by?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "upgrade_requests_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organisations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_roles: {
         Row: {
           id: string
