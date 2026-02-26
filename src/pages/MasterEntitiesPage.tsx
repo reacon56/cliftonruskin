@@ -45,7 +45,6 @@ export default function MasterEntitiesPage() {
   const [search, setSearch] = useState("");
   const [jurisdictionFilter, setJurisdictionFilter] = useState("");
   const [clientFilter, setClientFilter] = useState("");
-  const [linkStatusFilter, setLinkStatusFilter] = useState("");
   const [createOpen, setCreateOpen] = useState(false);
   const [form, setForm] = useState({ canonical_name: "", jurisdiction_incorporation: "", canonical_registration_number: "", website: "", notes_internal: "" });
   const { toast } = useToast();
