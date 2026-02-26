@@ -4,7 +4,7 @@ import {
   LayoutDashboard, Building2, FileCheck, FolderOpen, Activity,
   Shield, Users, ClipboardList, HeadphonesIcon, ListTodo,
   Settings, FileText, LogOut, ChevronLeft, ChevronRight, Moon, Sun,
-  ArrowLeftRight, CheckCircle2, Scale, ArrowUpCircle,
+  ArrowLeftRight, CheckCircle2, Scale, ArrowUpCircle, Newspaper,
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
