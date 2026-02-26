@@ -26,8 +26,7 @@ export default function AppSidebar() {
   const { theme, toggleTheme } = useTheme();
   const navigate = useNavigate();
   const [collapsed, setCollapsed] = useState(false);
-  const hasBothRoles = isClient && isInternal;
-  const [viewAs, setViewAs] = useState<"client" | "internal">(isInternal ? "internal" : "client");
+  const { activeView, canToggle, toggle: toggleView, setView: setViewAs } = useViewMode();
   const [pendingApprovals, setPendingApprovals] = useState(0);
 
   const isManager = hasRole("fvc_assurance_manager" as any) || hasRole("fvc_ops_admin" as any);
