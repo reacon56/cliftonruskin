@@ -71,7 +71,7 @@ const EMPTY_FILTERS: FilterState = {
 };
 
 export default function OwnershipStructureTab({ entity }: OwnershipStructureTabProps) {
-  const { hasRole, canExportOwnership, canFilterOwnership, canProvenance, canEditRels, isInternal } = useAuth();
+  const { hasRole, canExportOwnership, canFilterOwnership, canProvenance, canEditRels, isInternal, profile } = useAuth();
   const { toast } = useToast();
   const [view, setView] = useState<"network" | "tree">("network");
   const [nodes, setNodes] = useState<StructureNode[]>([]);
@@ -86,9 +86,26 @@ export default function OwnershipStructureTab({ entity }: OwnershipStructureTabP
   const [filters, setFilters] = useState<FilterState>(EMPTY_FILTERS);
   const [filtersOpen, setFiltersOpen] = useState(false);
 
+  // Track first view for billing
+  const [firstViewLogged, setFirstViewLogged] = useState(false);
+
   useEffect(() => {
     loadStructure();
   }, [entity.id]);
+
+  // Log first view of ownership graph per entity (billing event)
+  useEffect(() => {
+    if (!loading && nodes.length > 1 && !firstViewLogged && profile?.org_id) {
+      setFirstViewLogged(true);
+      supabase.from("billing_events" as any).insert({
+        org_id: profile.org_id,
+        feature_key: "ownership_structure_intelligence",
+        event_type: "first_view",
+        entity_id: entity.id,
+        performed_by: profile.user_id,
+      } as any).then(() => {});
+    }
+  }, [loading, nodes.length, firstViewLogged, entity.id, profile?.org_id]);
 
   const loadStructure = async () => {
     setLoading(true);

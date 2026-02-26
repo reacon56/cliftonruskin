@@ -129,7 +129,7 @@ Deno.serve(async (req) => {
       }
     }
 
-    // Log the export
+    // Log the export to audit_events
     await adminClient.from("audit_events").insert({
       object_type: "entity",
       object_id: entity_id,
@@ -142,18 +142,29 @@ Deno.serve(async (req) => {
       },
     });
 
-    // Check feature flag
-    const { data: profile } = await adminClient
+    // Log to billing_events for invoicing + check feature flag
+    const { data: userProfile } = await adminClient
       .from("profiles")
       .select("org_id")
       .eq("user_id", user.id)
       .single();
 
-    if (profile?.org_id) {
+    if (userProfile?.org_id) {
+      // Billing event
+      await adminClient.from("billing_events").insert({
+        org_id: userProfile.org_id,
+        feature_key: export_type || "ownership_structure_intelligence",
+        event_type: "export",
+        entity_id: entity_id,
+        performed_by: user.id,
+        metadata: { format: format || "png" },
+      });
+
+      // Check feature flag
       const { data: flag } = await adminClient
         .from("org_feature_flags")
         .select("enabled")
-        .eq("org_id", profile.org_id)
+        .eq("org_id", userProfile.org_id)
         .eq("feature_key", "ownership_structure_intelligence")
         .maybeSingle();
 

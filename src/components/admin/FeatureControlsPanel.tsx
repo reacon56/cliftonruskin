@@ -137,6 +137,15 @@ export default function FeatureControlsPanel() {
         new_value: newValue,
       } as any);
 
+      // Billing event: feature enabled/disabled
+      await supabase.from("billing_events" as any).insert({
+        org_id: orgId,
+        feature_key: featureKey,
+        event_type: newValue ? "enabled" : "disabled",
+        performed_by: profile?.user_id,
+        metadata: { previous_value: previousValue },
+      } as any);
+
       // If org is on a named tier and flags now differ, auto-promote to custom
       if (org && org.feature_tier !== "custom") {
         const tierDefaults = getTierDefaults(org.feature_tier);

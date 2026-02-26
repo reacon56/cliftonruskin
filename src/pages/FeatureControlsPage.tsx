@@ -1,6 +1,8 @@
 import { useAuth } from "@/contexts/AuthContext";
 import FeatureControlsPanel from "@/components/admin/FeatureControlsPanel";
+import BillingUsagePanel from "@/components/admin/BillingUsagePanel";
 import { Shield } from "lucide-react";
+import { Separator } from "@/components/ui/separator";
 
 export default function FeatureControlsPage() {
   const { hasRole } = useAuth();
@@ -23,8 +25,10 @@ export default function FeatureControlsPage() {
   }
 
   return (
-    <div className="max-w-3xl mx-auto">
+    <div className="max-w-3xl mx-auto space-y-10">
       <FeatureControlsPanel />
+      <Separator />
+      <BillingUsagePanel />
     </div>
   );
 }
