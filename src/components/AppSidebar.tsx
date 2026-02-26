@@ -101,7 +101,7 @@ export default function AppSidebar() {
   ];
 
   // Determine which internal nav to show
-  const internalNav: NavItem[] = isManager ? managerNav : officerNav;
+  const internalNav: NavItem[] = effectiveIsManager ? managerNav : officerNav;
 
   const activeView = hasBothRoles ? viewAs : (isInternal ? "internal" : "client");
   const navItems = activeView === "internal" ? internalNav : clientNav;
