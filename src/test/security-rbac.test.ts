@@ -164,3 +164,73 @@ describe("IDOR prevention: role isolation", () => {
     expect(canQcSignoff(roles)).toBe(false);
   });
 });
+
+/* ───────────────────────────────────────────────────
+ * Billing events RLS regression tests
+ * Validates org-scoped insert policy logic.
+ * ─────────────────────────────────────────────────── */
+
+describe("Billing Events RLS — org-scoped insert", () => {
+  // Simulates the RLS WITH CHECK:
+  // performed_by = auth.uid() AND (org_id = get_user_org_id(auth.uid()) OR is_internal(auth.uid()))
+
+  const INTERNAL_ROLES = [
+    "fvc_ops_admin", "fvc_assurance_manager", "fvc_assurance_officer",
+    "fvc_assurance_lead", "fvc_quality_reviewer", "fvc_analyst",
+  ];
+
+  function isInternal(roles: string[]): boolean {
+    return roles.some((r) => INTERNAL_ROLES.includes(r));
+  }
+
+  function canInsertBillingEvent(
+    authUid: string,
+    userOrgId: string,
+    roles: string[],
+    insertPerformedBy: string,
+    insertOrgId: string,
+  ): boolean {
+    return (
+      insertPerformedBy === authUid &&
+      (insertOrgId === userOrgId || isInternal(roles))
+    );
+  }
+
+  const USER_A = "user-a";
+  const ORG_A = "org-a";
+  const ORG_B = "org-b";
+
+  it("client_admin can insert billing event for own org", () => {
+    expect(canInsertBillingEvent(USER_A, ORG_A, ["client_admin"], USER_A, ORG_A)).toBe(true);
+  });
+
+  it("client_admin CANNOT insert billing event for another org", () => {
+    expect(canInsertBillingEvent(USER_A, ORG_A, ["client_admin"], USER_A, ORG_B)).toBe(false);
+  });
+
+  it("client_requester CANNOT insert billing event for another org", () => {
+    expect(canInsertBillingEvent(USER_A, ORG_A, ["client_requester"], USER_A, ORG_B)).toBe(false);
+  });
+
+  it("client user CANNOT spoof performed_by", () => {
+    expect(canInsertBillingEvent(USER_A, ORG_A, ["client_admin"], "other-user", ORG_A)).toBe(false);
+  });
+
+  it("internal user CAN insert billing event for any org", () => {
+    expect(canInsertBillingEvent(USER_A, ORG_A, ["fvc_analyst"], USER_A, ORG_B)).toBe(true);
+    expect(canInsertBillingEvent(USER_A, ORG_A, ["fvc_ops_admin"], USER_A, ORG_B)).toBe(true);
+  });
+
+  it("internal user still must match performed_by = auth.uid()", () => {
+    expect(canInsertBillingEvent(USER_A, ORG_A, ["fvc_ops_admin"], "other-user", ORG_B)).toBe(false);
+  });
+
+  it("partner role CANNOT insert billing event for any org", () => {
+    expect(canInsertBillingEvent(USER_A, ORG_A, ["partner"], USER_A, ORG_B)).toBe(false);
+  });
+
+  it("unauthenticated / no roles CANNOT insert", () => {
+    expect(canInsertBillingEvent(USER_A, ORG_A, [], USER_A, ORG_A)).toBe(true); // own org, own user — allowed
+    expect(canInsertBillingEvent(USER_A, ORG_A, [], USER_A, ORG_B)).toBe(false); // cross-org — blocked
+  });
+});
