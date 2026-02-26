@@ -220,6 +220,8 @@ export default function CaseDetailPage() {
     }
   };
 
+  const scopeChangeBlocking = (caseData as any)?.scope_change_flag && !(caseData as any)?.scope_change_resolved;
+
   if (!caseData) {
     return <div className="text-sm text-muted-foreground py-20 text-center">Loading…</div>;
   }
