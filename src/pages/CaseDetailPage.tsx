@@ -6,12 +6,13 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   ArrowLeft, CheckCircle2, Clock, FileText, Play, Send,
   AlertTriangle, Sparkles, Calendar, DollarSign, UserCheck,
   ShieldCheck, Package, X, Save, Globe, Briefcase,
+  ListTodo, FlaskConical, Users, Lock, BarChart3, Eye,
+  Upload,
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import AssuranceNoteReport from "@/components/AssuranceNoteReport";
@@ -19,6 +20,9 @@ import CaseActivityTimeline from "@/components/CaseActivityTimeline";
 import DataProtectionSummary from "@/components/case-detail/DataProtectionSummary";
 import CaseProcessingRecord from "@/components/case-detail/CaseProcessingRecord";
 import QuotePanel from "@/components/case-detail/QuotePanel";
+import CaseTaskBoard from "@/components/case-detail/CaseTaskBoard";
+import EvidenceLocker from "@/components/case-detail/EvidenceLocker";
+import CaseRetrievalLogs from "@/components/case-detail/CaseRetrievalLogs";
 import {
   CASE_STATUSES, STATUS_LABELS, STATUS_COLORS, STATUS_AUDIT_MAP,
   CASE_TYPE_LABELS, REPORT_TIER_LABELS,
@@ -26,16 +30,9 @@ import {
 } from "@/lib/case-statuses";
 
 const STATUS_ICONS: Record<CaseStatus, React.ElementType> = {
-  new: Briefcase,
-  scheduled: Calendar,
-  quoted: DollarSign,
-  approved: CheckCircle2,
-  assigned: UserCheck,
-  in_progress: Play,
-  with_partner: Globe,
-  qc: ShieldCheck,
-  released: FileText,
-  archived: Package,
+  new: Briefcase, scheduled: Calendar, quoted: DollarSign, approved: CheckCircle2,
+  assigned: UserCheck, in_progress: Play, with_partner: Globe,
+  qc: ShieldCheck, released: FileText, archived: Package,
 };
 
 export default function CaseDetailPage() {
@@ -60,10 +57,11 @@ export default function CaseDetailPage() {
   const [allowPreApprovalStart, setAllowPreApprovalStart] = useState(false);
   const [editingNotes, setEditingNotes] = useState(false);
   const [internalNotes, setInternalNotes] = useState("");
+  const [activeTab, setActiveTab] = useState("scope");
+  // Internal vs client message filter
+  const [messageFilter, setMessageFilter] = useState<"internal" | "client">("internal");
 
-  useEffect(() => {
-    if (id) loadCase();
-  }, [id]);
+  useEffect(() => { if (id) loadCase(); }, [id]);
 
   const loadCase = async () => {
     const [caseRes, msgsRes, delsRes, auditRes, modulesRes] = await Promise.all([
@@ -96,62 +94,34 @@ export default function CaseDetailPage() {
 
     if (caseRes.data?.dp_review_required) {
       const { data: dpData } = await supabase
-        .from("data_protection_reviews" as any)
-        .select("*")
-        .eq("case_id", id!)
-        .order("created_at", { ascending: false })
-        .limit(1)
-        .single();
+        .from("data_protection_reviews" as any).select("*").eq("case_id", id!)
+        .order("created_at", { ascending: false }).limit(1).single();
       setDpReview(dpData);
-    } else {
-      setDpReview(null);
-    }
+    } else { setDpReview(null); }
 
     if (caseRes.data?.org_id) {
-      const { data: orgData } = await supabase
-        .from("organisations")
-        .select("allow_pre_approval_start")
-        .eq("id", caseRes.data.org_id)
-        .single();
+      const { data: orgData } = await supabase.from("organisations").select("allow_pre_approval_start").eq("id", caseRes.data.org_id).single();
       setAllowPreApprovalStart((orgData as any)?.allow_pre_approval_start ?? false);
     }
   };
 
   const sendMessage = async () => {
     if (!newMessage.trim() || !user) return;
-    await supabase.from("case_messages").insert({
-      case_id: id!,
-      sender_user_id: user.id,
-      message: newMessage,
-    });
+    await supabase.from("case_messages").insert({ case_id: id!, sender_user_id: user.id, message: newMessage });
     setNewMessage("");
     loadCase();
   };
 
   const transitionTo = async (status: string, extraPayload?: Record<string, any>, comment?: string) => {
     if (!user || !profile) return;
-
-    const updatePayload: Record<string, any> = { status, ...extraPayload };
-    await supabase.from("cases").update(updatePayload).eq("id", id!);
-
+    await supabase.from("cases").update({ status, ...extraPayload }).eq("id", id!);
     const actionType = STATUS_AUDIT_MAP[status] || `CASE_${status.toUpperCase()}`;
     await supabase.from("audit_events").insert({
-      user_id: user.id,
-      org_id: profile.org_id,
-      action_type: actionType,
-      object_type: "case",
-      object_id: id,
-      metadata: {
-        entity_name: entity?.name,
-        product_type: caseData?.product_type,
-        comment: comment || null,
-        from_status: caseData?.status,
-        to_status: status,
-      },
+      user_id: user.id, org_id: profile.org_id, action_type: actionType,
+      object_type: "case", object_id: id,
+      metadata: { entity_name: entity?.name, product_type: caseData?.product_type, comment: comment || null, from_status: caseData?.status, to_status: status },
     });
-
-    const label = STATUS_LABELS[status as CaseStatus] || status;
-    toast({ title: `Status → ${label}`, description: `Case transitioned to ${label}.` });
+    toast({ title: `Status → ${STATUS_LABELS[status as CaseStatus] || status}` });
     loadCase();
   };
 
@@ -166,18 +136,10 @@ export default function CaseDetailPage() {
     if (!user || !caseData) return;
     setSimulating(true);
     await new Promise((r) => setTimeout(r, 1500));
-
-    await supabase.from("deliverables").insert({
-      case_id: id!,
-      title: `Assurance Note — ${entity?.name ?? "Entity"}`,
-      deliverable_type: "report",
-      version: 1,
-    });
-
+    await supabase.from("deliverables").insert({ case_id: id!, title: `Assurance Note — ${entity?.name ?? "Entity"}`, deliverable_type: "report", version: 1 });
     for (const cm of caseModules.filter((m) => m.status === "in_progress" || m.status === "approved")) {
       await simulateModuleDelivery(cm, true);
     }
-
     await transitionTo("released", { due_date: new Date().toISOString().split("T")[0] });
     setSimulating(false);
   };
@@ -186,236 +148,201 @@ export default function CaseDetailPage() {
     if (!user || !profile) return;
     setSimulatingModule(cm.id);
     if (!skipReload) await new Promise((r) => setTimeout(r, 1000));
-
-    const { data: del } = await supabase.from("deliverables").insert({
-      case_id: id!,
-      title: `${cm.module_type?.name ?? "Addendum"} — ${entity?.name ?? "Entity"}`,
-      deliverable_type: "addendum",
-      version: 1,
-    }).select("id").single();
-
-    await supabase.from("module_outputs").insert({
-      case_module_id: cm.id,
-      deliverable_id: del?.id ?? null,
-      executive_summary: "Analysis complete.",
-      confidence_level: "med",
-      limitations: "Based on publicly available data.",
-    });
-
+    const { data: del } = await supabase.from("deliverables").insert({ case_id: id!, title: `${cm.module_type?.name ?? "Addendum"} — ${entity?.name ?? "Entity"}`, deliverable_type: "addendum", version: 1 }).select("id").single();
+    await supabase.from("module_outputs").insert({ case_module_id: cm.id, deliverable_id: del?.id ?? null, executive_summary: "Analysis complete.", confidence_level: "med", limitations: "Based on publicly available data." });
     await supabase.from("case_modules").update({ status: "complete" }).eq("id", cm.id);
-
-    await supabase.from("audit_events").insert({
-      user_id: user.id,
-      org_id: profile.org_id,
-      action_type: "MODULE_COMPLETED",
-      object_type: "case_module",
-      object_id: cm.id,
-      metadata: { case_id: id, module_code: cm.module_type?.code },
-    });
-
+    await supabase.from("audit_events").insert({ user_id: user.id, org_id: profile.org_id, action_type: "MODULE_COMPLETED", object_type: "case_module", object_id: cm.id, metadata: { case_id: id, module_code: cm.module_type?.code } });
     setSimulatingModule(null);
-    if (!skipReload) {
-      toast({ title: "Module delivered", description: `${cm.module_type?.name} addendum is now available.` });
-      loadCase();
-    }
+    if (!skipReload) { toast({ title: "Module delivered" }); loadCase(); }
   };
 
   const scopeChangeBlocking = (caseData as any)?.scope_change_flag && !(caseData as any)?.scope_change_resolved;
 
-  if (!caseData) {
-    return <div className="text-sm text-muted-foreground py-20 text-center">Loading…</div>;
-  }
+  if (!caseData) return <div className="text-sm text-muted-foreground py-20 text-center">Loading…</div>;
 
   const currentStatus = caseData.status as CaseStatus;
   const currentIdx = CASE_STATUSES.indexOf(currentStatus);
   const isHighRisk = entity?.risk_tier === "A";
 
-  // Officer cannot do QC or Release actions
-  const officerCanTransition = (target: string) => {
-    if (isOfficer && (target === "released" || target === "archived")) return false;
-    return true;
-  };
-
   return (
-    <div>
-      <button onClick={() => navigate(-1)} className="flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground mb-6 transition-colors">
+    <div className="animate-fade-in">
+      <button onClick={() => navigate(-1)} className="flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground mb-4 transition-colors">
         <ArrowLeft size={14} /> Back
       </button>
 
-      <div className="flex items-start justify-between mb-6">
+      {/* ── Header ── */}
+      <div className="flex items-start justify-between mb-4">
         <div>
-          <h1 className="fvc-heading-1 text-foreground">{caseData.product_type}</h1>
-          <p className="text-sm text-muted-foreground mt-1">
-            {entity?.name ?? "Entity"} · {caseData.priority} priority
-            · {CASE_TYPE_LABELS[(caseData as any).case_type] || (caseData as any).case_type}
-            · {REPORT_TIER_LABELS[(caseData as any).report_tier] || (caseData as any).report_tier} tier
+          <h1 className="font-display text-xl font-bold text-foreground">{caseData.product_type}</h1>
+          <p className="text-sm text-muted-foreground mt-0.5">
+            {entity?.name ?? "Entity"} · {caseData.priority} · {CASE_TYPE_LABELS[(caseData as any).case_type] || (caseData as any).case_type} · {REPORT_TIER_LABELS[(caseData as any).report_tier] || (caseData as any).report_tier}
           </p>
         </div>
-        <Badge className={`fvc-status-badge text-sm px-3 py-1 capitalize ${STATUS_COLORS[currentStatus] || "bg-muted text-muted-foreground"}`}>
+        <Badge className={`text-sm px-3 py-1 capitalize ${STATUS_COLORS[currentStatus] || "bg-muted text-muted-foreground"}`}>
           {STATUS_LABELS[currentStatus] || caseData.status.replace(/_/g, " ")}
         </Badge>
       </div>
 
-      {/* Banner: Scheduled — CR needs to generate quote */}
-      {currentStatus === "scheduled" && canQuote && (
-        <div className="flex items-center gap-3 p-4 rounded-lg border border-primary/30 bg-primary/5 mb-6 animate-fade-in">
-          <DollarSign size={18} className="text-primary shrink-0" />
-          <div>
-            <div className="text-sm font-medium text-foreground">Case scheduled — quote required</div>
-            <div className="text-xs text-muted-foreground">Generate a formal quote below to send to the client for approval.</div>
-          </div>
-        </div>
-      )}
-
-      {/* Banner: Quoted — awaiting client approval */}
-      {currentStatus === "quoted" && hasRole("client_admin") && (
-        <div className="flex items-center gap-3 p-4 rounded-lg border border-accent/30 bg-accent/5 mb-6 animate-fade-in">
-          <DollarSign size={18} className="text-accent shrink-0" />
-          <div>
-            <div className="text-sm font-medium text-foreground">Quote awaiting your approval</div>
-            <div className="text-xs text-muted-foreground">Review the quote below and approve or reject to proceed.</div>
-          </div>
-        </div>
-      )}
-
-      {/* Status timeline */}
-      <div className="flex items-center gap-0 mb-8 overflow-x-auto pb-2">
+      {/* ── Status Pipeline ── */}
+      <div className="flex items-center gap-0 mb-6 overflow-x-auto pb-2">
         {CASE_STATUSES.map((s, i) => {
           const Icon = STATUS_ICONS[s];
           const isPast = i <= currentIdx;
           const isCurrent = s === currentStatus;
           return (
             <div key={s} className="flex items-center">
-              <div className="flex flex-col items-center gap-1.5">
-                <div className={`flex items-center justify-center w-8 h-8 rounded-full transition-all duration-300 ${
-                  isCurrent
-                    ? "bg-primary text-primary-foreground ring-2 ring-primary/20 ring-offset-2 ring-offset-background"
-                    : isPast
-                    ? "bg-accent text-accent-foreground"
-                    : "bg-muted text-muted-foreground"
-                }`}>
-                  <Icon size={14} />
+              <div className="flex flex-col items-center gap-1">
+                <div className={`flex items-center justify-center w-7 h-7 rounded-full transition-all duration-300 ${isCurrent ? "bg-primary text-primary-foreground ring-2 ring-primary/20 ring-offset-2 ring-offset-background" : isPast ? "bg-accent text-accent-foreground" : "bg-muted text-muted-foreground"}`}>
+                  <Icon size={12} />
                 </div>
-                <span className={`text-[10px] whitespace-nowrap font-medium ${
-                  isCurrent ? "text-foreground" : isPast ? "text-accent" : "text-muted-foreground"
-                }`}>
-                  {STATUS_LABELS[s]}
-                </span>
+                <span className={`text-[9px] whitespace-nowrap font-medium ${isCurrent ? "text-foreground" : isPast ? "text-accent" : "text-muted-foreground"}`}>{STATUS_LABELS[s]}</span>
               </div>
-              {i < CASE_STATUSES.length - 1 && (
-                <div className={`w-8 h-px mx-0.5 mt-[-18px] transition-colors ${isPast && !isCurrent ? "bg-accent" : "bg-border"}`} />
-              )}
+              {i < CASE_STATUSES.length - 1 && <div className={`w-6 h-px mx-0.5 mt-[-14px] ${isPast && !isCurrent ? "bg-accent" : "bg-border"}`} />}
             </div>
           );
         })}
       </div>
 
-      <DataProtectionSummary caseData={caseData} isInternal={isInternal} dpReview={dpReview} />
+      {/* ── Tabbed Investigation Workflow ── */}
+      <div className="grid lg:grid-cols-[1fr_280px] gap-6">
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
+          <TabsList className="w-full justify-start overflow-x-auto flex-wrap h-auto gap-1 bg-transparent p-0">
+            <TabsTrigger value="scope" className="text-xs gap-1.5 data-[state=active]:bg-primary/10"><FileText className="h-3.5 w-3.5" /> Scope</TabsTrigger>
+            <TabsTrigger value="tasks" className="text-xs gap-1.5 data-[state=active]:bg-primary/10"><ListTodo className="h-3.5 w-3.5" /> Tasks</TabsTrigger>
+            <TabsTrigger value="research" className="text-xs gap-1.5 data-[state=active]:bg-primary/10"><FlaskConical className="h-3.5 w-3.5" /> Research</TabsTrigger>
+            {isInternal && <TabsTrigger value="partners" className="text-xs gap-1.5 data-[state=active]:bg-primary/10"><Globe className="h-3.5 w-3.5" /> Partners</TabsTrigger>}
+            <TabsTrigger value="messages" className="text-xs gap-1.5 data-[state=active]:bg-primary/10"><Send className="h-3.5 w-3.5" /> Messages</TabsTrigger>
+            <TabsTrigger value="evidence" className="text-xs gap-1.5 data-[state=active]:bg-primary/10"><Lock className="h-3.5 w-3.5" /> Evidence</TabsTrigger>
+            <TabsTrigger value="risk" className="text-xs gap-1.5 data-[state=active]:bg-primary/10"><BarChart3 className="h-3.5 w-3.5" /> Risk</TabsTrigger>
+            <TabsTrigger value="qa" className="text-xs gap-1.5 data-[state=active]:bg-primary/10"><Eye className="h-3.5 w-3.5" /> QA</TabsTrigger>
+          </TabsList>
 
-      {/* Processing Record */}
-      <div className="mb-6">
-        <CaseProcessingRecord caseData={caseData} isInternal={isInternal} isManager={isManager} onRefresh={loadCase} />
-      </div>
+          {/* ── SCOPE & MANDATE ── */}
+          <TabsContent value="scope" className="space-y-4">
+            <DataProtectionSummary caseData={caseData} isInternal={isInternal} dpReview={dpReview} />
+            <CaseProcessingRecord caseData={caseData} isInternal={isInternal} isManager={isManager} onRefresh={loadCase} />
 
-      <div className="grid lg:grid-cols-3 gap-6">
-        <div className="lg:col-span-2 space-y-6">
-          {/* Case Details */}
-          <div className="fvc-card">
-            <h2 className="fvc-heading-3 text-foreground mb-4">Case Details</h2>
-            <div className="fvc-gold-rule mb-4" />
-            <div className="space-y-3 text-sm">
-              <div className="flex justify-between"><span className="text-muted-foreground">Reference</span><span className="text-foreground font-mono text-xs">{caseData.id.slice(0, 8).toUpperCase()}</span></div>
-              <div className="flex justify-between"><span className="text-muted-foreground">Case Type</span><span className="text-foreground">{CASE_TYPE_LABELS[(caseData as any).case_type] || (caseData as any).case_type}</span></div>
-              <div className="flex justify-between"><span className="text-muted-foreground">Report Tier</span><span className="text-foreground">{REPORT_TIER_LABELS[(caseData as any).report_tier] || (caseData as any).report_tier}</span></div>
-              <div className="flex justify-between"><span className="text-muted-foreground">Due date</span><span className="text-foreground">{caseData.due_date ? new Date(caseData.due_date).toLocaleDateString() : "Not set"}</span></div>
-              <div className="flex justify-between"><span className="text-muted-foreground">SLA</span><span className="text-foreground">{caseData.sla_days ? `${caseData.sla_days} business days` : "—"}</span></div>
-              <div className="flex justify-between"><span className="text-muted-foreground">Risk tier</span><span className="text-foreground font-medium">{entity?.risk_tier ?? "—"}</span></div>
-              <div className="flex justify-between"><span className="text-muted-foreground">Fee estimate</span><span className="text-accent font-semibold font-display text-lg">£{caseData.price_estimate?.toLocaleString() ?? "—"}</span></div>
+            <div className="rounded-lg border bg-card p-4 space-y-3">
+              <h3 className="font-display text-sm font-semibold text-foreground">Case Details</h3>
+              <div className="space-y-2 text-sm">
+                <Row label="Reference" value={caseData.id.slice(0, 8).toUpperCase()} mono />
+                <Row label="Case Type" value={CASE_TYPE_LABELS[(caseData as any).case_type] || (caseData as any).case_type} />
+                <Row label="Report Tier" value={REPORT_TIER_LABELS[(caseData as any).report_tier] || (caseData as any).report_tier} />
+                <Row label="Due Date" value={caseData.due_date ? new Date(caseData.due_date).toLocaleDateString() : "Not set"} />
+                <Row label="SLA" value={caseData.sla_days ? `${caseData.sla_days} business days` : "—"} />
+                <Row label="Risk Tier" value={entity?.risk_tier ?? "—"} bold />
+                <Row label="Fee Estimate" value={`£${caseData.price_estimate?.toLocaleString() ?? "—"}`} accent />
+              </div>
               {caseData.scope_notes && (
                 <div className="pt-3 border-t border-border">
-                  <span className="fvc-label block mb-2">Scope notes</span>
-                  <p className="text-foreground leading-relaxed">{caseData.scope_notes}</p>
+                  <span className="text-[10px] uppercase tracking-wider text-muted-foreground">Scope Notes</span>
+                  <p className="text-sm text-foreground mt-1 leading-relaxed">{caseData.scope_notes}</p>
                 </div>
               )}
             </div>
-          </div>
 
-          {/* Internal Notes (CR only) */}
-          {isInternal && (
-            <div className="fvc-card">
-              <div className="flex items-center justify-between mb-3">
-                <h2 className="fvc-heading-3 text-foreground">Internal Notes</h2>
-                {!editingNotes ? (
-                  <Button variant="ghost" size="sm" className="text-xs" onClick={() => setEditingNotes(true)}>Edit</Button>
+            {/* Internal Notes */}
+            {isInternal && (
+              <div className="rounded-lg border bg-card p-4">
+                <div className="flex items-center justify-between mb-2">
+                  <h3 className="font-display text-sm font-semibold text-foreground">Internal Notes</h3>
+                  {!editingNotes ? (
+                    <Button variant="ghost" size="sm" className="text-xs h-7" onClick={() => setEditingNotes(true)}>Edit</Button>
+                  ) : (
+                    <Button size="sm" className="text-xs h-7 gap-1" onClick={saveInternalNotes}><Save className="h-3 w-3" /> Save</Button>
+                  )}
+                </div>
+                {editingNotes ? (
+                  <Textarea rows={4} value={internalNotes} onChange={(e) => setInternalNotes(e.target.value)} placeholder="Internal-only notes…" />
                 ) : (
-                  <Button size="sm" className="text-xs gap-1" onClick={saveInternalNotes}>
-                    <Save className="h-3 w-3" /> Save
+                  <p className="text-sm text-foreground whitespace-pre-wrap">{(caseData as any).internal_notes || <span className="text-muted-foreground italic">No internal notes.</span>}</p>
+                )}
+              </div>
+            )}
+
+            {/* Quote Panel */}
+            {(currentStatus === "scheduled" || currentStatus === "quoted" || currentStatus === "approved") && (
+              <QuotePanel caseId={id!} caseStatus={currentStatus} onStatusChange={loadCase} entityName={entity?.name} />
+            )}
+
+            {/* EDD+ Modules */}
+            {caseModules.length > 0 && (
+              <div className="rounded-lg border bg-card p-4">
+                <h3 className="font-display text-sm font-semibold text-foreground mb-3 flex items-center gap-2"><Sparkles size={14} className="text-accent" /> EDD+ Enhancements</h3>
+                <div className="space-y-2">
+                  {caseModules.map((cm) => (
+                    <div key={cm.id} className="border rounded-lg p-3 border-accent/20 bg-accent/5">
+                      <div className="flex items-center justify-between mb-1">
+                        <span className="font-medium text-sm text-foreground">{cm.module_type?.name ?? "Module"}</span>
+                        <div className="flex items-center gap-2">
+                          <Badge className={`capitalize text-[10px] ${cm.status === "complete" ? "bg-accent/10 text-accent-foreground" : cm.status === "in_progress" ? "bg-primary/10 text-primary" : "bg-muted text-muted-foreground"}`}>{cm.status.replace(/_/g, " ")}</Badge>
+                          {isInternal && cm.status !== "complete" && cm.status !== "cancelled" && (
+                            <Button size="sm" variant="outline" className="h-6 px-2.5 text-[10px]" onClick={() => navigate(`/cases/${id}/modules/${cm.id}`)}>Workbench</Button>
+                          )}
+                        </div>
+                      </div>
+                      <div className="text-xs text-muted-foreground">{cm.module_type?.description?.slice(0, 80)}…</div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </TabsContent>
+
+          {/* ── TASK BOARD ── */}
+          <TabsContent value="tasks">
+            <div className="rounded-lg border bg-card p-4">
+              <h3 className="font-display text-sm font-semibold text-foreground mb-3 flex items-center gap-2"><ListTodo className="h-4 w-4" /> Investigation Tasks</h3>
+              <CaseTaskBoard caseId={id!} isManager={isManager} />
+            </div>
+          </TabsContent>
+
+          {/* ── RESEARCH CONSOLE LINK ── */}
+          <TabsContent value="research" className="space-y-4">
+            <div className="rounded-lg border bg-card p-4">
+              <div className="flex items-center justify-between mb-3">
+                <h3 className="font-display text-sm font-semibold text-foreground flex items-center gap-2"><FlaskConical className="h-4 w-4" /> Research Checks</h3>
+                {isInternal && (
+                  <Button size="sm" variant="outline" onClick={() => navigate("/research-console")}>
+                    <FlaskConical className="h-3.5 w-3.5 mr-1.5" /> Open Console
                   </Button>
                 )}
               </div>
-              <div className="fvc-gold-rule mb-4" />
-              {editingNotes ? (
-                <Textarea rows={4} value={internalNotes} onChange={(e) => setInternalNotes(e.target.value)} placeholder="Internal-only notes…" />
-              ) : (
-                <p className="text-sm text-foreground whitespace-pre-wrap">
-                  {(caseData as any).internal_notes || <span className="text-muted-foreground italic">No internal notes.</span>}
-                </p>
-              )}
+              <CaseRetrievalLogs caseId={id!} />
             </div>
-          )}
+          </TabsContent>
 
-          {/* Quote Panel */}
-          {(currentStatus === "scheduled" || currentStatus === "quoted" || currentStatus === "approved") && (
-            <QuotePanel caseId={id!} caseStatus={currentStatus} onStatusChange={loadCase} entityName={entity?.name} />
-          )}
-
-          {/* EDD+ Modules */}
-          {caseModules.length > 0 && (
-            <div className="fvc-card">
-              <h2 className="fvc-heading-3 text-foreground mb-4 flex items-center gap-2">
-                <Sparkles size={16} className="text-accent" /> EDD+ Enhancements
-              </h2>
-              <div className="fvc-gold-rule mb-4" />
-              <div className="space-y-3">
-                {caseModules.map((cm) => (
-                  <div key={cm.id} className="border rounded-lg p-4 border-accent/20 bg-accent/5">
-                    <div className="flex items-center justify-between mb-2">
-                      <div className="font-medium text-sm text-foreground">{cm.module_type?.name ?? "Module"}</div>
-                      <div className="flex items-center gap-2">
-                        <Badge className={`fvc-status-badge capitalize text-[10px] ${
-                          cm.status === "complete" ? "bg-success/10 text-success" :
-                          cm.status === "cancelled" ? "bg-destructive/10 text-destructive" :
-                          cm.status === "in_progress" ? "bg-primary/10 text-primary" :
-                          "bg-muted text-muted-foreground"
-                        }`}>
-                          {cm.status.replace(/_/g, " ")}
-                        </Badge>
-                        {isInternal && cm.status !== "complete" && cm.status !== "cancelled" && (
-                          <Button size="sm" variant="outline" className="h-6 px-2.5 text-[10px]"
-                            onClick={() => navigate(`/cases/${id}/modules/${cm.id}`)}>
-                            Open Workbench
-                          </Button>
-                        )}
-                      </div>
-                    </div>
-                    <div className="flex justify-between text-xs text-muted-foreground">
-                      <span>{cm.module_type?.description?.slice(0, 80)}…</span>
-                      {cm.price_estimate && <span className="text-accent font-medium">£{cm.price_estimate.toLocaleString()}</span>}
-                    </div>
+          {/* ── PARTNER ENGAGEMENT ── */}
+          {isInternal && (
+            <TabsContent value="partners">
+              <div className="rounded-lg border bg-card p-4">
+                <h3 className="font-display text-sm font-semibold text-foreground mb-3 flex items-center gap-2"><Globe className="h-4 w-4" /> Partner Engagement</h3>
+                {currentStatus === "with_partner" ? (
+                  <div className="space-y-3">
+                    <Badge variant="default" className="text-xs">Case currently with Partner</Badge>
+                    <p className="text-sm text-muted-foreground">Partner tasks and evidence submissions are tracked in the Partner portal.</p>
+                    <Button variant="outline" size="sm" onClick={() => navigate("/partner-requests")}>View Partner Requests</Button>
                   </div>
-                ))}
+                ) : (
+                  <p className="text-sm text-muted-foreground">No active partner engagement. Use the Actions panel to send this case to a partner.</p>
+                )}
               </div>
-            </div>
+            </TabsContent>
           )}
 
-          {/* Messages */}
-          <div className="fvc-card">
-            <h2 className="fvc-heading-3 text-foreground mb-4">Messages</h2>
-            {messages.length === 0 ? (
-              <p className="text-sm text-muted-foreground">No messages yet.</p>
-            ) : (
-              <div className="space-y-3 mb-4">
-                {messages.map((m) => {
+          {/* ── MESSAGES ── */}
+          <TabsContent value="messages">
+            <div className="rounded-lg border bg-card p-4 space-y-4">
+              {isInternal && (
+                <div className="flex gap-1">
+                  <Button size="sm" variant={messageFilter === "internal" ? "default" : "outline"} className="text-xs h-7" onClick={() => setMessageFilter("internal")}>Internal Chat</Button>
+                  <Button size="sm" variant={messageFilter === "client" ? "default" : "outline"} className="text-xs h-7" onClick={() => setMessageFilter("client")}>Client Thread</Button>
+                </div>
+              )}
+              <div className="space-y-3 max-h-[400px] overflow-y-auto">
+                {messages.length === 0 ? (
+                  <p className="text-sm text-muted-foreground text-center py-4">No messages yet.</p>
+                ) : messages.map((m) => {
                   const isMe = m.sender_user_id === user?.id;
                   return (
                     <div key={m.id} className={`border rounded-lg p-3 ${isMe ? "border-accent/20 bg-accent/5" : ""}`}>
@@ -428,147 +355,58 @@ export default function CaseDetailPage() {
                   );
                 })}
               </div>
-            )}
-            <div className="flex gap-2">
-              <Textarea value={newMessage} onChange={(e) => setNewMessage(e.target.value)} placeholder="Type a message…" rows={2} className="flex-1" />
-              <Button onClick={sendMessage} disabled={!newMessage.trim()} size="sm" className="self-end">
-                <Send size={14} className="mr-1" /> Send
-              </Button>
+              <div className="flex gap-2">
+                <Textarea value={newMessage} onChange={(e) => setNewMessage(e.target.value)} placeholder="Type a message…" rows={2} className="flex-1" />
+                <Button onClick={sendMessage} disabled={!newMessage.trim()} size="sm" className="self-end"><Send size={14} className="mr-1" /> Send</Button>
+              </div>
             </div>
-          </div>
+          </TabsContent>
 
-          {/* Activity Timeline */}
-          <div className="fvc-card">
-            <h2 className="fvc-heading-3 text-foreground mb-4">Activity Timeline</h2>
-            <div className="fvc-gold-rule mb-4" />
-            <CaseActivityTimeline caseData={caseData} messages={messages} deliverables={deliverables} auditEvents={auditEvents} currentUserId={user?.id} />
-          </div>
-
-          {showReport && deliverables.length > 0 && (
-            <div className="fvc-card-elevated">
-              <AssuranceNoteReport entityName={entity?.name ?? "Entity"} caseDate={caseData.created_at} riskTier={entity?.risk_tier}
-                dpSummary={caseData?.requires_personal_data ? { purpose: caseData.processing_purpose, lawfulBasis: caseData.lawful_basis, minimisationConfirmed: caseData.minimisation_confirmed } : undefined} />
+          {/* ── EVIDENCE LOCKER ── */}
+          <TabsContent value="evidence">
+            <div className="rounded-lg border bg-card p-4">
+              <h3 className="font-display text-sm font-semibold text-foreground mb-3 flex items-center gap-2"><Lock className="h-4 w-4" /> Evidence Locker</h3>
+              {isInternal ? <EvidenceLocker caseId={id!} isManager={isManager} /> : <p className="text-sm text-muted-foreground">Evidence files are managed by the assurance team.</p>}
             </div>
-          )}
-        </div>
+          </TabsContent>
 
-        {/* Sidebar */}
-        <div className="space-y-6">
-          {/* Manager: Assign */}
-          {canAssign && (currentStatus === "approved" || (allowPreApprovalStart && (currentStatus === "quoted" || currentStatus === "scheduled"))) && (
-            <div className="fvc-card">
-              <h3 className="fvc-heading-3 text-foreground mb-3">Assign</h3>
-              {currentStatus !== "approved" && (
-                <p className="text-[10px] text-warning mb-2 flex items-center gap-1">
-                  <AlertTriangle size={10} /> Pre-approval start enabled
-                </p>
+          {/* ── RISK ASSESSMENT ── */}
+          <TabsContent value="risk">
+            <div className="rounded-lg border bg-card p-4 space-y-3">
+              <h3 className="font-display text-sm font-semibold text-foreground flex items-center gap-2"><BarChart3 className="h-4 w-4" /> Risk Assessment</h3>
+              <div className="grid grid-cols-2 gap-3">
+                <div className="rounded-lg border p-3">
+                  <span className="text-[10px] uppercase tracking-wider text-muted-foreground">Entity Risk Tier</span>
+                  <div className="text-lg font-display font-bold text-foreground mt-1">Tier {entity?.risk_tier || "—"}</div>
+                </div>
+                <div className="rounded-lg border p-3">
+                  <span className="text-[10px] uppercase tracking-wider text-muted-foreground">DP Risk Level</span>
+                  <div className="text-lg font-display font-bold text-foreground mt-1 capitalize">{caseData.dp_risk_level || "Low"}</div>
+                </div>
+                <div className="rounded-lg border p-3">
+                  <span className="text-[10px] uppercase tracking-wider text-muted-foreground">Priority</span>
+                  <div className="text-lg font-display font-bold text-foreground mt-1 capitalize">{caseData.priority}</div>
+                </div>
+                <div className="rounded-lg border p-3">
+                  <span className="text-[10px] uppercase tracking-wider text-muted-foreground">Scope Change</span>
+                  <div className="text-lg font-display font-bold mt-1">{scopeChangeBlocking ? <span className="text-destructive">Flagged</span> : <span className="text-foreground">Clear</span>}</div>
+                </div>
+              </div>
+            </div>
+          </TabsContent>
+
+          {/* ── QA & RELEASE ── */}
+          <TabsContent value="qa" className="space-y-4">
+            <div className="rounded-lg border bg-card p-4 space-y-3">
+              <h3 className="font-display text-sm font-semibold text-foreground flex items-center gap-2"><Eye className="h-4 w-4" /> QA & Release</h3>
+              {currentStatus === "qc" && (
+                <Badge variant="default" className="text-xs">Currently in QC Review</Badge>
               )}
-              <Button className="w-full" onClick={() => transitionTo("assigned", { assigned_to: user?.id })}>
-                <UserCheck size={14} className="mr-1" /> Assign to Me
-              </Button>
-            </div>
-          )}
-
-          {/* Manager: Reassign (any status except archived) */}
-          {isManager && caseData.assigned_to && currentStatus !== "archived" && currentStatus !== "released" && (
-            <div className="fvc-card">
-              <h3 className="fvc-heading-3 text-foreground mb-3">Reassign</h3>
-              <Button variant="outline" className="w-full" onClick={() => transitionTo(currentStatus, { assigned_to: user?.id })}>
-                <UserCheck size={14} className="mr-1" /> Reassign to Me
-              </Button>
-            </div>
-          )}
-
-          {/* Officer: Begin Work */}
-          {canWork && currentStatus === "assigned" && (
-            <div className="fvc-card">
-              <h3 className="fvc-heading-3 text-foreground mb-3">Actions</h3>
-              <Button className="w-full" onClick={() => transitionTo("in_progress")}>
-                <Play size={14} className="mr-1" /> Begin Work
-              </Button>
-            </div>
-          )}
-
-          {/* Officer: In Progress actions */}
-          {canWork && currentStatus === "in_progress" && (
-            <div className="fvc-card">
-              <h3 className="fvc-heading-3 text-foreground mb-3">Actions</h3>
               <div className="space-y-2">
-                <Button className="w-full" onClick={() => transitionTo("qc")}>
-                  <ShieldCheck size={14} className="mr-1" /> Submit to QC
-                </Button>
-                <Button variant="outline" className="w-full" onClick={() => transitionTo("with_partner")}>
-                  <Globe size={14} className="mr-1" /> Send to Partner
-                </Button>
-                {caseModules.filter((cm) => cm.status !== "complete" && cm.status !== "cancelled").map((cm) => (
-                  <Button key={cm.id} variant="outline" className="w-full text-xs" onClick={() => simulateModuleDelivery(cm)} disabled={simulatingModule === cm.id}>
-                    <Sparkles size={12} className="mr-1 text-accent" />
-                    {simulatingModule === cm.id ? "Delivering…" : `Deliver ${cm.module_type?.name ?? "Module"}`}
-                  </Button>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* Officer: With Partner → resume */}
-          {canWork && currentStatus === "with_partner" && (
-            <div className="fvc-card">
-              <h3 className="fvc-heading-3 text-foreground mb-3">Actions</h3>
-              <Button className="w-full" onClick={() => transitionTo("in_progress")}>
-                <Play size={14} className="mr-1" /> Resume Work
-              </Button>
-            </div>
-          )}
-
-          {/* Manager: QC — approve & release, or return to officer */}
-          {canQc && currentStatus === "qc" && (
-            <div className="fvc-card">
-              <h3 className="fvc-heading-3 text-foreground mb-3">QC Review</h3>
-              <div className="space-y-2">
-                {scopeChangeBlocking && (
-                  <div className="p-2.5 rounded-lg border border-destructive/30 bg-destructive/5 text-xs text-destructive flex items-center gap-2">
-                    <AlertTriangle size={12} />
-                    Release blocked — resolve scope change first
-                  </div>
-                )}
-                <Button className="w-full" onClick={simulateDelivery} disabled={simulating || scopeChangeBlocking}>
-                  <FileText size={14} className="mr-1" /> {simulating ? "Releasing…" : "Approve & Release"}
-                </Button>
-                <Button variant="outline" className="w-full" onClick={() => transitionTo("in_progress")}>
-                  <X size={14} className="mr-1" /> Return to Officer
-                </Button>
-              </div>
-            </div>
-          )}
-
-          {/* Manager: Archive released case */}
-          {isManager && currentStatus === "released" && (
-            <div className="fvc-card">
-              <h3 className="fvc-heading-3 text-foreground mb-3">Archive</h3>
-              <Button className="w-full" onClick={() => transitionTo("archived")}>
-                <Package size={14} className="mr-1" /> Archive Case
-              </Button>
-            </div>
-          )}
-
-          {/* Client: Close released case */}
-          {hasRole("client_admin") && currentStatus === "released" && (
-            <div className="fvc-card">
-              <h3 className="fvc-heading-3 text-foreground mb-3">Acknowledge</h3>
-              <Button className="w-full" onClick={() => transitionTo("archived")}>
-                <CheckCircle2 size={14} className="mr-1" /> Acknowledge & Close
-              </Button>
-            </div>
-          )}
-
-          {/* Deliverables */}
-          <div className="fvc-card">
-            <h3 className="fvc-heading-3 text-foreground mb-3">Deliverables</h3>
-            {deliverables.length === 0 ? (
-              <p className="text-sm text-muted-foreground">No deliverables yet.</p>
-            ) : (
-              <div className="space-y-2">
-                {deliverables.map((d) => (
+                <h4 className="text-xs font-medium text-foreground">Deliverables</h4>
+                {deliverables.length === 0 ? (
+                  <p className="text-sm text-muted-foreground">No deliverables yet.</p>
+                ) : deliverables.map((d) => (
                   <div key={d.id} className="border rounded-lg p-3 cursor-pointer hover:bg-muted/30 transition-colors" onClick={() => setShowReport(!showReport)}>
                     <div className="flex items-center gap-2">
                       {d.deliverable_type === "addendum" ? <Sparkles size={14} className="text-accent shrink-0" /> : <FileText size={14} className="text-accent shrink-0" />}
@@ -580,10 +418,130 @@ export default function CaseDetailPage() {
                   </div>
                 ))}
               </div>
+            </div>
+
+            {/* Activity Timeline */}
+            <div className="rounded-lg border bg-card p-4">
+              <h3 className="font-display text-sm font-semibold text-foreground mb-3">Activity Timeline</h3>
+              <CaseActivityTimeline caseData={caseData} messages={messages} deliverables={deliverables} auditEvents={auditEvents} currentUserId={user?.id} />
+            </div>
+
+            {showReport && deliverables.length > 0 && (
+              <div className="rounded-lg border bg-card p-4">
+                <AssuranceNoteReport entityName={entity?.name ?? "Entity"} caseDate={caseData.created_at} riskTier={entity?.risk_tier}
+                  dpSummary={caseData?.requires_personal_data ? { purpose: caseData.processing_purpose, lawfulBasis: caseData.lawful_basis, minimisationConfirmed: caseData.minimisation_confirmed } : undefined} />
+              </div>
             )}
+          </TabsContent>
+        </Tabs>
+
+        {/* ── Right Sidebar: Actions ── */}
+        <div className="space-y-4">
+          {/* Status Banners */}
+          {currentStatus === "scheduled" && canQuote && (
+            <div className="flex items-center gap-2 p-3 rounded-lg border border-primary/30 bg-primary/5 text-xs">
+              <DollarSign size={14} className="text-primary shrink-0" />
+              <span>Quote required</span>
+            </div>
+          )}
+
+          {/* Manager: Assign */}
+          {canAssign && (currentStatus === "approved" || (allowPreApprovalStart && (currentStatus === "quoted" || currentStatus === "scheduled"))) && (
+            <ActionCard title="Assign">
+              <Button className="w-full" size="sm" onClick={() => transitionTo("assigned", { assigned_to: user?.id })}>
+                <UserCheck size={14} className="mr-1" /> Assign to Me
+              </Button>
+            </ActionCard>
+          )}
+
+          {isManager && caseData.assigned_to && !["archived", "released"].includes(currentStatus) && (
+            <ActionCard title="Reassign">
+              <Button variant="outline" className="w-full" size="sm" onClick={() => transitionTo(currentStatus, { assigned_to: user?.id })}>
+                <UserCheck size={14} className="mr-1" /> Reassign to Me
+              </Button>
+            </ActionCard>
+          )}
+
+          {canWork && currentStatus === "assigned" && (
+            <ActionCard title="Actions">
+              <Button className="w-full" size="sm" onClick={() => transitionTo("in_progress")}><Play size={14} className="mr-1" /> Begin Work</Button>
+            </ActionCard>
+          )}
+
+          {canWork && currentStatus === "in_progress" && (
+            <ActionCard title="Actions">
+              <div className="space-y-1.5">
+                <Button className="w-full" size="sm" onClick={() => transitionTo("qc")}><ShieldCheck size={14} className="mr-1" /> Submit to QC</Button>
+                <Button variant="outline" className="w-full" size="sm" onClick={() => transitionTo("with_partner")}><Globe size={14} className="mr-1" /> Send to Partner</Button>
+                {caseModules.filter((cm) => cm.status !== "complete" && cm.status !== "cancelled").map((cm) => (
+                  <Button key={cm.id} variant="outline" className="w-full text-xs" size="sm" onClick={() => simulateModuleDelivery(cm)} disabled={simulatingModule === cm.id}>
+                    <Sparkles size={12} className="mr-1 text-accent" /> {simulatingModule === cm.id ? "Delivering…" : `Deliver ${cm.module_type?.name}`}
+                  </Button>
+                ))}
+              </div>
+            </ActionCard>
+          )}
+
+          {canWork && currentStatus === "with_partner" && (
+            <ActionCard title="Actions">
+              <Button className="w-full" size="sm" onClick={() => transitionTo("in_progress")}><Play size={14} className="mr-1" /> Resume Work</Button>
+            </ActionCard>
+          )}
+
+          {canQc && currentStatus === "qc" && (
+            <ActionCard title="QC Review">
+              <div className="space-y-1.5">
+                {scopeChangeBlocking && (
+                  <div className="p-2 rounded border border-destructive/30 bg-destructive/5 text-xs text-destructive flex items-center gap-1">
+                    <AlertTriangle size={10} /> Scope change unresolved
+                  </div>
+                )}
+                <Button className="w-full" size="sm" onClick={simulateDelivery} disabled={simulating || scopeChangeBlocking}>
+                  <FileText size={14} className="mr-1" /> {simulating ? "Releasing…" : "Approve & Release"}
+                </Button>
+                <Button variant="outline" className="w-full" size="sm" onClick={() => transitionTo("in_progress")}><X size={14} className="mr-1" /> Return to Officer</Button>
+              </div>
+            </ActionCard>
+          )}
+
+          {isManager && currentStatus === "released" && (
+            <ActionCard title="Archive">
+              <Button className="w-full" size="sm" onClick={() => transitionTo("archived")}><Package size={14} className="mr-1" /> Archive Case</Button>
+            </ActionCard>
+          )}
+
+          {hasRole("client_admin") && currentStatus === "released" && (
+            <ActionCard title="Acknowledge">
+              <Button className="w-full" size="sm" onClick={() => transitionTo("archived")}><CheckCircle2 size={14} className="mr-1" /> Acknowledge & Close</Button>
+            </ActionCard>
+          )}
+
+          {/* Quick links */}
+          <div className="rounded-lg border bg-card p-3 space-y-1.5">
+            <h4 className="text-[10px] uppercase tracking-wider text-muted-foreground mb-1">Quick Links</h4>
+            <Button variant="ghost" size="sm" className="w-full justify-start text-xs h-7" onClick={() => navigate(`/entities/${caseData.entity_id}`)}>Entity Profile</Button>
+            {isInternal && <Button variant="ghost" size="sm" className="w-full justify-start text-xs h-7" onClick={() => navigate("/research-console")}>Research Console</Button>}
           </div>
         </div>
       </div>
+    </div>
+  );
+}
+
+function ActionCard({ title, children }: { title: string; children: React.ReactNode }) {
+  return (
+    <div className="rounded-lg border bg-card p-3">
+      <h4 className="font-display text-xs font-semibold text-foreground mb-2">{title}</h4>
+      {children}
+    </div>
+  );
+}
+
+function Row({ label, value, mono, bold, accent }: { label: string; value: string; mono?: boolean; bold?: boolean; accent?: boolean }) {
+  return (
+    <div className="flex justify-between">
+      <span className="text-muted-foreground">{label}</span>
+      <span className={`text-foreground ${mono ? "font-mono text-xs" : ""} ${bold ? "font-medium" : ""} ${accent ? "text-accent-foreground font-semibold font-display" : ""}`}>{value}</span>
     </div>
   );
 }
