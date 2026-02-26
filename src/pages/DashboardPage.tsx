@@ -24,7 +24,7 @@ import LiaSummaryCard from "@/components/dashboard/LiaSummaryCard";
 import RiskDistributionChart from "@/components/dashboard/RiskDistributionChart";
 import ProgrammeHealthIndicator from "@/components/dashboard/ProgrammeHealthIndicator";
 import ManagerDashboardView from "@/components/dashboard/ManagerDashboardView";
-
+import { useViewMode } from "@/contexts/ViewModeContext";
 interface DashboardStats {
   totalEntities: number;
   dueSoon: number;
