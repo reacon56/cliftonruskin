@@ -75,6 +75,10 @@ interface TemplateFormState {
   retention_months: number | null;
   outcome: string;
   conditions: string;
+  // New versioning fields
+  scope_summary: string;
+  effective_date: string;
+  approved_by_name: string;
 }
 
 const INITIAL_FORM: TemplateFormState = {
