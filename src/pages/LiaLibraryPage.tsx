@@ -304,13 +304,41 @@ export default function LiaLibraryPage() {
 
   const isDialogReadOnly = editTemplate?.status === "final" && !isAdmin;
 
+  const handleCreateNewVersion = async (t: MasterLiaTemplate) => {
+    // Supersede the current template and open a new version
+    const newForm = dbToForm(t);
+    newForm.scope_summary = "";
+    newForm.effective_date = new Date().toISOString().split("T")[0];
+    setForm(newForm);
+    // Store the template being superseded
+    setSupersedingId(t.id);
+    setSupersedingVersion(t.version_number);
+    setCreateOpen(true);
+  };
+
+  const [supersedingId, setSupersedingId] = useState<string | null>(null);
+  const [supersedingVersion, setSupersedingVersion] = useState<number>(0);
+
   const renderTemplateForm = (readOnly: boolean) => (
     <div className="space-y-4">
+      {/* Version & Scope */}
+      <div className="grid grid-cols-2 gap-4">
+        <div className="space-y-2">
+          <Label className="text-xs">Effective Date</Label>
+          <Input type="date" value={form.effective_date} onChange={(e) => set({ effective_date: e.target.value })} disabled={readOnly} />
+        </div>
+        <div className="space-y-2">
+          <Label className="text-xs">Approved By (Name/Role)</Label>
+          <Input value={form.approved_by_name} onChange={(e) => set({ approved_by_name: e.target.value })} placeholder="e.g. Jane Smith, DPO" disabled={readOnly} />
+        </div>
+      </div>
+      <div className="space-y-2">
+        <Label className="text-xs">Scope Summary</Label>
+        <Textarea rows={2} value={form.scope_summary} onChange={(e) => set({ scope_summary: e.target.value })} placeholder="Describe the scope of this LIA version…" disabled={readOnly} />
+      </div>
+
       {/* Template name */}
       <div className="space-y-2">
-        <Label className="text-xs">Template name</Label>
-        <Input value={form.name} onChange={(e) => set({ name: e.target.value })} placeholder="e.g., Standard Supplier Due Diligence" disabled={readOnly} />
-      </div>
 
       {/* Progress */}
       <div className="flex items-center gap-3 mb-2">
