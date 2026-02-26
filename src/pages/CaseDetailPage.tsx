@@ -525,8 +525,15 @@ export default function CaseDetailPage() {
             <div className="fvc-card">
               <h3 className="fvc-heading-3 text-foreground mb-3">QC Review</h3>
               <div className="space-y-2">
-                <Button className="w-full" onClick={simulateDelivery} disabled={simulating}>
+                {scopeChangeBlocking && (
+                  <div className="p-2.5 rounded-lg border border-destructive/30 bg-destructive/5 text-xs text-destructive flex items-center gap-2">
+                    <AlertTriangle size={12} />
+                    Release blocked — resolve scope change first
+                  </div>
+                )}
+                <Button className="w-full" onClick={simulateDelivery} disabled={simulating || scopeChangeBlocking}>
                   <FileText size={14} className="mr-1" /> {simulating ? "Releasing…" : "Approve & Release"}
+                </Button>
                 </Button>
                 <Button variant="outline" className="w-full" onClick={() => transitionTo("in_progress")}>
                   <X size={14} className="mr-1" /> Return to Officer
