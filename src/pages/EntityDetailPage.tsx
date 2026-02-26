@@ -157,6 +157,13 @@ export default function EntityDetailPage() {
         onChangeTier={() => setTierOpen(true)}
       />
 
+      {/* Master Entity Link Panel (CR internal only) */}
+      {isInternal && (
+        <div className="mt-4 max-w-sm">
+          <MasterEntityLinkPanel entityId={entity.id} entityName={entity.name} onRefresh={loadAll} />
+        </div>
+      )}
+
       <Tabs defaultValue="overview" className="mt-8">
         <TabsList className="bg-muted/50">
           <TabsTrigger value="overview">Overview</TabsTrigger>
