@@ -70,7 +70,7 @@ const EMPTY_FILTERS: FilterState = {
 };
 
 export default function OwnershipStructureTab({ entity }: OwnershipStructureTabProps) {
-  const { hasRole } = useAuth();
+  const { hasRole, canExportOwnership, canFilterOwnership, canProvenance, canEditRels, isInternal } = useAuth();
   const [view, setView] = useState<"network" | "tree">("network");
   const [nodes, setNodes] = useState<StructureNode[]>([]);
   const [edges, setEdges] = useState<StructureEdge[]>([]);
@@ -83,15 +83,6 @@ export default function OwnershipStructureTab({ entity }: OwnershipStructureTabP
   const [jurisdictionOverlay, setJurisdictionOverlay] = useState(false);
   const [filters, setFilters] = useState<FilterState>(EMPTY_FILTERS);
   const [filtersOpen, setFiltersOpen] = useState(false);
-
-  // Role-based visibility
-  const isInternal =
-    hasRole("fvc_analyst") ||
-    hasRole("fvc_ops_admin") ||
-    hasRole("fvc_assurance_manager") ||
-    hasRole("fvc_assurance_officer") ||
-    hasRole("fvc_assurance_lead") ||
-    hasRole("fvc_quality_reviewer");
 
   useEffect(() => {
     loadStructure();
@@ -366,19 +357,21 @@ ${mismatchRows ? `<div class="alerts"><h3>Intelligence Indicators</h3><table>${m
             </ToggleGroupItem>
           </ToggleGroup>
 
-          {/* Provenance toggle */}
-          <div className="flex items-center gap-1.5 ml-1 border border-border rounded-md px-2 py-1.5">
-            <Eye className="h-3.5 w-3.5 text-muted-foreground" />
-            <Label htmlFor="provenance-toggle" className="text-[10px] uppercase tracking-widest text-muted-foreground cursor-pointer">
-              Provenance
-            </Label>
-            <Switch
-              id="provenance-toggle"
-              checked={showProvenance}
-              onCheckedChange={setShowProvenance}
-              className="scale-75"
-            />
-          </div>
+          {/* Provenance toggle — internal only */}
+          {canProvenance && (
+            <div className="flex items-center gap-1.5 ml-1 border border-border rounded-md px-2 py-1.5">
+              <Eye className="h-3.5 w-3.5 text-muted-foreground" />
+              <Label htmlFor="provenance-toggle" className="text-[10px] uppercase tracking-widest text-muted-foreground cursor-pointer">
+                Provenance
+              </Label>
+              <Switch
+                id="provenance-toggle"
+                checked={showProvenance}
+                onCheckedChange={setShowProvenance}
+                className="scale-75"
+              />
+            </div>
+          )}
 
           {/* Jurisdiction overlay toggle */}
           <div className="flex items-center gap-1.5 border border-border rounded-md px-2 py-1.5">
@@ -394,83 +387,85 @@ ${mismatchRows ? `<div class="alerts"><h3>Intelligence Indicators</h3><table>${m
             />
           </div>
 
-          {/* Filters */}
-          <Popover open={filtersOpen} onOpenChange={setFiltersOpen}>
-            <PopoverTrigger asChild>
-              <Button variant="outline" size="sm" className="h-8 gap-1.5 text-xs relative">
-                <Filter className="h-3.5 w-3.5" />
-                Filters
-                {hasActiveFilters && (
-                  <span className="absolute -top-1 -right-1 w-2 h-2 rounded-full" style={{ background: "hsl(38, 55%, 52%)" }} />
-                )}
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-64 space-y-3" align="end">
-              <p className="fvc-label">Filter Structure</p>
-              <div className="space-y-1.5">
-                <Label className="text-[10px] uppercase tracking-widest text-muted-foreground">Relationship</Label>
-                <Select value={filters.relationshipType} onValueChange={(v) => setFilters({ ...filters, relationshipType: v })}>
-                  <SelectTrigger className="h-8 text-xs"><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All</SelectItem>
-                    <SelectItem value="shareholder">Shareholder</SelectItem>
-                    <SelectItem value="ubo">UBO</SelectItem>
-                    <SelectItem value="parent">Parent</SelectItem>
-                    <SelectItem value="subsidiary">Subsidiary</SelectItem>
-                    <SelectItem value="director">Director</SelectItem>
-                    <SelectItem value="branch">Branch</SelectItem>
-                    <SelectItem value="operating_presence">Operating Presence</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-1.5">
-                <Label className="text-[10px] uppercase tracking-widest text-muted-foreground">Confidence</Label>
-                <Select value={filters.confidenceLevel} onValueChange={(v) => setFilters({ ...filters, confidenceLevel: v })}>
-                  <SelectTrigger className="h-8 text-xs"><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All</SelectItem>
-                    <SelectItem value="high">Confirmed</SelectItem>
-                    <SelectItem value="med">Likely</SelectItem>
-                    <SelectItem value="low">Unverified</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-1.5">
-                <Label className="text-[10px] uppercase tracking-widest text-muted-foreground">Risk Rating</Label>
-                <Select value={filters.riskRating} onValueChange={(v) => setFilters({ ...filters, riskRating: v })}>
-                  <SelectTrigger className="h-8 text-xs"><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All</SelectItem>
-                    <SelectItem value="A">Tier A — High</SelectItem>
-                    <SelectItem value="B">Tier B — Medium</SelectItem>
-                    <SelectItem value="C">Tier C — Low</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-1.5">
-                <Label className="text-[10px] uppercase tracking-widest text-muted-foreground">Jurisdiction</Label>
-                <Select value={filters.jurisdiction} onValueChange={(v) => setFilters({ ...filters, jurisdiction: v })}>
-                  <SelectTrigger className="h-8 text-xs"><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All</SelectItem>
-                    {Object.entries(JURISDICTION_LABELS).map(([key, label]) => (
-                      <SelectItem key={key} value={key}>{label}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              {hasActiveFilters && (
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="w-full text-xs"
-                  onClick={() => setFilters(EMPTY_FILTERS)}
-                >
-                  Clear Filters
+          {/* Filters — gated by permission */}
+          {canFilterOwnership && (
+            <Popover open={filtersOpen} onOpenChange={setFiltersOpen}>
+              <PopoverTrigger asChild>
+                <Button variant="outline" size="sm" className="h-8 gap-1.5 text-xs relative">
+                  <Filter className="h-3.5 w-3.5" />
+                  Filters
+                  {hasActiveFilters && (
+                    <span className="absolute -top-1 -right-1 w-2 h-2 rounded-full" style={{ background: "hsl(38, 55%, 52%)" }} />
+                  )}
                 </Button>
-              )}
-            </PopoverContent>
-          </Popover>
+              </PopoverTrigger>
+              <PopoverContent className="w-64 space-y-3" align="end">
+                <p className="fvc-label">Filter Structure</p>
+                <div className="space-y-1.5">
+                  <Label className="text-[10px] uppercase tracking-widest text-muted-foreground">Relationship</Label>
+                  <Select value={filters.relationshipType} onValueChange={(v) => setFilters({ ...filters, relationshipType: v })}>
+                    <SelectTrigger className="h-8 text-xs"><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All</SelectItem>
+                      <SelectItem value="shareholder">Shareholder</SelectItem>
+                      <SelectItem value="ubo">UBO</SelectItem>
+                      <SelectItem value="parent">Parent</SelectItem>
+                      <SelectItem value="subsidiary">Subsidiary</SelectItem>
+                      <SelectItem value="director">Director</SelectItem>
+                      <SelectItem value="branch">Branch</SelectItem>
+                      <SelectItem value="operating_presence">Operating Presence</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-1.5">
+                  <Label className="text-[10px] uppercase tracking-widest text-muted-foreground">Confidence</Label>
+                  <Select value={filters.confidenceLevel} onValueChange={(v) => setFilters({ ...filters, confidenceLevel: v })}>
+                    <SelectTrigger className="h-8 text-xs"><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All</SelectItem>
+                      <SelectItem value="high">Confirmed</SelectItem>
+                      <SelectItem value="med">Likely</SelectItem>
+                      <SelectItem value="low">Unverified</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-1.5">
+                  <Label className="text-[10px] uppercase tracking-widest text-muted-foreground">Risk Rating</Label>
+                  <Select value={filters.riskRating} onValueChange={(v) => setFilters({ ...filters, riskRating: v })}>
+                    <SelectTrigger className="h-8 text-xs"><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All</SelectItem>
+                      <SelectItem value="A">Tier A — High</SelectItem>
+                      <SelectItem value="B">Tier B — Medium</SelectItem>
+                      <SelectItem value="C">Tier C — Low</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-1.5">
+                  <Label className="text-[10px] uppercase tracking-widest text-muted-foreground">Jurisdiction</Label>
+                  <Select value={filters.jurisdiction} onValueChange={(v) => setFilters({ ...filters, jurisdiction: v })}>
+                    <SelectTrigger className="h-8 text-xs"><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All</SelectItem>
+                      {Object.entries(JURISDICTION_LABELS).map(([key, label]) => (
+                        <SelectItem key={key} value={key}>{label}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                {hasActiveFilters && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="w-full text-xs"
+                    onClick={() => setFilters(EMPTY_FILTERS)}
+                  >
+                    Clear Filters
+                  </Button>
+                )}
+              </PopoverContent>
+            </Popover>
+          )}
 
           {/* Zoom & Export */}
           <div className="flex items-center gap-1 ml-1">
@@ -484,30 +479,33 @@ ${mismatchRows ? `<div class="alerts"><h3>Intelligence Indicators</h3><table>${m
               <RotateCcw className="h-3.5 w-3.5" />
             </Button>
 
-            <Popover>
-              <PopoverTrigger asChild>
-                <Button variant="outline" size="sm" className="h-8 gap-1.5 text-xs ml-1">
-                  <Download className="h-3.5 w-3.5" />
-                  Export
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-44 p-1" align="end">
-                <button
-                  onClick={handleExportPNG}
-                  className="w-full text-left px-3 py-2 text-xs rounded hover:bg-muted transition-colors flex items-center gap-2"
-                >
-                  <Download className="h-3 w-3" />
-                  Export PNG
-                </button>
-                <button
-                  onClick={handleExportPDF}
-                  className="w-full text-left px-3 py-2 text-xs rounded hover:bg-muted transition-colors flex items-center gap-2"
-                >
-                  <FileText className="h-3 w-3" />
-                  Export PDF
-                </button>
-              </PopoverContent>
-            </Popover>
+            {/* Export — gated by permission */}
+            {canExportOwnership && (
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button variant="outline" size="sm" className="h-8 gap-1.5 text-xs ml-1">
+                    <Download className="h-3.5 w-3.5" />
+                    Export
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-44 p-1" align="end">
+                  <button
+                    onClick={handleExportPNG}
+                    className="w-full text-left px-3 py-2 text-xs rounded hover:bg-muted transition-colors flex items-center gap-2"
+                  >
+                    <Download className="h-3 w-3" />
+                    Export PNG
+                  </button>
+                  <button
+                    onClick={handleExportPDF}
+                    className="w-full text-left px-3 py-2 text-xs rounded hover:bg-muted transition-colors flex items-center gap-2"
+                  >
+                    <FileText className="h-3 w-3" />
+                    Export PDF
+                  </button>
+                </PopoverContent>
+              </Popover>
+            )}
           </div>
         </div>
       </div>

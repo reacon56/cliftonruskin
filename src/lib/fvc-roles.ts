@@ -74,6 +74,55 @@ export function canAdjustDueDates(roles: string[]): boolean {
   );
 }
 
+/** Ownership & Structure module permissions */
+export function canViewOwnershipStructure(roles: string[]): boolean {
+  return roles.some((r) =>
+    [
+      "fvc_assurance_manager", "fvc_assurance_officer", "fvc_assurance_lead",
+      "fvc_quality_reviewer", "fvc_ops_admin", "fvc_analyst",
+      "client_admin", "client_requester", "client_auditor",
+    ].includes(r)
+  );
+}
+
+export function canExportOwnershipStructure(roles: string[]): boolean {
+  return roles.some((r) =>
+    [
+      "fvc_assurance_manager", "fvc_assurance_officer", "fvc_assurance_lead",
+      "fvc_quality_reviewer", "fvc_ops_admin", "fvc_analyst",
+      "client_admin", "client_requester",
+    ].includes(r)
+  );
+}
+
+export function canFilterOwnershipStructure(roles: string[]): boolean {
+  return roles.some((r) =>
+    [
+      "fvc_assurance_manager", "fvc_assurance_officer", "fvc_assurance_lead",
+      "fvc_quality_reviewer", "fvc_ops_admin", "fvc_analyst",
+      "client_admin", "client_requester",
+    ].includes(r)
+  );
+}
+
+export function canToggleProvenance(roles: string[]): boolean {
+  return roles.some((r) =>
+    [
+      "fvc_assurance_manager", "fvc_assurance_officer", "fvc_assurance_lead",
+      "fvc_quality_reviewer", "fvc_ops_admin", "fvc_analyst",
+    ].includes(r)
+  );
+}
+
+export function canEditRelationships(roles: string[]): boolean {
+  return roles.some((r) =>
+    [
+      "fvc_assurance_manager", "fvc_ops_admin",
+      "client_admin",
+    ].includes(r)
+  );
+}
+
 /** Returns the primary display label for a user's CR role */
 export function getPrimaryRoleLabel(roles: string[]): string {
   const priority: string[] = [
