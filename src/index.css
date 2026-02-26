@@ -140,8 +140,8 @@
 
   /* Refined selection color */
   ::selection {
-    background: hsl(38 55% 52% / 0.2);
-    color: hsl(220 30% 15%);
+    background: hsl(41 39% 54% / 0.2);
+    color: hsl(209 63% 16%);
   }
 
   /* Smooth scrollbar */
