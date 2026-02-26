@@ -611,11 +611,12 @@ export default function LiaLibraryPage() {
           <Input placeholder="Search templates…" value={search} onChange={(e) => setSearch(e.target.value)} className="pl-9 text-sm" />
         </div>
         <Select value={filterStatus} onValueChange={setFilterStatus}>
-          <SelectTrigger className="w-36 text-sm"><SelectValue /></SelectTrigger>
+          <SelectTrigger className="w-40 text-sm"><SelectValue /></SelectTrigger>
           <SelectContent>
             <SelectItem value="all">All statuses</SelectItem>
             <SelectItem value="draft">Draft</SelectItem>
-            <SelectItem value="final">Finalised</SelectItem>
+            <SelectItem value="final">Active</SelectItem>
+            <SelectItem value="superseded">Superseded</SelectItem>
           </SelectContent>
         </Select>
       </div>
