@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
+import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { Switch } from "@/components/ui/switch";
@@ -71,6 +72,7 @@ const EMPTY_FILTERS: FilterState = {
 
 export default function OwnershipStructureTab({ entity }: OwnershipStructureTabProps) {
   const { hasRole, canExportOwnership, canFilterOwnership, canProvenance, canEditRels, isInternal } = useAuth();
+  const { toast } = useToast();
   const [view, setView] = useState<"network" | "tree">("network");
   const [nodes, setNodes] = useState<StructureNode[]>([]);
   const [edges, setEdges] = useState<StructureEdge[]>([]);
@@ -185,8 +187,22 @@ export default function OwnershipStructureTab({ entity }: OwnershipStructureTabP
     isInternal,
   };
 
+  /** Server-side export permission check + audit + rate limit */
+  const auditExport = async (format: string): Promise<boolean> => {
+    const { data, error } = await supabase.functions.invoke("export-audit", {
+      body: { entity_id: entity.id, export_type: "ownership_structure", format },
+    });
+    if (error || !data?.allowed) {
+      const msg = data?.error || error?.message || "Export not permitted";
+      toast({ title: "Export blocked", description: msg, variant: "destructive" });
+      return false;
+    }
+    return true;
+  };
+
   // --- Export PNG ---
-  const handleExportPNG = () => {
+  const handleExportPNG = async () => {
+    if (!(await auditExport("png"))) return;
     const svg = document.querySelector("#ownership-graph-svg") as SVGSVGElement | null;
     if (!svg) return;
     const serializer = new XMLSerializer();
@@ -215,7 +231,8 @@ export default function OwnershipStructureTab({ entity }: OwnershipStructureTabP
   };
 
   // --- Export PDF ---
-  const handleExportPDF = () => {
+  const handleExportPDF = async () => {
+    if (!(await auditExport("pdf"))) return;
     const svg = document.querySelector("#ownership-graph-svg") as SVGSVGElement | null;
     if (!svg) return;
     const serializer = new XMLSerializer();
