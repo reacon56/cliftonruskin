@@ -575,6 +575,9 @@ export type Database = {
           case_id: string
           created_at: string
           deliverable_type: string
+          expunged: boolean
+          expunged_at: string | null
+          expunged_by: string | null
           file_url: string | null
           id: string
           title: string
@@ -584,6 +587,9 @@ export type Database = {
           case_id: string
           created_at?: string
           deliverable_type: string
+          expunged?: boolean
+          expunged_at?: string | null
+          expunged_by?: string | null
           file_url?: string | null
           id?: string
           title: string
@@ -593,6 +599,9 @@ export type Database = {
           case_id?: string
           created_at?: string
           deliverable_type?: string
+          expunged?: boolean
+          expunged_at?: string | null
+          expunged_by?: string | null
           file_url?: string | null
           id?: string
           title?: string
@@ -911,6 +920,64 @@ export type Database = {
             columns: ["target_entity_id"]
             isOneToOne: false
             referencedRelation: "entities"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      expunge_log: {
+        Row: {
+          case_id: string
+          created_at: string
+          deliverable_id: string
+          deliverable_title: string | null
+          entity_name: string | null
+          expunged_by: string
+          id: string
+          org_id: string
+          reason: string | null
+        }
+        Insert: {
+          case_id: string
+          created_at?: string
+          deliverable_id: string
+          deliverable_title?: string | null
+          entity_name?: string | null
+          expunged_by: string
+          id?: string
+          org_id: string
+          reason?: string | null
+        }
+        Update: {
+          case_id?: string
+          created_at?: string
+          deliverable_id?: string
+          deliverable_title?: string | null
+          entity_name?: string | null
+          expunged_by?: string
+          id?: string
+          org_id?: string
+          reason?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "expunge_log_case_id_fkey"
+            columns: ["case_id"]
+            isOneToOne: false
+            referencedRelation: "cases"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "expunge_log_deliverable_id_fkey"
+            columns: ["deliverable_id"]
+            isOneToOne: false
+            referencedRelation: "deliverables"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "expunge_log_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organisations"
             referencedColumns: ["id"]
           },
         ]
@@ -1535,6 +1602,7 @@ export type Database = {
           org_id: string
           plan_name: string
           renewal_date: string | null
+          report_retention_days: number
         }
         Insert: {
           created_at?: string
@@ -1545,6 +1613,7 @@ export type Database = {
           org_id: string
           plan_name?: string
           renewal_date?: string | null
+          report_retention_days?: number
         }
         Update: {
           created_at?: string
@@ -1555,6 +1624,7 @@ export type Database = {
           org_id?: string
           plan_name?: string
           renewal_date?: string | null
+          report_retention_days?: number
         }
         Relationships: [
           {

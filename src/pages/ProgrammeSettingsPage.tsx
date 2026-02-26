@@ -9,7 +9,9 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { toast } from "@/hooks/use-toast";
-import { Settings, History, Shield, Save } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Settings, History, Shield, Save, Clock } from "lucide-react";
 import { format } from "date-fns";
 
 const CADENCE_OPTIONS = [
@@ -83,6 +85,7 @@ export default function ProgrammeSettingsPage() {
   const [auditLog, setAuditLog] = useState<AuditEntry[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [retentionDays, setRetentionDays] = useState(90);
 
   // Load orgs (internal sees all, client sees own)
   useEffect(() => {
@@ -151,6 +154,19 @@ export default function ProgrammeSettingsPage() {
         .order("created_at", { ascending: false })
         .limit(100);
       setAuditLog((logs as unknown as AuditEntry[]) ?? []);
+
+      // Load retention days
+      const { data: planData } = await supabase
+        .from("organisation_plan")
+        .select("report_retention_days")
+        .eq("org_id", selectedOrgId)
+        .maybeSingle();
+      if (planData && (planData as any).report_retention_days) {
+        setRetentionDays((planData as any).report_retention_days);
+      } else {
+        setRetentionDays(90);
+      }
+
       setLoading(false);
     };
     load();
@@ -421,6 +437,57 @@ export default function ProgrammeSettingsPage() {
                   </div>
                 ))}
               </div>
+            </CardContent>
+          </Card>
+
+          {/* Report Retention */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-lg flex items-center gap-2">
+                <Clock className="h-4 w-4 text-accent" /> Report Retention
+              </CardTitle>
+              <CardDescription>
+                How long deliverables remain available for client download after delivery. After this window, reports may be expunged.
+                Clients are responsible for retaining downloaded reports.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="flex items-center gap-4">
+                <div className="space-y-1.5 w-48">
+                  <Label className="text-sm">Retention Window (days)</Label>
+                  <Input
+                    type="number"
+                    min={30}
+                    max={365}
+                    value={retentionDays}
+                    onChange={(e) => setRetentionDays(parseInt(e.target.value) || 90)}
+                    disabled={!canEdit}
+                  />
+                </div>
+                <div className="text-xs text-muted-foreground mt-5">
+                  Default: 90 days. Range: 30–365 days.
+                </div>
+              </div>
+              {canEdit && (
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="mt-4"
+                  onClick={async () => {
+                    const { error } = await supabase
+                      .from("organisation_plan")
+                      .update({ report_retention_days: retentionDays } as any)
+                      .eq("org_id", selectedOrgId);
+                    if (error) {
+                      toast({ title: "Error", description: error.message, variant: "destructive" });
+                    } else {
+                      toast({ title: "Retention updated", description: `Reports will be available for ${retentionDays} days.` });
+                    }
+                  }}
+                >
+                  Save Retention Setting
+                </Button>
+              )}
             </CardContent>
           </Card>
 
