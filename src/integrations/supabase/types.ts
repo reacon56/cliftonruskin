@@ -102,6 +102,64 @@ export type Database = {
           },
         ]
       }
+      billing_events: {
+        Row: {
+          case_id: string | null
+          created_at: string
+          entity_id: string | null
+          event_type: string
+          feature_key: string
+          id: string
+          metadata: Json | null
+          org_id: string
+          performed_by: string | null
+        }
+        Insert: {
+          case_id?: string | null
+          created_at?: string
+          entity_id?: string | null
+          event_type: string
+          feature_key: string
+          id?: string
+          metadata?: Json | null
+          org_id: string
+          performed_by?: string | null
+        }
+        Update: {
+          case_id?: string | null
+          created_at?: string
+          entity_id?: string | null
+          event_type?: string
+          feature_key?: string
+          id?: string
+          metadata?: Json | null
+          org_id?: string
+          performed_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "billing_events_case_id_fkey"
+            columns: ["case_id"]
+            isOneToOne: false
+            referencedRelation: "cases"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "billing_events_entity_id_fkey"
+            columns: ["entity_id"]
+            isOneToOne: false
+            referencedRelation: "entities"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "billing_events_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organisations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       case_dp_declarations: {
         Row: {
           approval_reasons: Json | null
