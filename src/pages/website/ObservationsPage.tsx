@@ -189,7 +189,7 @@ export default function ObservationsPage() {
       <section className="bg-[#f6f0e6] pb-20">
         <div className="mx-auto max-w-6xl px-6">
           <div className="grid gap-8 md:grid-cols-2">
-            {observations.map((o) => {
+            {allObservations.map((o) => {
               const flag = countryCodeToFlag(o.countryCode === "EU" ? null : o.countryCode);
               return (
                 <article
