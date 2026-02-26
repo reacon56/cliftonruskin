@@ -668,6 +668,47 @@ export type Database = {
           },
         ]
       }
+      entity_operating_countries: {
+        Row: {
+          added_by: string | null
+          confidence: string
+          country_code: string
+          country_name: string
+          created_at: string
+          entity_id: string
+          id: string
+          source: string
+        }
+        Insert: {
+          added_by?: string | null
+          confidence?: string
+          country_code: string
+          country_name: string
+          created_at?: string
+          entity_id: string
+          id?: string
+          source?: string
+        }
+        Update: {
+          added_by?: string | null
+          confidence?: string
+          country_code?: string
+          country_name?: string
+          created_at?: string
+          entity_id?: string
+          id?: string
+          source?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "entity_operating_countries_entity_id_fkey"
+            columns: ["entity_id"]
+            isOneToOne: false
+            referencedRelation: "entities"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       jurisdiction_benchmark_inputs: {
         Row: {
           abnormal_patterns: string | null

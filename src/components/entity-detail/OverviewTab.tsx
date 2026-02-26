@@ -5,6 +5,7 @@ import { AlertTriangle, FileText, Clock, Sparkles } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import EntityLocationSection from "./EntityLocationSection";
 import AssuranceEnhancementsPanel from "./AssuranceEnhancementsPanel";
+import { OperatingCountriesPanel, type OperatingCountry } from "@/components/OperatingCountries";
 
 interface Props {
   entity: any;
@@ -12,9 +13,13 @@ interface Props {
   changeLogs: any[];
   monitoringEvents: any[];
   deliverables: any[];
+  operatingCountries: OperatingCountry[];
+  canEdit: boolean;
+  userId: string;
+  onRefresh: () => void;
 }
 
-export default function OverviewTab({ entity, cases, changeLogs, monitoringEvents, deliverables }: Props) {
+export default function OverviewTab({ entity, cases, changeLogs, monitoringEvents, deliverables, operatingCountries, canEdit, userId, onRefresh }: Props) {
   const navigate = useNavigate();
   const todayStr = new Date().toISOString().split("T")[0];
 
@@ -161,6 +166,15 @@ export default function OverviewTab({ entity, cases, changeLogs, monitoringEvent
 
       {/* Location Section */}
       <EntityLocationSection entity={entity} />
+
+      {/* Operating Countries */}
+      <OperatingCountriesPanel
+        countries={operatingCountries}
+        entityId={entity.id}
+        canEdit={canEdit}
+        userId={userId}
+        onRefresh={onRefresh}
+      />
 
       {/* Quick Details */}
       <div className="fvc-card">

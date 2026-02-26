@@ -30,6 +30,7 @@ export default function EntityDetailPage() {
   const [changeLogs, setChangeLogs] = useState<any[]>([]);
   const [monitoringEvents, setMonitoringEvents] = useState<any[]>([]);
   const [deliverables, setDeliverables] = useState<any[]>([]);
+  const [operatingCountries, setOperatingCountries] = useState<any[]>([]);
   const [policyRule, setPolicyRule] = useState<any>(null);
 
   // Dialogs
@@ -47,11 +48,12 @@ export default function EntityDetailPage() {
   }, [id]);
 
   const loadAll = async () => {
-    const [entityRes, casesRes, clRes, meRes] = await Promise.all([
+    const [entityRes, casesRes, clRes, meRes, ocRes] = await Promise.all([
       supabase.from("entities").select("*").eq("id", id!).single(),
       supabase.from("cases").select("*").eq("entity_id", id!).order("created_at", { ascending: false }),
       supabase.from("change_logs").select("*").eq("entity_id", id!).order("created_at", { ascending: false }),
       supabase.from("monitoring_events").select("*").eq("entity_id", id!).order("detected_at", { ascending: false }),
+      supabase.from("entity_operating_countries" as any).select("*").eq("entity_id", id!).order("country_name"),
     ]);
 
     const ent = entityRes.data;
@@ -59,6 +61,7 @@ export default function EntityDetailPage() {
     setCases(casesRes.data ?? []);
     setChangeLogs(clRes.data ?? []);
     setMonitoringEvents(meRes.data ?? []);
+    setOperatingCountries((ocRes.data ?? []) as any[]);
 
     if (ent) {
       setEditForm({
@@ -161,7 +164,7 @@ export default function EntityDetailPage() {
         </TabsList>
 
         <TabsContent value="overview" className="mt-6">
-          <OverviewTab entity={entity} cases={cases} changeLogs={changeLogs} monitoringEvents={monitoringEvents} deliverables={deliverables} />
+          <OverviewTab entity={entity} cases={cases} changeLogs={changeLogs} monitoringEvents={monitoringEvents} deliverables={deliverables} operatingCountries={operatingCountries} canEdit={canEdit} userId={profile!.user_id} onRefresh={loadAll} />
         </TabsContent>
 
         <TabsContent value="profile" className="mt-6">
