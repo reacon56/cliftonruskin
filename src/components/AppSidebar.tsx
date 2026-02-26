@@ -13,6 +13,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { useTheme } from "@/hooks/use-theme";
+import { useViewMode } from "@/contexts/ViewModeContext";
 
 interface NavItem {
   label: string;
@@ -25,8 +26,7 @@ export default function AppSidebar() {
   const { theme, toggleTheme } = useTheme();
   const navigate = useNavigate();
   const [collapsed, setCollapsed] = useState(false);
-  const hasBothRoles = isClient && isInternal;
-  const [viewAs, setViewAs] = useState<"client" | "internal">(isInternal ? "internal" : "client");
+  const { activeView, canToggle, toggle: toggleView, setView: setViewAs } = useViewMode();
   const [pendingApprovals, setPendingApprovals] = useState(0);
 
   const isManager = hasRole("fvc_assurance_manager" as any) || hasRole("fvc_ops_admin" as any);
@@ -103,13 +103,11 @@ export default function AppSidebar() {
   // Determine which internal nav to show
   const internalNav: NavItem[] = effectiveIsManager ? managerNav : officerNav;
 
-  const activeView = hasBothRoles ? viewAs : (isInternal ? "internal" : "client");
   const navItems = activeView === "internal" ? internalNav : clientNav;
 
-  const toggleView = () => {
-    const next = viewAs === "internal" ? "client" : "internal";
-    setViewAs(next);
-    navigate(next === "internal" ? "/cases" : "/dashboard");
+  const handleToggleView = () => {
+    toggleView();
+    navigate(activeView === "internal" ? "/dashboard" : "/cases");
   };
 
   return (
@@ -214,11 +212,11 @@ export default function AppSidebar() {
             </Button>
           </div>
         )}
-        {hasBothRoles && (
+        {canToggle && (
           <Button
             variant="ghost"
             size="sm"
-            onClick={toggleView}
+            onClick={handleToggleView}
             className="w-full justify-start gap-2 text-sidebar-primary hover:text-sidebar-foreground hover:bg-sidebar-accent/40 transition-colors duration-200 border border-sidebar-border/50"
             title={collapsed ? `Switch to ${activeView === "internal" ? "Client" : "CR Internal"}` : undefined}
           >
