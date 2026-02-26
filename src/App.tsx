@@ -43,6 +43,8 @@ import MyTasksPage from "@/pages/MyTasksPage";
 import PartnerRequestsPage from "@/pages/PartnerRequestsPage";
 import KnowledgeBasePage from "@/pages/KnowledgeBasePage";
 import MasterEntityDetailPage from "@/pages/MasterEntityDetailPage";
+import SourceRegistryPage from "@/pages/SourceRegistryPage";
+import ResearchConsolePage from "@/pages/ResearchConsolePage";
 
 // Website pages
 import WebsiteLayout from "@/components/website/WebsiteLayout";
@@ -128,6 +130,8 @@ function AppRoutes() {
         <Route path="/my-tasks" element={<InternalRouteGuard><MyTasksPage /></InternalRouteGuard>} />
         <Route path="/partner-requests" element={<InternalRouteGuard><PartnerRequestsPage /></InternalRouteGuard>} />
         <Route path="/knowledge-base" element={<InternalRouteGuard><KnowledgeBasePage /></InternalRouteGuard>} />
+        <Route path="/source-registry" element={<InternalRouteGuard managerOnly><SourceRegistryPage /></InternalRouteGuard>} />
+        <Route path="/research-console" element={<InternalRouteGuard><ResearchConsolePage /></InternalRouteGuard>} />
 
         <Route path="/users" element={<StubPage title="Users & Roles" description="Manage team members and role assignments" />} />
         <Route path="/clients" element={<StubPage title="Clients" description="Manage client organisations" />} />
