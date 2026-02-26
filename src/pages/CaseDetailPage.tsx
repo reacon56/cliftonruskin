@@ -310,6 +310,11 @@ export default function CaseDetailPage() {
 
       <DataProtectionSummary caseData={caseData} isInternal={isInternal} dpReview={dpReview} />
 
+      {/* Processing Record */}
+      <div className="mb-6">
+        <CaseProcessingRecord caseData={caseData} isInternal={isInternal} isManager={isManager} onRefresh={loadCase} />
+      </div>
+
       <div className="grid lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2 space-y-6">
           {/* Case Details */}
