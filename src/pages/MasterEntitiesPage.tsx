@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { Layers, Plus, Search, Building2, Globe, AlertTriangle } from "lucide-react";
@@ -26,6 +27,7 @@ interface MasterEntity {
 export default function MasterEntitiesPage() {
   const [entities, setEntities] = useState<MasterEntity[]>([]);
   const [search, setSearch] = useState("");
+  const [jurisdictionFilter, setJurisdictionFilter] = useState("");
   const [createOpen, setCreateOpen] = useState(false);
   const [form, setForm] = useState({ canonical_name: "", jurisdiction_incorporation: "", canonical_registration_number: "", website: "", notes_internal: "" });
   const { toast } = useToast();
@@ -75,10 +77,14 @@ export default function MasterEntitiesPage() {
     }
   };
 
-  const filtered = entities.filter((e) =>
-    e.canonical_name.toLowerCase().includes(search.toLowerCase()) ||
-    (e.jurisdiction_incorporation ?? "").toLowerCase().includes(search.toLowerCase())
-  );
+  const jurisdictions = [...new Set(entities.map((e) => e.jurisdiction_incorporation).filter(Boolean))] as string[];
+
+  const filtered = entities.filter((e) => {
+    const matchesSearch = e.canonical_name.toLowerCase().includes(search.toLowerCase()) ||
+      (e.jurisdiction_incorporation ?? "").toLowerCase().includes(search.toLowerCase());
+    const matchesJurisdiction = !jurisdictionFilter || e.jurisdiction_incorporation === jurisdictionFilter;
+    return matchesSearch && matchesJurisdiction;
+  });
 
   return (
     <div className="space-y-6">
@@ -97,14 +103,27 @@ export default function MasterEntitiesPage() {
         </Button>
       </div>
 
-      <div className="relative max-w-sm">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-        <Input
-          placeholder="Search by name or jurisdiction…"
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          className="pl-9"
-        />
+      <div className="flex items-center gap-3">
+        <div className="relative max-w-sm flex-1">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Input
+            placeholder="Search by name…"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="pl-9"
+          />
+        </div>
+        <Select value={jurisdictionFilter} onValueChange={(v) => setJurisdictionFilter(v === "all" ? "" : v)}>
+          <SelectTrigger className="w-48">
+            <SelectValue placeholder="All jurisdictions" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All jurisdictions</SelectItem>
+            {jurisdictions.sort().map((j) => (
+              <SelectItem key={j} value={j}>{j}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       </div>
 
       {filtered.length === 0 ? (
