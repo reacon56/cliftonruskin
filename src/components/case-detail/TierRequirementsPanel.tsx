@@ -198,6 +198,7 @@ export default function TierRequirementsPanel({
   if (!matrixRule || !matrixVersion) return null;
 
   return (
+  <>
     <div className="rounded-lg border bg-card p-4 space-y-3">
       <button
         onClick={() => setExpanded(!expanded)}
