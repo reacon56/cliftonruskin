@@ -59,6 +59,8 @@ interface Props {
   aiDraftReviewed: boolean;
   aiDraftDismissed: boolean;
   aiDecisions?: AiSectionDecision[];
+  preQaChecks?: PreQaCheckResult[];
+  preQaRanAt?: string;
 }
 
 const STATUS_CONFIG: Record<CompletionStatus, { label: string; color: string; icon: typeof Database }> = {
