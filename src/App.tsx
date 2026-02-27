@@ -129,6 +129,7 @@ function AppRoutes() {
         <Route path="/risk-model" element={<InternalRouteGuard managerOnly><RiskModelPage /></InternalRouteGuard>} />
         <Route path="/jurisdiction-library" element={<InternalRouteGuard><JurisdictionLibraryPage /></InternalRouteGuard>} />
         <Route path="/unit-economics" element={<InternalRouteGuard managerOnly><UnitEconomicsPage /></InternalRouteGuard>} />
+        <Route path="/tier-matrix" element={<InternalRouteGuard managerOnly><TierMatrixPage /></InternalRouteGuard>} />
 
         {/* ── Internal routes (officer + manager) ── */}
         <Route path="/qa-queue" element={<InternalRouteGuard><QaQueuePage /></InternalRouteGuard>} />

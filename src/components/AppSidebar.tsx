@@ -82,6 +82,7 @@ export default function AppSidebar() {
     { label: "Partner Directory", path: "/partner-directory", icon: <Briefcase size={18} /> },
     { label: "Reconciliation Tasks", path: "/reconciliation", icon: <GitMerge size={18} /> },
     { label: "Risk Model", path: "/risk-model", icon: <Shield size={18} /> },
+    { label: "Tier Matrix", path: "/tier-matrix", icon: <Shield size={18} /> },
     { label: "Reports QA Queue", path: "/qa-queue", icon: <Eye size={18} /> },
     { label: "Clients", path: "/clients", icon: <Building2 size={18} /> },
     { label: "Feature Controls", path: "/feature-controls", icon: <Shield size={18} /> },
