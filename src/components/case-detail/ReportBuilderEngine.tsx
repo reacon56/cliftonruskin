@@ -8,9 +8,10 @@ import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
 import {
   Database, Pen, Sparkles, ShieldCheck, Lock, Unlock,
-  CheckCircle2, AlertTriangle, FileText, Download, Save,
+  CheckCircle2, AlertTriangle, FileText, Save,
   RefreshCw, XCircle,
 } from "lucide-react";
+import ReportPdfRenderer from "@/components/case-detail/ReportPdfRenderer";
 
 /* ────── types ────── */
 interface StructuredData {
