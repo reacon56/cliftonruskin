@@ -275,6 +275,32 @@ export default function ReportBuilderEngine({ caseId, caseData, entity, isManage
     toast({ title: "AI sections dismissed" });
   };
 
+  /* ── AI Assistant decision handler ── */
+  const AI_KEY_TO_DRAFT_FIELD: Record<string, keyof AiDraft> = {
+    executive_summary: "draft_executive_summary",
+    risk_driver: "draft_risk_driver_explanation",
+    follow_ups: "suggested_follow_up_actions",
+    inconsistencies: "gap_analysis_prompts",
+  };
+
+  const handleAiDecision = async (event: AiDecisionEvent) => {
+    if (!draft) return;
+    // Record decision for coverage map
+    setAiDecisions((prev) => [
+      ...prev.filter((d) => d.key !== event.key),
+      { key: event.key, status: event.status as "accepted" | "edited" | "rejected", reviewer: profile?.full_name ?? "Officer", decidedAt: event.decidedAt },
+    ]);
+    // If accepted or edited, write content into report draft's ai_draft field
+    if (event.status === "accepted" || event.status === "edited") {
+      const draftField = AI_KEY_TO_DRAFT_FIELD[event.key];
+      if (draftField) {
+        const updatedAiDraft = { ...draft.ai_draft, [draftField]: event.content };
+        await saveDraftField("ai_draft", updatedAiDraft);
+        await logAudit(`REPORT_AI_SECTION_${event.status.toUpperCase()}`);
+      }
+    }
+  };
+
   /* ── QA ── */
   const saveQaComments = async () => {
     if (!draft) return;
