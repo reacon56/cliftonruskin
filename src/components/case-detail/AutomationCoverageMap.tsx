@@ -16,7 +16,7 @@ interface AiSectionDecision {
   decidedAt: string;
 }
 
-interface CoverageRow {
+export interface CoverageRow {
   section: string;
   status: CompletionStatus;
   dataSources: string[];
