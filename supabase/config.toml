@@ -26,3 +26,6 @@ verify_jwt = false
 
 [functions.uk-sanctions-ingest]
 verify_jwt = false
+
+[functions.eu-fsf-ingest]
+verify_jwt = false
