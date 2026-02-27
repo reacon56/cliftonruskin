@@ -488,6 +488,9 @@ export default function ReportBuilderEngine({ caseId, caseData, entity, isManage
 
         {/* ── 3. AI DRAFT ── */}
         <TabsContent value="ai" className="space-y-3">
+          {/* AI Assurance Assistant — controlled copilot */}
+          <AiAssurancePanel caseId={caseId} onDecision={handleAiDecision} />
+
           <div className="rounded-lg border bg-card p-4 space-y-4">
             <div className="flex items-center justify-between">
               <h4 className="text-sm font-semibold text-foreground flex items-center gap-2"><Sparkles size={14} className="text-accent" /> AI-Generated Sections</h4>
