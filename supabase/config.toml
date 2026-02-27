@@ -29,3 +29,6 @@ verify_jwt = false
 
 [functions.eu-fsf-ingest]
 verify_jwt = false
+
+[functions.cpi-ingest]
+verify_jwt = false
