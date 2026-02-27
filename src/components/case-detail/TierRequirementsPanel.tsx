@@ -217,31 +217,118 @@ export default function TierRequirementsPanel({
 
       {expanded && (
         <div className="space-y-1.5">
-          {requirements.map((req, i) => (
-            <div key={i} className="flex items-center gap-2 text-xs">
-              {req.status === "complete" ? (
-                <CheckCircle2 size={12} className="text-success shrink-0" />
-              ) : req.status === "missing" ? (
-                <XCircle size={12} className="text-destructive shrink-0" />
-              ) : (
-                <AlertTriangle size={12} className="text-warning shrink-0" />
-              )}
-              <span className={req.status === "complete" ? "text-foreground" : req.status === "missing" ? "text-destructive" : "text-warning"}>
-                {req.label}
-              </span>
-              {req.detail && (
-                <span className="text-[10px] text-muted-foreground ml-auto">{req.detail}</span>
-              )}
-            </div>
-          ))}
+          {requirements.map((req, i) => {
+            const hasPendingOverride = deviationOverrides.some(
+              (o: any) => o.requirement_rule_key === req.ruleKey && o.status === "pending"
+            );
+            return (
+              <div key={i} className="flex items-center gap-2 text-xs">
+                {req.status === "complete" ? (
+                  <CheckCircle2 size={12} className="text-success shrink-0" />
+                ) : req.status === "waived" ? (
+                  <ShieldOff size={12} className="text-accent shrink-0" />
+                ) : req.status === "missing" ? (
+                  <XCircle size={12} className="text-destructive shrink-0" />
+                ) : (
+                  <AlertTriangle size={12} className="text-warning shrink-0" />
+                )}
+                <span className={
+                  req.status === "complete" ? "text-foreground"
+                    : req.status === "waived" ? "text-accent"
+                    : req.status === "missing" ? "text-destructive"
+                    : "text-warning"
+                }>
+                  {req.label}
+                </span>
+                {req.detail && (
+                  <span className="text-[10px] text-muted-foreground ml-auto">{req.detail}</span>
+                )}
+                {/* Officer: request deviation for missing items */}
+                {req.status === "missing" && isOfficer && !hasPendingOverride && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-5 px-1.5 text-[9px] ml-1 text-muted-foreground hover:text-foreground"
+                    onClick={() => setRequestingFor(req)}
+                  >
+                    Request Override
+                  </Button>
+                )}
+                {hasPendingOverride && (
+                  <Badge className="bg-warning/10 text-warning text-[9px] ml-1">Pending</Badge>
+                )}
+              </div>
+            );
+          })}
 
           {!allComplete && (
             <p className="text-[10px] text-destructive italic mt-2">
-              All required items must be complete before QA submission.
+              All required items must be complete (or waived) before QA submission.
             </p>
           )}
         </div>
       )}
     </div>
+
+    {/* Deviation Request Dialog */}
+    <Dialog open={!!requestingFor} onOpenChange={() => { setRequestingFor(null); setDeviationReason(""); setDeviationNotes(""); }}>
+      <DialogContent className="sm:max-w-md">
+        <DialogHeader>
+          <DialogTitle className="text-sm font-display">Request Deviation Override</DialogTitle>
+          <DialogDescription className="text-xs">
+            Request manager approval to waive: <strong>{requestingFor?.label}</strong>
+          </DialogDescription>
+        </DialogHeader>
+        <Textarea
+          rows={3}
+          placeholder="Reason for deviation (mandatory)…"
+          value={deviationReason}
+          onChange={(e) => setDeviationReason(e.target.value)}
+          className="text-xs"
+        />
+        <Textarea
+          rows={2}
+          placeholder="Supporting notes (optional)…"
+          value={deviationNotes}
+          onChange={(e) => setDeviationNotes(e.target.value)}
+          className="text-xs"
+        />
+        <div className="flex justify-end gap-2">
+          <Button variant="outline" size="sm" className="text-xs" onClick={() => setRequestingFor(null)}>Cancel</Button>
+          <Button
+            size="sm"
+            className="text-xs gap-1"
+            disabled={!deviationReason.trim() || submittingDeviation}
+            onClick={async () => {
+              if (!requestingFor || !user || !profile) return;
+              setSubmittingDeviation(true);
+              const ok = await requestDeviationOverride({
+                caseId,
+                requirementLabel: requestingFor.label,
+                requirementRuleKey: requestingFor.ruleKey,
+                matrixVersionId: matrixVersion?.id ?? null,
+                reason: deviationReason.trim(),
+                supportingNotes: deviationNotes.trim(),
+                userId: user.id,
+                orgId: profile.org_id,
+              });
+              setSubmittingDeviation(false);
+              if (ok) {
+                toast({ title: "Override request submitted" });
+                setRequestingFor(null);
+                setDeviationReason("");
+                setDeviationNotes("");
+                onDeviationRequested?.();
+              } else {
+                toast({ title: "Failed to submit request", variant: "destructive" });
+              }
+            }}
+          >
+            <Send size={12} /> {submittingDeviation ? "Submitting…" : "Submit Request"}
+          </Button>
+        </div>
+      </DialogContent>
+    </Dialog>
+  </>
   );
 }
