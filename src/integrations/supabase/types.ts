@@ -1530,6 +1530,98 @@ export type Database = {
         }
         Relationships: []
       }
+      jurisdiction_alert_subscriptions: {
+        Row: {
+          channel: string
+          created_at: string
+          id: string
+          indicator_types: string[] | null
+          is_active: boolean
+          jurisdiction_id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          channel?: string
+          created_at?: string
+          id?: string
+          indicator_types?: string[] | null
+          is_active?: boolean
+          jurisdiction_id: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          channel?: string
+          created_at?: string
+          id?: string
+          indicator_types?: string[] | null
+          is_active?: boolean
+          jurisdiction_id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "jurisdiction_alert_subscriptions_jurisdiction_id_fkey"
+            columns: ["jurisdiction_id"]
+            isOneToOne: false
+            referencedRelation: "jurisdiction"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      jurisdiction_alerts: {
+        Row: {
+          body: string | null
+          created_at: string
+          id: string
+          indicator_change_id: string | null
+          indicator_type: string | null
+          is_read: boolean
+          jurisdiction_id: string
+          title: string
+          user_id: string
+        }
+        Insert: {
+          body?: string | null
+          created_at?: string
+          id?: string
+          indicator_change_id?: string | null
+          indicator_type?: string | null
+          is_read?: boolean
+          jurisdiction_id: string
+          title: string
+          user_id: string
+        }
+        Update: {
+          body?: string | null
+          created_at?: string
+          id?: string
+          indicator_change_id?: string | null
+          indicator_type?: string | null
+          is_read?: boolean
+          jurisdiction_id?: string
+          title?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "jurisdiction_alerts_indicator_change_id_fkey"
+            columns: ["indicator_change_id"]
+            isOneToOne: false
+            referencedRelation: "jurisdiction_indicator_change"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "jurisdiction_alerts_jurisdiction_id_fkey"
+            columns: ["jurisdiction_id"]
+            isOneToOne: false
+            referencedRelation: "jurisdiction"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       jurisdiction_benchmark_inputs: {
         Row: {
           abnormal_patterns: string | null
