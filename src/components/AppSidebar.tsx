@@ -6,7 +6,7 @@ import {
   Settings, FileText, LogOut, ChevronLeft, ChevronRight, Moon, Sun,
   ArrowLeftRight, CheckCircle2, Scale, ArrowUpCircle, Newspaper,
   Briefcase, Eye, BookOpen, GitMerge, BarChart3, Search,
-  Send, Layers, Database, FlaskConical, Globe, Package,
+  Send, Layers, Database, FlaskConical, Globe, Package, Wallet,
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
