@@ -60,6 +60,9 @@ export default function AiAssurancePanel({ caseId }: Props) {
   const [loading, setLoading] = useState(false);
   const [analysis, setAnalysis] = useState<AiAnalysis | null>(null);
   const [generatedAt, setGeneratedAt] = useState<string | null>(null);
+  const [aiDisclaimer, setAiDisclaimer] = useState<string | null>(null);
+  const [violationCount, setViolationCount] = useState(0);
+  const [humanReviewed, setHumanReviewed] = useState(false);
   const [decisions, setDecisions] = useState<Record<string, SuggestionState>>({});
   const [editingKey, setEditingKey] = useState<string | null>(null);
   const [editBuffer, setEditBuffer] = useState("");
