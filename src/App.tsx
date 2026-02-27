@@ -129,6 +129,9 @@ function AppRoutes() {
         <Route path="/upgrade-requests" element={<UpgradeRequestsPage />} />
         <Route path="/cases" element={<CaseQueuePage />} />
         <Route path="/admin/market-lessons" element={<MarketLessonsAdminPage />} />
+        <Route path="/admin/sources" element={<InternalRouteGuard managerOnly><AdminSourcesPage /></InternalRouteGuard>} />
+        <Route path="/admin/ingestion-runs" element={<InternalRouteGuard managerOnly><AdminIngestionRunsPage /></InternalRouteGuard>} />
+        <Route path="/admin/ingestion-runs/:id" element={<InternalRouteGuard managerOnly><AdminIngestionRunDetailPage /></InternalRouteGuard>} />
         <Route path="/cases/:id" element={<CaseDetailPage />} />
         <Route path="/cases/:caseId/modules/:moduleId" element={<ModuleWorkbenchPage />} />
         <Route path="/partner/tasks/:taskId" element={<PartnerTaskDetailPage />} />
