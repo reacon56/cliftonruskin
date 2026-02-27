@@ -12,6 +12,7 @@ import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Separator } from "@/components/ui/separator";
 import { Globe, Plus, Pencil, Calendar, FileText, Shield, Scale, AlertTriangle, Database, Search } from "lucide-react";
+import JurisdictionAlertsPanel from "@/components/JurisdictionAlertsPanel";
 import { toast } from "sonner";
 import { format } from "date-fns";
 
