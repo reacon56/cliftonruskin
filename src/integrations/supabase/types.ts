@@ -3968,69 +3968,63 @@ export type Database = {
       }
       sanctions_entity: {
         Row: {
-          aliases: Json | null
-          country_codes: string[] | null
+          active: boolean
+          addresses_json: Json | null
+          country_json: Json | null
           created_at: string
-          designation_date: string | null
-          designation_source: string | null
+          dob_json: Json | null
           entity_type: string
+          first_seen_at: string
           id: string
+          identifiers_json: Json | null
           ingestion_run_id: string | null
-          is_active: boolean
-          nationality_codes: string[] | null
-          primary_name: string
-          raw_data: Json | null
-          regime_name: string | null
-          regime_type: string | null
-          retrieved_at: string
-          source_entity_id: string | null
-          source_list: string
-          source_snapshot_hash: string | null
-          source_url: string | null
+          last_seen_at: string
+          list_name: string
+          name: string
+          programmes_json: Json | null
+          raw_json: Json | null
+          source: Database["public"]["Enums"]["sanctions_source"]
+          source_record_id: string | null
           updated_at: string
         }
         Insert: {
-          aliases?: Json | null
-          country_codes?: string[] | null
+          active?: boolean
+          addresses_json?: Json | null
+          country_json?: Json | null
           created_at?: string
-          designation_date?: string | null
-          designation_source?: string | null
+          dob_json?: Json | null
           entity_type?: string
+          first_seen_at?: string
           id?: string
+          identifiers_json?: Json | null
           ingestion_run_id?: string | null
-          is_active?: boolean
-          nationality_codes?: string[] | null
-          primary_name: string
-          raw_data?: Json | null
-          regime_name?: string | null
-          regime_type?: string | null
-          retrieved_at?: string
-          source_entity_id?: string | null
-          source_list?: string
-          source_snapshot_hash?: string | null
-          source_url?: string | null
+          last_seen_at?: string
+          list_name?: string
+          name: string
+          programmes_json?: Json | null
+          raw_json?: Json | null
+          source: Database["public"]["Enums"]["sanctions_source"]
+          source_record_id?: string | null
           updated_at?: string
         }
         Update: {
-          aliases?: Json | null
-          country_codes?: string[] | null
+          active?: boolean
+          addresses_json?: Json | null
+          country_json?: Json | null
           created_at?: string
-          designation_date?: string | null
-          designation_source?: string | null
+          dob_json?: Json | null
           entity_type?: string
+          first_seen_at?: string
           id?: string
+          identifiers_json?: Json | null
           ingestion_run_id?: string | null
-          is_active?: boolean
-          nationality_codes?: string[] | null
-          primary_name?: string
-          raw_data?: Json | null
-          regime_name?: string | null
-          regime_type?: string | null
-          retrieved_at?: string
-          source_entity_id?: string | null
-          source_list?: string
-          source_snapshot_hash?: string | null
-          source_url?: string | null
+          last_seen_at?: string
+          list_name?: string
+          name?: string
+          programmes_json?: Json | null
+          raw_json?: Json | null
+          source?: Database["public"]["Enums"]["sanctions_source"]
+          source_record_id?: string | null
           updated_at?: string
         }
         Relationships: [
@@ -4039,6 +4033,51 @@ export type Database = {
             columns: ["ingestion_run_id"]
             isOneToOne: false
             referencedRelation: "ingestion_run"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      sanctions_entity_change: {
+        Row: {
+          change_type: string
+          detected_at: string
+          id: string
+          ingestion_run_id: string | null
+          new_json: Json | null
+          old_json: Json | null
+          sanctions_entity_id: string
+        }
+        Insert: {
+          change_type: string
+          detected_at?: string
+          id?: string
+          ingestion_run_id?: string | null
+          new_json?: Json | null
+          old_json?: Json | null
+          sanctions_entity_id: string
+        }
+        Update: {
+          change_type?: string
+          detected_at?: string
+          id?: string
+          ingestion_run_id?: string | null
+          new_json?: Json | null
+          old_json?: Json | null
+          sanctions_entity_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sanctions_entity_change_ingestion_run_id_fkey"
+            columns: ["ingestion_run_id"]
+            isOneToOne: false
+            referencedRelation: "ingestion_run"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "sanctions_entity_change_sanctions_entity_id_fkey"
+            columns: ["sanctions_entity_id"]
+            isOneToOne: false
+            referencedRelation: "sanctions_entity"
             referencedColumns: ["id"]
           },
         ]
@@ -4412,6 +4451,7 @@ export type Database = {
         | "US_FINCEN_311"
         | "EU_TAX_NONCOOP"
         | "CPI_SCORE"
+      sanctions_source: "UKSL" | "OFAC" | "EU_FSF"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -4562,6 +4602,7 @@ export const Constants = {
         "EU_TAX_NONCOOP",
         "CPI_SCORE",
       ],
+      sanctions_source: ["UKSL", "OFAC", "EU_FSF"],
     },
   },
 } as const
