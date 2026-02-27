@@ -330,6 +330,13 @@ export default function JurisdictionLibraryPage() {
               </Card>
             )}
 
+            {/* Jurisdiction Alerts & Indicators */}
+            <JurisdictionAlertsPanel
+              jurisdictionId={selected.id}
+              countryCode={selected.country_code}
+              countryName={selected.country_name}
+            />
+
             <Separator />
 
             {/* Timeline: Updates */}
