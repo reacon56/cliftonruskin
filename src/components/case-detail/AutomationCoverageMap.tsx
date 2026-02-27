@@ -2,8 +2,9 @@ import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import {
   BarChart3, Database, Pen, Sparkles, AlertCircle,
-  CheckCircle2, Clock,
+  CheckCircle2, Clock, ClipboardCheck,
 } from "lucide-react";
+import type { PreQaCheckResult } from "@/components/case-detail/PreQaReviewPanel";
 
 /* ────── types ────── */
 type CompletionStatus = "auto_filled" | "manual" | "ai_draft" | "ai_accepted" | "ai_edited" | "ai_rejected" | "missing";
