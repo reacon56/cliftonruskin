@@ -44,8 +44,16 @@ interface SuggestionState {
   decidedAt?: string;
 }
 
+export interface AiDecisionEvent {
+  key: string;
+  status: SuggestionStatus;
+  content: string;
+  decidedAt: string;
+}
+
 interface Props {
   caseId: string;
+  onDecision?: (event: AiDecisionEvent) => void;
 }
 
 const SEVERITY_COLORS: Record<string, string> = {
@@ -54,7 +62,7 @@ const SEVERITY_COLORS: Record<string, string> = {
   high: "bg-destructive/10 text-destructive",
 };
 
-export default function AiAssurancePanel({ caseId }: Props) {
+export default function AiAssurancePanel({ caseId, onDecision }: Props) {
   const { user, profile } = useAuth();
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
@@ -101,11 +109,17 @@ export default function AiAssurancePanel({ caseId }: Props) {
   };
 
   const decide = async (key: string, status: SuggestionStatus, editedContent?: string) => {
+    const decidedAt = new Date().toISOString();
+    const resolvedContent = editedContent ?? getOriginalContent(key);
     setDecisions((prev) => ({
       ...prev,
-      [key]: { status, editedContent, decidedAt: new Date().toISOString() },
+      [key]: { status, editedContent, decidedAt },
     }));
     setEditingKey(null);
+    // Notify parent so it can write to report object
+    if (onDecision) {
+      onDecision({ key, status, content: resolvedContent, decidedAt });
+    }
     // Log decision
     if (user && profile) {
       await supabase.from("audit_events").insert({
@@ -116,6 +130,17 @@ export default function AiAssurancePanel({ caseId }: Props) {
         object_id: caseId,
         metadata: { suggestion_key: key, edited: !!editedContent },
       });
+    }
+  };
+
+  const getOriginalContent = (key: string): string => {
+    if (!analysis) return "";
+    switch (key) {
+      case "executive_summary": return analysis.executive_summary;
+      case "risk_driver": return analysis.risk_driver_explanation;
+      case "follow_ups": return analysis.follow_up_suggestions.join("\n");
+      case "inconsistencies": return analysis.inconsistency_flags.map((f) => f.description).join("\n");
+      default: return "";
     }
   };
 

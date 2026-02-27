@@ -6,7 +6,14 @@ import {
 } from "lucide-react";
 
 /* ────── types ────── */
-type CompletionStatus = "auto_filled" | "manual" | "ai_draft" | "missing";
+type CompletionStatus = "auto_filled" | "manual" | "ai_draft" | "ai_accepted" | "ai_edited" | "ai_rejected" | "missing";
+
+interface AiSectionDecision {
+  key: string;
+  status: "accepted" | "edited" | "rejected";
+  reviewer: string;
+  decidedAt: string;
+}
 
 interface CoverageRow {
   section: string;
@@ -50,12 +57,16 @@ interface Props {
   aiDraft: AiDraft;
   aiDraftReviewed: boolean;
   aiDraftDismissed: boolean;
+  aiDecisions?: AiSectionDecision[];
 }
 
 const STATUS_CONFIG: Record<CompletionStatus, { label: string; color: string; icon: typeof Database }> = {
   auto_filled: { label: "Auto-filled", color: "bg-primary/10 text-primary", icon: Database },
   manual: { label: "Manual", color: "bg-accent/10 text-accent", icon: Pen },
   ai_draft: { label: "AI Draft", color: "bg-warning/10 text-warning", icon: Sparkles },
+  ai_accepted: { label: "AI Accepted", color: "bg-success/10 text-success", icon: CheckCircle2 },
+  ai_edited: { label: "AI Edited", color: "bg-primary/10 text-primary", icon: Pen },
+  ai_rejected: { label: "AI Rejected", color: "bg-destructive/10 text-destructive", icon: AlertCircle },
   missing: { label: "Missing", color: "bg-destructive/10 text-destructive", icon: AlertCircle },
 };
 
@@ -94,6 +105,7 @@ export default function AutomationCoverageMap({
   structuredData, structuredDataLocked,
   officerCommentary, officerCommentaryComplete,
   aiDraft, aiDraftReviewed, aiDraftDismissed,
+  aiDecisions = [],
 }: Props) {
 
   const rows: CoverageRow[] = [];
@@ -144,28 +156,45 @@ export default function AutomationCoverageMap({
     });
   }
 
-  // AI Draft sections
-  const aiKeys: { key: keyof AiDraft; label: string }[] = [
-    { key: "draft_executive_summary", label: "Executive Summary (AI)" },
-    { key: "draft_risk_driver_explanation", label: "Risk Drivers (AI)" },
-    { key: "suggested_follow_up_actions", label: "Suggested Follow-up (AI)" },
-    { key: "gap_analysis_prompts", label: "Gap Analysis (AI)" },
+  // AI Draft sections — map decision keys to draft keys
+  const aiKeysWithDecisionMap: { key: keyof AiDraft; label: string; decisionKey: string }[] = [
+    { key: "draft_executive_summary", label: "Executive Summary (AI)", decisionKey: "executive_summary" },
+    { key: "draft_risk_driver_explanation", label: "Risk Drivers (AI)", decisionKey: "risk_driver" },
+    { key: "suggested_follow_up_actions", label: "Suggested Follow-up (AI)", decisionKey: "follow_ups" },
+    { key: "gap_analysis_prompts", label: "Gap Analysis (AI)", decisionKey: "inconsistencies" },
   ];
 
-  for (const { key, label } of aiKeys) {
+  for (const { key, label, decisionKey } of aiKeysWithDecisionMap) {
     const val = aiDraft?.[key];
     const filled = !!val && val.trim().length > 0;
-    const status: CompletionStatus = aiDraftDismissed
-      ? "missing"
-      : filled
-      ? "ai_draft"
-      : "missing";
+    const decision = aiDecisions.find((d) => d.key === decisionKey);
+
+    let status: CompletionStatus;
+    let updatedBy = "—";
+    let timestamp: string | null = null;
+
+    if (decision) {
+      status = decision.status === "accepted" ? "ai_accepted"
+        : decision.status === "edited" ? "ai_edited"
+        : "ai_rejected";
+      updatedBy = decision.reviewer;
+      timestamp = decision.decidedAt;
+    } else if (aiDraftDismissed) {
+      status = "missing";
+    } else if (filled) {
+      status = "ai_draft";
+      updatedBy = "AI";
+      timestamp = now;
+    } else {
+      status = "missing";
+    }
+
     rows.push({
       section: label,
       status,
       dataSources: filled && !aiDraftDismissed ? ["AI Assurance Assistant"] : [],
-      lastUpdatedBy: filled && !aiDraftDismissed ? "AI" : "—",
-      timestamp: filled && !aiDraftDismissed ? now : null,
+      lastUpdatedBy: updatedBy,
+      timestamp,
     });
   }
 

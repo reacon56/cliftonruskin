@@ -14,6 +14,8 @@ import {
 import ReportPdfRenderer from "@/components/case-detail/ReportPdfRenderer";
 import ReportAmendmentPanel from "@/components/case-detail/ReportAmendmentPanel";
 import AutomationCoverageMap from "@/components/case-detail/AutomationCoverageMap";
+import AiAssurancePanel from "@/components/case-detail/AiAssurancePanel";
+import type { AiDecisionEvent } from "@/components/case-detail/AiAssurancePanel";
 
 /* ────── types ────── */
 interface StructuredData {
@@ -100,6 +102,7 @@ export default function ReportBuilderEngine({ caseId, caseData, entity, isManage
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [activeSection, setActiveSection] = useState("structured");
+  const [aiDecisions, setAiDecisions] = useState<{ key: string; status: "accepted" | "edited" | "rejected"; reviewer: string; decidedAt: string }[]>([]);
 
   /* ── load or create draft ── */
   const loadDraft = useCallback(async () => {
@@ -270,6 +273,32 @@ export default function ReportBuilderEngine({ caseId, caseData, entity, isManage
     await logAudit("REPORT_AI_DRAFT_DISMISSED");
     setDraft((prev) => prev ? { ...prev, ai_draft_dismissed: true } : prev);
     toast({ title: "AI sections dismissed" });
+  };
+
+  /* ── AI Assistant decision handler ── */
+  const AI_KEY_TO_DRAFT_FIELD: Record<string, keyof AiDraft> = {
+    executive_summary: "draft_executive_summary",
+    risk_driver: "draft_risk_driver_explanation",
+    follow_ups: "suggested_follow_up_actions",
+    inconsistencies: "gap_analysis_prompts",
+  };
+
+  const handleAiDecision = async (event: AiDecisionEvent) => {
+    if (!draft) return;
+    // Record decision for coverage map
+    setAiDecisions((prev) => [
+      ...prev.filter((d) => d.key !== event.key),
+      { key: event.key, status: event.status as "accepted" | "edited" | "rejected", reviewer: profile?.full_name ?? "Officer", decidedAt: event.decidedAt },
+    ]);
+    // If accepted or edited, write content into report draft's ai_draft field
+    if (event.status === "accepted" || event.status === "edited") {
+      const draftField = AI_KEY_TO_DRAFT_FIELD[event.key];
+      if (draftField) {
+        const updatedAiDraft = { ...draft.ai_draft, [draftField]: event.content };
+        await saveDraftField("ai_draft", updatedAiDraft);
+        await logAudit(`REPORT_AI_SECTION_${event.status.toUpperCase()}`);
+      }
+    }
   };
 
   /* ── QA ── */
@@ -459,6 +488,9 @@ export default function ReportBuilderEngine({ caseId, caseData, entity, isManage
 
         {/* ── 3. AI DRAFT ── */}
         <TabsContent value="ai" className="space-y-3">
+          {/* AI Assurance Assistant — controlled copilot */}
+          <AiAssurancePanel caseId={caseId} onDecision={handleAiDecision} />
+
           <div className="rounded-lg border bg-card p-4 space-y-4">
             <div className="flex items-center justify-between">
               <h4 className="text-sm font-semibold text-foreground flex items-center gap-2"><Sparkles size={14} className="text-accent" /> AI-Generated Sections</h4>
@@ -582,6 +614,7 @@ export default function ReportBuilderEngine({ caseId, caseData, entity, isManage
             aiDraft={draft.ai_draft}
             aiDraftReviewed={draft.ai_draft_reviewed}
             aiDraftDismissed={draft.ai_draft_dismissed}
+            aiDecisions={aiDecisions}
           />
         </TabsContent>
       </Tabs>
