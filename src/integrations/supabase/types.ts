@@ -1925,6 +1925,84 @@ export type Database = {
           },
         ]
       }
+      partner_escalations: {
+        Row: {
+          approved_at: string | null
+          approved_by: string | null
+          approved_cost: number | null
+          brief: string | null
+          case_id: string
+          completed_at: string | null
+          created_at: string
+          created_by: string
+          entity_id: string | null
+          estimated_cost: number | null
+          id: string
+          partner_id: string | null
+          partner_task_id: string | null
+          risk_recalculated: boolean
+          scope_confirmation: string | null
+          status: string
+          trigger_source: string
+          updated_at: string
+        }
+        Insert: {
+          approved_at?: string | null
+          approved_by?: string | null
+          approved_cost?: number | null
+          brief?: string | null
+          case_id: string
+          completed_at?: string | null
+          created_at?: string
+          created_by: string
+          entity_id?: string | null
+          estimated_cost?: number | null
+          id?: string
+          partner_id?: string | null
+          partner_task_id?: string | null
+          risk_recalculated?: boolean
+          scope_confirmation?: string | null
+          status?: string
+          trigger_source?: string
+          updated_at?: string
+        }
+        Update: {
+          approved_at?: string | null
+          approved_by?: string | null
+          approved_cost?: number | null
+          brief?: string | null
+          case_id?: string
+          completed_at?: string | null
+          created_at?: string
+          created_by?: string
+          entity_id?: string | null
+          estimated_cost?: number | null
+          id?: string
+          partner_id?: string | null
+          partner_task_id?: string | null
+          risk_recalculated?: boolean
+          scope_confirmation?: string | null
+          status?: string
+          trigger_source?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "partner_escalations_case_id_fkey"
+            columns: ["case_id"]
+            isOneToOne: false
+            referencedRelation: "cases"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "partner_escalations_entity_id_fkey"
+            columns: ["entity_id"]
+            isOneToOne: false
+            referencedRelation: "entities"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       partner_evidence: {
         Row: {
           captured_at: string | null
