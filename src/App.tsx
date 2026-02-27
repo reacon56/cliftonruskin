@@ -59,6 +59,9 @@ import ClientSpendSummaryPage from "@/pages/ClientSpendSummaryPage";
 import IngestionSourcesPage from "@/pages/IngestionSourcesPage";
 import JurisdictionsListPage from "@/pages/JurisdictionsListPage";
 import JurisdictionProfilePage from "@/pages/JurisdictionProfilePage";
+import AdminSourcesPage from "@/pages/admin/AdminSourcesPage";
+import AdminIngestionRunsPage from "@/pages/admin/AdminIngestionRunsPage";
+import AdminIngestionRunDetailPage from "@/pages/admin/AdminIngestionRunDetailPage";
 
 // Website pages
 import WebsiteLayout from "@/components/website/WebsiteLayout";
@@ -126,6 +129,9 @@ function AppRoutes() {
         <Route path="/upgrade-requests" element={<UpgradeRequestsPage />} />
         <Route path="/cases" element={<CaseQueuePage />} />
         <Route path="/admin/market-lessons" element={<MarketLessonsAdminPage />} />
+        <Route path="/admin/sources" element={<InternalRouteGuard managerOnly><AdminSourcesPage /></InternalRouteGuard>} />
+        <Route path="/admin/ingestion-runs" element={<InternalRouteGuard managerOnly><AdminIngestionRunsPage /></InternalRouteGuard>} />
+        <Route path="/admin/ingestion-runs/:id" element={<InternalRouteGuard managerOnly><AdminIngestionRunDetailPage /></InternalRouteGuard>} />
         <Route path="/cases/:id" element={<CaseDetailPage />} />
         <Route path="/cases/:caseId/modules/:moduleId" element={<ModuleWorkbenchPage />} />
         <Route path="/partner/tasks/:taskId" element={<PartnerTaskDetailPage />} />
