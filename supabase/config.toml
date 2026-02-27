@@ -23,3 +23,6 @@ verify_jwt = false
 
 [functions.fatf-ingest]
 verify_jwt = false
+
+[functions.uk-sanctions-ingest]
+verify_jwt = false
