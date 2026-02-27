@@ -11,6 +11,7 @@ import {
 } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { ChevronRight, Check, AlertTriangle, Sparkles } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
 import { requiresApproval } from "@/lib/approval-utils";
 import EnhancementSuggestionPanel from "@/components/EnhancementSuggestionPanel";
 import { useEntitlements } from "@/hooks/use-entitlements";
