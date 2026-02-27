@@ -2504,6 +2504,57 @@ export type Database = {
           },
         ]
       }
+      products: {
+        Row: {
+          base_price: number
+          created_at: string
+          description: string
+          enabled: boolean
+          id: string
+          included_in_packages: string[]
+          internal_delivery_notes: string | null
+          jurisdiction_pricing_modifier: Json | null
+          pricing_unit: string
+          product_name: string
+          product_type: string
+          sla_default_days: number | null
+          updated_at: string
+          vat_applicability: string
+        }
+        Insert: {
+          base_price?: number
+          created_at?: string
+          description?: string
+          enabled?: boolean
+          id?: string
+          included_in_packages?: string[]
+          internal_delivery_notes?: string | null
+          jurisdiction_pricing_modifier?: Json | null
+          pricing_unit?: string
+          product_name: string
+          product_type?: string
+          sla_default_days?: number | null
+          updated_at?: string
+          vat_applicability?: string
+        }
+        Update: {
+          base_price?: number
+          created_at?: string
+          description?: string
+          enabled?: boolean
+          id?: string
+          included_in_packages?: string[]
+          internal_delivery_notes?: string | null
+          jurisdiction_pricing_modifier?: Json | null
+          pricing_unit?: string
+          product_name?: string
+          product_type?: string
+          sla_default_days?: number | null
+          updated_at?: string
+          vat_applicability?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           created_at: string
@@ -2667,6 +2718,110 @@ export type Database = {
             columns: ["case_id"]
             isOneToOne: false
             referencedRelation: "cases"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      rate_card_items: {
+        Row: {
+          created_at: string
+          id: string
+          notes: string | null
+          override_price: number | null
+          override_sla_days: number | null
+          override_vat: string | null
+          product_id: string
+          rate_card_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          notes?: string | null
+          override_price?: number | null
+          override_sla_days?: number | null
+          override_vat?: string | null
+          product_id: string
+          rate_card_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          notes?: string | null
+          override_price?: number | null
+          override_sla_days?: number | null
+          override_vat?: string | null
+          product_id?: string
+          rate_card_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "rate_card_items_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "rate_card_items_rate_card_id_fkey"
+            columns: ["rate_card_id"]
+            isOneToOne: false
+            referencedRelation: "rate_cards"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      rate_cards: {
+        Row: {
+          client_group: string | null
+          created_at: string
+          created_by: string | null
+          discount_pct: number | null
+          effective_from: string | null
+          effective_to: string | null
+          id: string
+          name: string
+          notes: string | null
+          org_id: string | null
+          status: string
+          updated_at: string
+          version: number
+        }
+        Insert: {
+          client_group?: string | null
+          created_at?: string
+          created_by?: string | null
+          discount_pct?: number | null
+          effective_from?: string | null
+          effective_to?: string | null
+          id?: string
+          name: string
+          notes?: string | null
+          org_id?: string | null
+          status?: string
+          updated_at?: string
+          version?: number
+        }
+        Update: {
+          client_group?: string | null
+          created_at?: string
+          created_by?: string | null
+          discount_pct?: number | null
+          effective_from?: string | null
+          effective_to?: string | null
+          id?: string
+          name?: string
+          notes?: string | null
+          org_id?: string | null
+          status?: string
+          updated_at?: string
+          version?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "rate_cards_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organisations"
             referencedColumns: ["id"]
           },
         ]

@@ -6,7 +6,7 @@ import {
   Settings, FileText, LogOut, ChevronLeft, ChevronRight, Moon, Sun,
   ArrowLeftRight, CheckCircle2, Scale, ArrowUpCircle, Newspaper,
   Briefcase, Eye, BookOpen, GitMerge, BarChart3, Search,
-  Send, Layers, Database, FlaskConical, Globe,
+  Send, Layers, Database, FlaskConical, Globe, Package,
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
@@ -91,6 +91,7 @@ export default function AppSidebar() {
     { label: "Source Registry", path: "/source-registry", icon: <Database size={18} /> },
     { label: "Jurisdiction Library", path: "/jurisdiction-library", icon: <Globe size={18} /> },
     { label: "Unit Economics", path: "/unit-economics", icon: <BarChart3 size={18} /> },
+    { label: "Product Catalogue", path: "/product-catalogue", icon: <Package size={18} /> },
     { label: "Audit Log", path: "/audit-log", icon: <ClipboardList size={18} /> },
   ];
 
