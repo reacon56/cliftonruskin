@@ -49,6 +49,7 @@ import JurisdictionLibraryPage from "@/pages/JurisdictionLibraryPage";
 import UnitEconomicsPage from "@/pages/UnitEconomicsPage";
 import TierMatrixPage from "@/pages/TierMatrixPage";
 import ProductCataloguePage from "@/pages/ProductCataloguePage";
+import BudgetControlsPage from "@/pages/BudgetControlsPage";
 
 // Website pages
 import WebsiteLayout from "@/components/website/WebsiteLayout";
@@ -132,6 +133,7 @@ function AppRoutes() {
         <Route path="/unit-economics" element={<InternalRouteGuard managerOnly><UnitEconomicsPage /></InternalRouteGuard>} />
         <Route path="/tier-matrix" element={<InternalRouteGuard managerOnly><TierMatrixPage /></InternalRouteGuard>} />
         <Route path="/product-catalogue" element={<InternalRouteGuard><ProductCataloguePage /></InternalRouteGuard>} />
+        <Route path="/budget-controls" element={<BudgetControlsPage />} />
 
         {/* ── Internal routes (officer + manager) ── */}
         <Route path="/qa-queue" element={<InternalRouteGuard><QaQueuePage /></InternalRouteGuard>} />

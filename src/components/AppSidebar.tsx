@@ -6,7 +6,7 @@ import {
   Settings, FileText, LogOut, ChevronLeft, ChevronRight, Moon, Sun,
   ArrowLeftRight, CheckCircle2, Scale, ArrowUpCircle, Newspaper,
   Briefcase, Eye, BookOpen, GitMerge, BarChart3, Search,
-  Send, Layers, Database, FlaskConical, Globe, Package,
+  Send, Layers, Database, FlaskConical, Globe, Package, Wallet,
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
@@ -64,6 +64,7 @@ export default function AppSidebar() {
     clientNav.push({ label: "Users & Roles", path: "/users", icon: <Users size={18} /> });
     clientNav.push({ label: "Organisation Settings", path: "/org-settings", icon: <Building2 size={18} /> });
     clientNav.push({ label: "Approval Settings", path: "/approval-settings", icon: <Settings size={18} /> });
+    clientNav.push({ label: "Budget & Spend", path: "/budget-controls", icon: <Wallet size={18} /> });
   }
 
   clientNav.push(
@@ -92,6 +93,7 @@ export default function AppSidebar() {
     { label: "Jurisdiction Library", path: "/jurisdiction-library", icon: <Globe size={18} /> },
     { label: "Unit Economics", path: "/unit-economics", icon: <BarChart3 size={18} /> },
     { label: "Product Catalogue", path: "/product-catalogue", icon: <Package size={18} /> },
+    { label: "Budget Controls", path: "/budget-controls", icon: <Wallet size={18} /> },
     { label: "Audit Log", path: "/audit-log", icon: <ClipboardList size={18} /> },
   ];
 
