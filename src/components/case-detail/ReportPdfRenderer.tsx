@@ -249,6 +249,7 @@ export default function ReportPdfRenderer({ draft, entityName, caseId, onPdfGene
       ai_edited: "AI-Assisted (Edited)",
       ai_rejected: "Analyst Input",
       system_check: "System Verification",
+      external_partner: "External Specialist Input",
       missing: "Pending",
     };
 

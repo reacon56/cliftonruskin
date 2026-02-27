@@ -120,11 +120,17 @@ export default function ReportAmendmentPanel({
             version: a.prior_version,
             rejected_at: a.created_at,
             comments: a.amendment_reason,
+            amended_sections: a.amended_sections,
+            amended_by: a.amended_by,
+            change_log: a.change_log,
           }))),
           {
             version: currentVersion,
             rejected_at: new Date().toISOString(),
             comments: `Amendment: ${reason}`,
+            amended_sections: selectedSections,
+            amended_by: user?.id,
+            change_log: changeLog || null,
           },
         ],
       } as any).eq("id", draftId);
