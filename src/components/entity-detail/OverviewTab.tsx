@@ -163,6 +163,9 @@ export default function OverviewTab({ entity, cases, changeLogs, monitoringEvent
         </div>
       )}
 
+      {/* Clifton Ruskin Risk Band */}
+      <CrRiskBandPanel entityId={entity.id} />
+
       {/* Client Policy Outcome */}
       <ClientPolicyOutcomePanel entityId={entity.id} />
 
