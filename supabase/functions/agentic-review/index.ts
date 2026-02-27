@@ -7,8 +7,104 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
+/* ────── GUARDRAIL CONFIGURATION ────── */
+const BANNED_PHRASES: { pattern: RegExp; replacement: string }[] = [
+  { pattern: /\bevidence of wrongdoing\b/gi, replacement: "indicators requiring further review" },
+  { pattern: /\bguilty\b/gi, replacement: "subject to adverse findings" },
+  { pattern: /\billegal\b/gi, replacement: "non-compliant" },
+  { pattern: /\billicit\b/gi, replacement: "irregular" },
+  { pattern: /\bcriminal\b/gi, replacement: "subject to regulatory concern" },
+  { pattern: /\bfraud\b/gi, replacement: "financial irregularity" },
+  { pattern: /\bfraudulent\b/gi, replacement: "irregular" },
+  { pattern: /\bmoney laundering\b/gi, replacement: "potential financial crime exposure" },
+  { pattern: /\bterrorist financing\b/gi, replacement: "potential TF exposure" },
+  { pattern: /\bwill likely\b/gi, replacement: "may, based on available indicators," },
+  { pattern: /\bis expected to\b/gi, replacement: "may, based on current data," },
+  { pattern: /\bwill certainly\b/gi, replacement: "indicators suggest" },
+  { pattern: /\bproven to be\b/gi, replacement: "assessed as" },
+  { pattern: /\bwithout doubt\b/gi, replacement: "based on available evidence" },
+  { pattern: /\bundoubtedly\b/gi, replacement: "based on available evidence" },
+  { pattern: /\bclearly guilty\b/gi, replacement: "identified adverse indicators" },
+  { pattern: /\bconvicted of\b/gi, replacement: "subject to legal proceedings relating to" },
+  { pattern: /\bin our opinion\b/gi, replacement: "based on the available data" },
+  { pattern: /\bwe believe\b/gi, replacement: "the available data suggests" },
+  { pattern: /\bwe conclude\b/gi, replacement: "the analysis indicates" },
+  { pattern: /\blegal advice\b/gi, replacement: "compliance observations" },
+];
+
+function sanitiseText(text: string): { sanitised: string; replacements: { original: string; replacement: string }[] } {
+  const replacements: { original: string; replacement: string }[] = [];
+  let sanitised = text;
+  for (const rule of BANNED_PHRASES) {
+    const matches = sanitised.match(rule.pattern);
+    if (matches) {
+      for (const match of matches) {
+        replacements.push({ original: match, replacement: rule.replacement });
+      }
+      sanitised = sanitised.replace(rule.pattern, rule.replacement);
+    }
+  }
+  return { sanitised, replacements };
+}
+
+function sanitiseReview(raw: any): { sanitised: any; totalViolations: number; allReplacements: any[] } {
+  let totalViolations = 0;
+  const allReplacements: any[] = [];
+
+  const processField = (value: string, field: string) => {
+    const { sanitised, replacements } = sanitiseText(value);
+    totalViolations += replacements.length;
+    allReplacements.push(...replacements.map((r) => ({ ...r, field })));
+    return sanitised;
+  };
+
+  const sanitised = JSON.parse(JSON.stringify(raw));
+
+  // Pre-QA Review
+  if (sanitised.pre_qa_review) {
+    if (sanitised.pre_qa_review.advisory_prompt)
+      sanitised.pre_qa_review.advisory_prompt = processField(sanitised.pre_qa_review.advisory_prompt, "pre_qa_advisory");
+    if (Array.isArray(sanitised.pre_qa_review.checks)) {
+      sanitised.pre_qa_review.checks = sanitised.pre_qa_review.checks.map((c: any, i: number) => ({
+        ...c,
+        detail: processField(c.detail, `pre_qa_check_${i}`),
+      }));
+    }
+  }
+
+  // Risk Drift
+  if (sanitised.risk_drift?.advisory_prompt)
+    sanitised.risk_drift.advisory_prompt = processField(sanitised.risk_drift.advisory_prompt, "risk_drift_advisory");
+
+  // Jurisdiction Overlay
+  if (sanitised.jurisdiction_overlay) {
+    if (sanitised.jurisdiction_overlay.advisory_prompt)
+      sanitised.jurisdiction_overlay.advisory_prompt = processField(sanitised.jurisdiction_overlay.advisory_prompt, "jurisdiction_advisory");
+    if (Array.isArray(sanitised.jurisdiction_overlay.updates)) {
+      sanitised.jurisdiction_overlay.updates = sanitised.jurisdiction_overlay.updates.map((u: any, i: number) => ({
+        ...u,
+        summary: processField(u.summary, `jurisdiction_update_${i}`),
+      }));
+    }
+  }
+
+  return { sanitised, totalViolations, allReplacements };
+}
+
+const AI_DISCLAIMER = "AI-assisted drafting used. Human review completed.";
+
 const SYSTEM_PROMPT = `You are a controlled review agent for a compliance due-diligence platform.
 You produce ADVISORY PROMPTS ONLY — you NEVER modify data or override human decisions.
+
+CRITICAL LANGUAGE RULES — you MUST follow these without exception:
+- Use ONLY neutral, institutional language
+- Reference ONLY the data provided — never speculate
+- NEVER give legal conclusions or opinions
+- NEVER use predictive language ("will likely", "is expected to", "will certainly")
+- NEVER use accusatory terms ("guilty", "illegal", "evidence of wrongdoing", "criminal", "fraudulent")
+- NEVER state opinions ("we believe", "in our opinion", "we conclude")
+- Use conditional phrasing: "indicators suggest", "based on available data", "may require further review"
+- When referencing adverse findings, use: "adverse indicators identified", "flags for review", "findings requiring attention"
 
 You run three independent review stages and return structured outputs for each:
 
@@ -54,7 +150,7 @@ const TOOLS = [
                 items: {
                   type: "object",
                   properties: {
-                    area: { type: "string", description: "What was checked (e.g. 'retrieval_logs', 'task_completion', 'risk_model')." },
+                    area: { type: "string", description: "What was checked." },
                     status: { type: "string", enum: ["pass", "warning", "fail"] },
                     detail: { type: "string" },
                   },
@@ -73,8 +169,8 @@ const TOOLS = [
               drift_detected: { type: "boolean" },
               current_band: { type: "string" },
               current_score: { type: "number" },
-              prior_band: { type: "string", description: "Band from most recent prior score, or 'N/A'." },
-              prior_score: { type: "number", description: "Prior overall score, or -1 if unavailable." },
+              prior_band: { type: "string" },
+              prior_score: { type: "number" },
               score_delta: { type: "number" },
               advisory_prompt: { type: "string" },
             },
@@ -123,22 +219,22 @@ serve(async (req) => {
     const authHeader = req.headers.get("Authorization");
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const supabaseKey = Deno.env.get("SUPABASE_ANON_KEY")!;
+    const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const supabase = createClient(supabaseUrl, supabaseKey, {
       global: { headers: { Authorization: authHeader! } },
     });
+    const supabaseAdmin = createClient(supabaseUrl, serviceKey);
 
     const { data: { user } } = await supabase.auth.getUser();
     if (!user)
       return new Response(JSON.stringify({ error: "Unauthorized" }), {
-        status: 401,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
 
     const { case_id } = await req.json();
     if (!case_id)
       return new Response(JSON.stringify({ error: "case_id is required" }), {
-        status: 400,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
 
     // Fetch case + entity
@@ -149,8 +245,7 @@ serve(async (req) => {
       .single();
     if (caseErr || !caseData)
       return new Response(JSON.stringify({ error: "Case not found" }), {
-        status: 404,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 404, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
 
     // Fetch retrieval logs
@@ -176,7 +271,7 @@ serve(async (req) => {
       .limit(1)
       .maybeSingle();
 
-    // Fetch prior risk scores (all except most recent)
+    // Fetch prior risk scores
     const { data: priorScores } = await supabase
       .from("entity_risk_scores")
       .select("overall_score, risk_band, calculated_at")
@@ -184,7 +279,7 @@ serve(async (req) => {
       .order("calculated_at", { ascending: false })
       .limit(5);
 
-    // Fetch jurisdiction updates if entity has a country
+    // Fetch jurisdiction updates
     const entityCountry = caseData.entities?.hq_country_code || caseData.entities?.country;
     let jurisdictionUpdates: any[] = [];
     if (entityCountry) {
@@ -207,43 +302,23 @@ serve(async (req) => {
     // Build context
     const context = {
       entity: caseData.entities,
-      case: {
-        id: caseData.id,
-        status: caseData.status,
-        case_type: caseData.case_type,
-        report_tier: caseData.report_tier,
-        priority: caseData.priority,
-      },
+      case: { id: caseData.id, status: caseData.status, case_type: caseData.case_type, report_tier: caseData.report_tier, priority: caseData.priority },
       retrieval_logs: (retrievalLogs ?? []).map((l: any) => ({
-        source: l.research_sources?.source_name,
-        category: l.research_sources?.category,
-        outcome: l.outcome_status,
-        purpose: l.purpose_of_search,
+        source: l.research_sources?.source_name, category: l.research_sources?.category,
+        outcome: l.outcome_status, purpose: l.purpose_of_search,
       })),
-      tasks: (tasks ?? []).map((t: any) => ({
-        title: t.title,
-        status: t.status,
-      })),
+      tasks: (tasks ?? []).map((t: any) => ({ title: t.title, status: t.status })),
       current_risk_score: currentScore ? {
-        overall_score: currentScore.overall_score,
-        risk_band: currentScore.risk_band,
-        jurisdiction_score: currentScore.jurisdiction_score,
-        structural_score: currentScore.structural_score,
-        association_score: currentScore.association_score,
-        event_score: currentScore.event_score,
-        reason_codes: currentScore.reason_codes,
-        calculated_at: currentScore.calculated_at,
+        overall_score: currentScore.overall_score, risk_band: currentScore.risk_band,
+        jurisdiction_score: currentScore.jurisdiction_score, structural_score: currentScore.structural_score,
+        association_score: currentScore.association_score, event_score: currentScore.event_score,
+        reason_codes: currentScore.reason_codes, calculated_at: currentScore.calculated_at,
       } : null,
       prior_risk_scores: (priorScores ?? []).slice(1).map((s: any) => ({
-        overall_score: s.overall_score,
-        risk_band: s.risk_band,
-        calculated_at: s.calculated_at,
+        overall_score: s.overall_score, risk_band: s.risk_band, calculated_at: s.calculated_at,
       })),
       jurisdiction_updates: jurisdictionUpdates.map((u: any) => ({
-        title: u.title,
-        category: u.category,
-        summary: u.factual_summary,
-        date: u.update_date,
+        title: u.title, category: u.category, summary: u.factual_summary, date: u.update_date,
       })),
     };
 
@@ -251,10 +326,7 @@ serve(async (req) => {
 
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
-      headers: {
-        Authorization: `Bearer ${LOVABLE_API_KEY}`,
-        "Content-Type": "application/json",
-      },
+      headers: { Authorization: `Bearer ${LOVABLE_API_KEY}`, "Content-Type": "application/json" },
       body: JSON.stringify({
         model: "google/gemini-3-flash-preview",
         messages: [
@@ -268,16 +340,14 @@ serve(async (req) => {
 
     if (!response.ok) {
       const status = response.status;
-      if (status === 429) {
+      if (status === 429)
         return new Response(JSON.stringify({ error: "Rate limit exceeded. Please try again shortly." }), {
           status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
-      }
-      if (status === 402) {
+      if (status === 402)
         return new Response(JSON.stringify({ error: "AI credits exhausted. Please top up your workspace." }), {
           status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
-      }
       const text = await response.text();
       console.error("AI gateway error:", status, text);
       return new Response(JSON.stringify({ error: "AI review failed" }), {
@@ -287,15 +357,45 @@ serve(async (req) => {
 
     const result = await response.json();
     const toolCall = result.choices?.[0]?.message?.tool_calls?.[0];
-    if (!toolCall) {
+    if (!toolCall)
       return new Response(JSON.stringify({ error: "AI did not return structured output" }), {
         status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
+
+    const rawReview = JSON.parse(toolCall.function.arguments);
+
+    // ── GUARDRAIL: Sanitise output ──
+    const { sanitised, totalViolations, allReplacements } = sanitiseReview(rawReview);
+
+    // ── Log to ai_output_log ──
+    const { data: profileData } = await supabase
+      .from("profiles")
+      .select("org_id")
+      .eq("user_id", user.id)
+      .single();
+
+    if (profileData?.org_id) {
+      await supabaseAdmin.from("ai_output_log").insert({
+        case_id: case_id,
+        org_id: profileData.org_id,
+        function_name: "agentic-review",
+        model_used: "google/gemini-3-flash-preview",
+        raw_output: rawReview,
+        sanitised_output: sanitised,
+        guardrail_violations_found: totalViolations,
+        guardrail_replacements: allReplacements,
+        ai_disclaimer: AI_DISCLAIMER,
+        created_by: user.id,
+      });
     }
 
-    const review = JSON.parse(toolCall.function.arguments);
-
-    return new Response(JSON.stringify({ review, generated_at: new Date().toISOString() }), {
+    return new Response(JSON.stringify({
+      review: sanitised,
+      generated_at: new Date().toISOString(),
+      guardrail_applied: true,
+      violations_sanitised: totalViolations,
+      ai_disclaimer: AI_DISCLAIMER,
+    }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (e) {

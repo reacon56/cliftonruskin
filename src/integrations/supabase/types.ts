@@ -14,6 +14,78 @@ export type Database = {
   }
   public: {
     Tables: {
+      ai_output_log: {
+        Row: {
+          ai_disclaimer: string
+          case_id: string
+          created_at: string
+          created_by: string | null
+          function_name: string
+          guardrail_replacements: Json
+          guardrail_violations_found: number
+          human_reviewed: boolean
+          human_reviewed_at: string | null
+          human_reviewed_by: string | null
+          id: string
+          model_used: string
+          org_id: string
+          raw_output: Json
+          report_version: number | null
+          sanitised_output: Json
+        }
+        Insert: {
+          ai_disclaimer?: string
+          case_id: string
+          created_at?: string
+          created_by?: string | null
+          function_name: string
+          guardrail_replacements?: Json
+          guardrail_violations_found?: number
+          human_reviewed?: boolean
+          human_reviewed_at?: string | null
+          human_reviewed_by?: string | null
+          id?: string
+          model_used?: string
+          org_id: string
+          raw_output?: Json
+          report_version?: number | null
+          sanitised_output?: Json
+        }
+        Update: {
+          ai_disclaimer?: string
+          case_id?: string
+          created_at?: string
+          created_by?: string | null
+          function_name?: string
+          guardrail_replacements?: Json
+          guardrail_violations_found?: number
+          human_reviewed?: boolean
+          human_reviewed_at?: string | null
+          human_reviewed_by?: string | null
+          id?: string
+          model_used?: string
+          org_id?: string
+          raw_output?: Json
+          report_version?: number | null
+          sanitised_output?: Json
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ai_output_log_case_id_fkey"
+            columns: ["case_id"]
+            isOneToOne: false
+            referencedRelation: "cases"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ai_output_log_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organisations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       all_stations_notices: {
         Row: {
           body: string
