@@ -324,6 +324,51 @@ export type Database = {
           },
         ]
       }
+      budget_overrides: {
+        Row: {
+          budget_id: string
+          case_id: string | null
+          created_at: string
+          id: string
+          justification: string
+          override_amount: number
+          override_by: string
+        }
+        Insert: {
+          budget_id: string
+          case_id?: string | null
+          created_at?: string
+          id?: string
+          justification: string
+          override_amount?: number
+          override_by: string
+        }
+        Update: {
+          budget_id?: string
+          case_id?: string | null
+          created_at?: string
+          id?: string
+          justification?: string
+          override_amount?: number
+          override_by?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "budget_overrides_budget_id_fkey"
+            columns: ["budget_id"]
+            isOneToOne: false
+            referencedRelation: "programme_budgets"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "budget_overrides_case_id_fkey"
+            columns: ["case_id"]
+            isOneToOne: false
+            referencedRelation: "cases"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       case_dp_declarations: {
         Row: {
           approval_reasons: Json | null
@@ -2621,6 +2666,71 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "programme_audit_log_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organisations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      programme_budgets: {
+        Row: {
+          cap_behaviour: string
+          committed_spend: number
+          created_at: string
+          created_by: string | null
+          criticality_caps: Json
+          delivered_spend: number
+          id: string
+          jurisdiction_caps: Json
+          notes: string | null
+          org_id: string
+          partner_spend: number
+          period_end: string
+          period_start: string
+          period_type: string
+          total_cap: number
+          updated_at: string
+        }
+        Insert: {
+          cap_behaviour?: string
+          committed_spend?: number
+          created_at?: string
+          created_by?: string | null
+          criticality_caps?: Json
+          delivered_spend?: number
+          id?: string
+          jurisdiction_caps?: Json
+          notes?: string | null
+          org_id: string
+          partner_spend?: number
+          period_end: string
+          period_start: string
+          period_type?: string
+          total_cap?: number
+          updated_at?: string
+        }
+        Update: {
+          cap_behaviour?: string
+          committed_spend?: number
+          created_at?: string
+          created_by?: string | null
+          criticality_caps?: Json
+          delivered_spend?: number
+          id?: string
+          jurisdiction_caps?: Json
+          notes?: string | null
+          org_id?: string
+          partner_spend?: number
+          period_end?: string
+          period_start?: string
+          period_type?: string
+          total_cap?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "programme_budgets_org_id_fkey"
             columns: ["org_id"]
             isOneToOne: false
             referencedRelation: "organisations"
