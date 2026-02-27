@@ -30,6 +30,7 @@ export default function AppSidebar() {
   const [collapsed, setCollapsed] = useState(false);
   const { activeView, canToggle, toggle: toggleView, setView: setViewAs } = useViewMode();
   const [pendingApprovals, setPendingApprovals] = useState(0);
+  const { unreadCount: alertCount } = useAlertNotifications();
 
   const isManager = hasRole("fvc_assurance_manager" as any) || hasRole("fvc_ops_admin" as any);
   const isOfficer = hasRole("fvc_assurance_officer" as any) || hasRole("fvc_analyst" as any);
