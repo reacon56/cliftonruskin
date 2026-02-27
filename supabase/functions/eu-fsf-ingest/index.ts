@@ -10,38 +10,6 @@ const corsHeaders = {
 const EU_FSF_XML_URL =
   "https://webgate.ec.europa.eu/fsd/fsf/public/files/xmlFullSanctionsList_1_1/content?token=dG9rZW4tMjAxNw";
 
-// ── Country name → ISO-2 mapping (subset; extend as needed) ──
-const NAME_TO_ISO2: Record<string, string> = {
-  "afghanistan": "AF", "albania": "AL", "algeria": "DZ", "angola": "AO",
-  "belarus": "BY", "bosnia and herzegovina": "BA", "burma": "MM", "myanmar": "MM",
-  "burundi": "BI", "cambodia": "KH", "central african republic": "CF",
-  "chad": "TD", "china": "CN", "comoros": "KM", "congo": "CG",
-  "cuba": "CU", "democratic republic of the congo": "CD", "drc": "CD",
-  "egypt": "EG", "eritrea": "ER", "ethiopia": "ET",
-  "guinea": "GN", "guinea-bissau": "GW", "haiti": "HT",
-  "iran": "IR", "iraq": "IQ", "lebanon": "LB", "libya": "LY",
-  "mali": "ML", "moldova": "MD", "nicaragua": "NI", "niger": "NE",
-  "north korea": "KP", "dprk": "KP", "russia": "RU", "russian federation": "RU",
-  "rwanda": "RW", "somalia": "SO", "south sudan": "SS", "sudan": "SD",
-  "syria": "SY", "syrian arab republic": "SY", "tunisia": "TN",
-  "turkey": "TR", "türkiye": "TR", "turkiye": "TR",
-  "ukraine": "UA", "venezuela": "VE", "yemen": "YE", "zimbabwe": "ZW",
-  "united kingdom": "GB", "uk": "GB", "united states": "US", "usa": "US",
-  "france": "FR", "germany": "DE", "italy": "IT", "spain": "ES",
-  "netherlands": "NL", "belgium": "BE", "poland": "PL", "romania": "RO",
-  "greece": "GR", "portugal": "PT", "sweden": "SE", "austria": "AT",
-  "finland": "FI", "denmark": "DK", "ireland": "IE", "croatia": "HR",
-  "bulgaria": "BG", "czech republic": "CZ", "czechia": "CZ",
-  "hungary": "HU", "slovakia": "SK", "slovenia": "SI",
-  "estonia": "EE", "latvia": "LV", "lithuania": "LT",
-  "luxembourg": "LU", "malta": "MT", "cyprus": "CY",
-  "saudi arabia": "SA", "united arab emirates": "AE", "uae": "AE",
-  "pakistan": "PK", "india": "IN", "japan": "JP", "south korea": "KR",
-  "hong kong": "HK", "singapore": "SG", "brazil": "BR", "mexico": "MX",
-  "south africa": "ZA", "nigeria": "NG", "kenya": "KE", "tanzania": "TZ",
-  "colombia": "CO", "argentina": "AR", "chile": "CL", "peru": "PE",
-};
-
 // EU comprehensive sanctions regimes
 const COMPREHENSIVE_REGIMES = new Set([
   "russia", "syria", "north korea", "dprk", "iran", "belarus", "myanmar", "burma",
@@ -49,6 +17,65 @@ const COMPREHENSIVE_REGIMES = new Set([
   "central african republic", "democratic republic of the congo", "drc",
   "mali", "guinea", "haiti", "nicaragua", "zimbabwe", "afghanistan",
 ]);
+
+// Country name → ISO-2
+const NAME_TO_ISO2: Record<string, string> = {
+  "afghanistan": "AF", "albania": "AL", "algeria": "DZ", "angola": "AO",
+  "argentina": "AR", "armenia": "AM", "azerbaijan": "AZ",
+  "bahamas": "BS", "bahrain": "BH", "bangladesh": "BD",
+  "belarus": "BY", "belgium": "BE", "belize": "BZ",
+  "bosnia and herzegovina": "BA", "brazil": "BR", "brunei": "BN",
+  "bulgaria": "BG", "burkina faso": "BF", "burma": "MM", "myanmar": "MM",
+  "burundi": "BI", "cambodia": "KH", "cameroon": "CM",
+  "central african republic": "CF", "chad": "TD", "chile": "CL",
+  "china": "CN", "colombia": "CO", "comoros": "KM", "congo": "CG",
+  "costa rica": "CR", "croatia": "HR", "cuba": "CU", "cyprus": "CY",
+  "czech republic": "CZ", "czechia": "CZ",
+  "democratic republic of the congo": "CD", "drc": "CD",
+  "denmark": "DK", "djibouti": "DJ", "dominican republic": "DO",
+  "ecuador": "EC", "egypt": "EG", "el salvador": "SV",
+  "eritrea": "ER", "estonia": "EE", "ethiopia": "ET",
+  "france": "FR", "gabon": "GA", "gambia": "GM", "georgia": "GE",
+  "germany": "DE", "ghana": "GH", "greece": "GR", "guatemala": "GT",
+  "guinea": "GN", "guinea-bissau": "GW", "guyana": "GY",
+  "haiti": "HT", "honduras": "HN", "hong kong": "HK", "hungary": "HU",
+  "india": "IN", "indonesia": "ID", "iran": "IR", "iraq": "IQ",
+  "ireland": "IE", "israel": "IL", "italy": "IT", "jamaica": "JM",
+  "japan": "JP", "jordan": "JO", "kazakhstan": "KZ", "kenya": "KE",
+  "kuwait": "KW", "kyrgyzstan": "KG", "laos": "LA", "latvia": "LV",
+  "lebanon": "LB", "liberia": "LR", "libya": "LY", "lithuania": "LT",
+  "luxembourg": "LU", "madagascar": "MG", "malawi": "MW", "malaysia": "MY",
+  "mali": "ML", "malta": "MT", "mauritania": "MR", "mauritius": "MU",
+  "mexico": "MX", "moldova": "MD", "mongolia": "MN", "montenegro": "ME",
+  "morocco": "MA", "mozambique": "MZ", "namibia": "NA", "nepal": "NP",
+  "netherlands": "NL", "new zealand": "NZ", "nicaragua": "NI",
+  "niger": "NE", "nigeria": "NG", "north korea": "KP", "dprk": "KP",
+  "north macedonia": "MK", "norway": "NO", "oman": "OM",
+  "pakistan": "PK", "panama": "PA", "papua new guinea": "PG",
+  "paraguay": "PY", "peru": "PE", "philippines": "PH", "poland": "PL",
+  "portugal": "PT", "qatar": "QA", "romania": "RO",
+  "russia": "RU", "russian federation": "RU", "rwanda": "RW",
+  "saudi arabia": "SA", "senegal": "SN", "serbia": "RS",
+  "sierra leone": "SL", "singapore": "SG", "slovakia": "SK",
+  "slovenia": "SI", "somalia": "SO", "south africa": "ZA",
+  "south korea": "KR", "south sudan": "SS", "spain": "ES",
+  "sri lanka": "LK", "sudan": "SD", "suriname": "SR", "sweden": "SE",
+  "switzerland": "CH", "syria": "SY", "syrian arab republic": "SY",
+  "tajikistan": "TJ", "tanzania": "TZ", "thailand": "TH",
+  "trinidad and tobago": "TT", "tunisia": "TN",
+  "turkey": "TR", "türkiye": "TR", "turkiye": "TR",
+  "turkmenistan": "TM", "uganda": "UG", "ukraine": "UA",
+  "united arab emirates": "AE", "uae": "AE",
+  "united kingdom": "GB", "uk": "GB",
+  "united states": "US", "usa": "US",
+  "uruguay": "UY", "uzbekistan": "UZ", "vanuatu": "VU",
+  "venezuela": "VE", "vietnam": "VN", "viet nam": "VN",
+  "yemen": "YE", "zambia": "ZM", "zimbabwe": "ZW",
+  "crimea": "UA", "hong kong, china": "HK",
+  "british virgin islands": "VG", "cayman islands": "KY",
+  "bermuda": "BM", "jersey": "JE", "guernsey": "GG",
+  "isle of man": "IM", "gibraltar": "GI",
+};
 
 function resolveCountryCode(name: string): string | null {
   if (!name) return null;
@@ -70,111 +97,104 @@ function classifyRegime(regimeName: string): "COMPREHENSIVE" | "TARGETED" | "NON
 async function computeHash(content: string): Promise<string> {
   const data = new TextEncoder().encode(content);
   const buf = await crypto.subtle.digest("SHA-256", data);
-  return Array.from(new Uint8Array(buf))
-    .map((b) => b.toString(16).padStart(2, "0"))
-    .join("");
+  return Array.from(new Uint8Array(buf)).map((b) => b.toString(16).padStart(2, "0")).join("");
 }
 
-// ── Minimal XML helpers (no external deps) ──
+function jsonChanged(a: unknown, b: unknown): boolean {
+  return JSON.stringify(a) !== JSON.stringify(b);
+}
 
-/** Extract all occurrences of a tag's inner text from XML string */
+// ── Minimal XML helpers ──
 function extractTagValues(xml: string, tag: string): string[] {
   const results: string[] = [];
   const regex = new RegExp(`<${tag}[^>]*>([^<]*)</${tag}>`, "gi");
-  let match: RegExpExecArray | null;
-  while ((match = regex.exec(xml)) !== null) {
-    if (match[1].trim()) results.push(match[1].trim());
+  let m: RegExpExecArray | null;
+  while ((m = regex.exec(xml)) !== null) {
+    if (m[1].trim()) results.push(m[1].trim());
   }
   return results;
 }
 
-/** Extract first occurrence of a tag's inner text */
 function extractFirstTag(xml: string, tag: string): string {
-  const match = xml.match(new RegExp(`<${tag}[^>]*>([^<]*)</${tag}>`, "i"));
-  return match ? match[1].trim() : "";
+  const m = xml.match(new RegExp(`<${tag}[^>]*>([^<]*)</${tag}>`, "i"));
+  return m ? m[1].trim() : "";
 }
 
-/** Extract attribute value from a tag */
 function extractAttr(xml: string, tag: string, attr: string): string {
-  const match = xml.match(new RegExp(`<${tag}[^>]*\\s${attr}="([^"]*)"`, "i"));
-  return match ? match[1].trim() : "";
+  const m = xml.match(new RegExp(`<${tag}[^>]*\\s${attr}="([^"]*)"`, "i"));
+  return m ? m[1].trim() : "";
 }
 
-/** Split XML into blocks by a given tag */
 function splitByTag(xml: string, tag: string): string[] {
   const parts: string[] = [];
-  const regex = new RegExp(`<${tag}[\\s>]`, "gi");
-  const endRegex = new RegExp(`</${tag}>`, "gi");
-  let startMatch: RegExpExecArray | null;
-  while ((startMatch = regex.exec(xml)) !== null) {
-    // Find the corresponding closing tag
-    endRegex.lastIndex = startMatch.index;
-    const endMatch = endRegex.exec(xml);
-    if (endMatch) {
-      parts.push(xml.substring(startMatch.index, endMatch.index + endMatch[0].length));
-    }
+  const openRe = new RegExp(`<${tag}[\\s>]`, "gi");
+  const closeRe = new RegExp(`</${tag}>`, "gi");
+  let startM: RegExpExecArray | null;
+  while ((startM = openRe.exec(xml)) !== null) {
+    closeRe.lastIndex = startM.index;
+    const endM = closeRe.exec(xml);
+    if (endM) parts.push(xml.substring(startM.index, endM.index + endM[0].length));
   }
   return parts;
 }
 
-interface ParsedEntity {
+// ── Parsing ──
+
+interface EuFsfEntity {
   logicalId: string;
-  subjectType: string;
+  entityType: string;
   primaryName: string;
   aliases: string[];
   countryCodes: string[];
   nationalityCodes: string[];
+  addresses: Array<{ country: string; city?: string; countryCode?: string }>;
   regimeName: string;
   regimeType: "COMPREHENSIVE" | "TARGETED" | "NONE";
   designationDate: string | null;
+  identifiers: Array<{ type: string; value: string }>;
   remark: string;
   rawXml: string;
 }
 
-function parseEntitiesFromXml(xmlText: string): { entities: ParsedEntity[]; schemaVersion: string; generationDate: string } {
-  // Extract schema version and generation date from header
+function parseEntitiesFromXml(xmlText: string): {
+  entities: EuFsfEntity[];
+  schemaVersion: string;
+  generationDate: string;
+} {
   const schemaVersion =
-    extractAttr(xmlText, "export:sanctionEntity", "xsi:schemaLocation") ||
+    extractAttr(xmlText, "export:fullSanctionsList", "xsi:schemaLocation") ||
     extractFirstTag(xmlText, "export:schemaVersion") ||
-    extractAttr(xmlText, "export:fullSanctionsList", "generationDate") ||
     "1.1";
   const generationDate =
     extractAttr(xmlText, "export:fullSanctionsList", "generationDate") ||
     extractFirstTag(xmlText, "globalFileDate") ||
     new Date().toISOString();
 
-  // The EU FSF XML uses <sanctionEntity> blocks
   const entityBlocks = splitByTag(xmlText, "sanctionEntity");
-  const entities: ParsedEntity[] = [];
+  const entities: EuFsfEntity[] = [];
 
   for (const block of entityBlocks) {
-    // Logical ID
     const logicalId =
       extractAttr(block, "sanctionEntity", "logicalId") ||
       extractAttr(block, "sanctionEntity", "euReferenceNumber") ||
       extractFirstTag(block, "logicalId") ||
       "";
-
     if (!logicalId) continue;
 
-    // Subject type (person / entity / vessel)
     const subjectType =
       extractFirstTag(block, "subjectType") ||
       extractAttr(block, "sanctionEntity", "subjectType") ||
       extractAttr(block, "nameAlias", "subjectType") ||
       "";
 
-    // Names — EU XML uses <nameAlias> elements
+    // Names
     const nameAliasBlocks = splitByTag(block, "nameAlias");
     let primaryName = "";
     const aliases: string[] = [];
-
     for (const na of nameAliasBlocks) {
       const wholeName = extractAttr(na, "nameAlias", "wholeName");
       const isStrong = extractAttr(na, "nameAlias", "strong") === "true";
-
       if (!wholeName) continue;
-
       if (!primaryName || isStrong) {
         if (primaryName) aliases.push(primaryName);
         primaryName = wholeName;
@@ -182,17 +202,14 @@ function parseEntitiesFromXml(xmlText: string): { entities: ParsedEntity[]; sche
         aliases.push(wholeName);
       }
     }
-
     if (!primaryName) {
-      // Fallback to firstName/lastName tags
       const firstName = extractFirstTag(block, "firstName");
       const lastName = extractFirstTag(block, "lastName");
       primaryName = [firstName, lastName].filter(Boolean).join(" ");
     }
-
     if (!primaryName) continue;
 
-    // Citizenship / country
+    // Citizenship
     const citizenshipBlocks = splitByTag(block, "citizenship");
     const nationalityCodes: string[] = [];
     for (const cb of citizenshipBlocks) {
@@ -200,22 +217,30 @@ function parseEntitiesFromXml(xmlText: string): { entities: ParsedEntity[]; sche
       if (cc) nationalityCodes.push(cc.toUpperCase());
     }
 
-    // Address country codes
+    // Addresses
     const addressBlocks = splitByTag(block, "address");
     const countryCodes: string[] = [];
+    const addresses: Array<{ country: string; city?: string; countryCode?: string }> = [];
     for (const ab of addressBlocks) {
       const cc = extractAttr(ab, "address", "countryIso2Code");
-      if (cc && !countryCodes.includes(cc.toUpperCase())) {
-        countryCodes.push(cc.toUpperCase());
-      }
-      // Also try country description
       const countryDesc = extractAttr(ab, "address", "countryDescription");
-      if (countryDesc) {
-        const resolved = resolveCountryCode(countryDesc);
-        if (resolved && !countryCodes.includes(resolved)) {
-          countryCodes.push(resolved);
-        }
+      const city = extractAttr(ab, "address", "city");
+      const resolvedCode = cc?.toUpperCase() || resolveCountryCode(countryDesc) || undefined;
+      if (resolvedCode && !countryCodes.includes(resolvedCode)) countryCodes.push(resolvedCode);
+      if (countryDesc || resolvedCode) {
+        addresses.push({ country: countryDesc || resolvedCode || "", city: city || undefined, countryCode: resolvedCode });
       }
+    }
+
+    // Identifiers (EU reference, passport, etc.)
+    const idBlocks = splitByTag(block, "identification");
+    const identifiers: Array<{ type: string; value: string }> = [];
+    for (const idBlock of idBlocks) {
+      const idType = extractAttr(idBlock, "identification", "identificationTypeDescription") ||
+        extractAttr(idBlock, "identification", "identificationType");
+      const idNumber = extractAttr(idBlock, "identification", "number") ||
+        extractFirstTag(idBlock, "number");
+      if (idType && idNumber) identifiers.push({ type: idType, value: idNumber });
     }
 
     // Regime / programme
@@ -224,7 +249,6 @@ function parseEntitiesFromXml(xmlText: string): { entities: ParsedEntity[]; sche
       extractAttr(block, "sanctionEntity", "programme") ||
       extractFirstTag(block, "regulationSummary") ||
       "";
-
     const regimeType = classifyRegime(regimeName);
 
     // Designation date
@@ -235,31 +259,32 @@ function parseEntitiesFromXml(xmlText: string): { entities: ParsedEntity[]; sche
       "";
     if (dateStr) {
       const parsed = new Date(dateStr);
-      if (!isNaN(parsed.getTime())) {
-        designationDate = parsed.toISOString().split("T")[0];
-      }
+      if (!isNaN(parsed.getTime())) designationDate = parsed.toISOString().split("T")[0];
     }
 
-    // Remark
     const remark = extractFirstTag(block, "remark");
 
     entities.push({
       logicalId,
-      subjectType: subjectType.toLowerCase().includes("person") ? "Individual" : "Entity",
+      entityType: subjectType.toLowerCase().includes("person") ? "Individual" : "Entity",
       primaryName: primaryName.substring(0, 500),
       aliases: aliases.slice(0, 20),
       countryCodes,
       nationalityCodes,
+      addresses,
       regimeName,
       regimeType,
       designationDate,
+      identifiers,
       remark,
-      rawXml: block.substring(0, 5000), // Truncate for storage
+      rawXml: block.substring(0, 5000),
     });
   }
 
   return { entities, schemaVersion, generationDate };
 }
+
+// ── Handler ──
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
@@ -273,7 +298,6 @@ Deno.serve(async (req) => {
   const body = await req.json().catch(() => ({}));
   const dataSourceId: string | undefined = body.data_source_id;
 
-  // Create ingestion run
   const { data: run, error: runErr } = await supabase
     .from("ingestion_run")
     .insert({
@@ -301,12 +325,9 @@ Deno.serve(async (req) => {
     // ── 1. Fetch XML ──
     console.log("[EU FSF] Fetching XML…");
     const xmlResponse = await fetch(EU_FSF_XML_URL, {
-      headers: { "User-Agent": "CliftonRuskin-SanctionsIngest/1.0", Accept: "application/xml" },
+      headers: { "User-Agent": "CliftonRuskin-EuFsfIngest/1.0", Accept: "application/xml" },
     });
-
-    if (!xmlResponse.ok) {
-      throw new Error(`HTTP ${xmlResponse.status} fetching EU FSF XML`);
-    }
+    if (!xmlResponse.ok) throw new Error(`HTTP ${xmlResponse.status} fetching EU FSF XML`);
 
     const xmlText = await xmlResponse.text();
     const snapshotHash = await computeHash(xmlText);
@@ -316,99 +337,177 @@ Deno.serve(async (req) => {
     const { entities, schemaVersion, generationDate } = parseEntitiesFromXml(xmlText);
     console.log(`[EU FSF] Parsed ${entities.length} entities (schema ${schemaVersion}, date ${generationDate})`);
 
-    // ── 3. Mark existing EU_FSF entities as potentially stale ──
-    await supabase
-      .from("sanctions_entity")
-      .update({ is_active: false, updated_at: new Date().toISOString() })
-      .eq("source_list", "EU_FSF");
+    if (entities.length === 0) throw new Error("No entities parsed from EU FSF data");
 
-    // ── 4. Batch upsert ──
+    // ── 3. Load existing EU_FSF entities for diff ──
+    const existingMap = new Map<string, any>();
+    let page = 0;
+    const PAGE_SIZE = 1000;
+    while (true) {
+      const { data: rows } = await supabase
+        .from("sanctions_entity")
+        .select("*")
+        .eq("source", "EU_FSF")
+        .range(page * PAGE_SIZE, (page + 1) * PAGE_SIZE - 1);
+      if (!rows || rows.length === 0) break;
+      for (const r of rows) existingMap.set(r.source_record_id, r);
+      if (rows.length < PAGE_SIZE) break;
+      page++;
+    }
+
+    const seenIds = new Set<string>();
+    const now = new Date().toISOString();
+
+    // ── 4. Batch upsert with change tracking ──
     const BATCH_SIZE = 100;
     const regimeCountryMap: Map<string, Set<string>> = new Map();
+    const touchedCountryCodes = new Set<string>();
 
     for (let batch = 0; batch < entities.length; batch += BATCH_SIZE) {
       const chunk = entities.slice(batch, batch + BATCH_SIZE);
-      const rows: Array<Record<string, unknown>> = [];
 
       for (const e of chunk) {
-        // Track regime → countries
+        seenIds.add(e.logicalId);
+
+        // Track regime → countries for jurisdiction indicators
         if (e.regimeName) {
           if (!regimeCountryMap.has(e.regimeName)) regimeCountryMap.set(e.regimeName, new Set());
-          for (const cc of e.countryCodes) regimeCountryMap.get(e.regimeName)!.add(cc);
+          for (const cc of e.countryCodes) {
+            regimeCountryMap.get(e.regimeName)!.add(cc);
+            touchedCountryCodes.add(cc);
+          }
           const regimeCode = resolveCountryCode(e.regimeName);
-          if (regimeCode) regimeCountryMap.get(e.regimeName)!.add(regimeCode);
+          if (regimeCode) {
+            regimeCountryMap.get(e.regimeName)!.add(regimeCode);
+            touchedCountryCodes.add(regimeCode);
+          }
         }
+        for (const cc of e.countryCodes) touchedCountryCodes.add(cc);
 
-        rows.push({
-          source_list: "EU_FSF",
-          source_entity_id: e.logicalId,
-          entity_type: e.subjectType,
-          primary_name: e.primaryName,
-          aliases: e.aliases,
-          nationality_codes: e.nationalityCodes,
-          country_codes: e.countryCodes,
-          regime_name: e.regimeName || null,
-          regime_type: e.regimeType,
-          designation_date: e.designationDate,
-          designation_source: "EU Financial Sanctions Files",
-          raw_data: { remark: e.remark, xml_excerpt: e.rawXml },
-          ingestion_run_id: runId,
-          source_url: EU_FSF_XML_URL,
-          source_snapshot_hash: snapshotHash,
-          retrieved_at: new Date().toISOString(),
-          is_active: true,
-          updated_at: new Date().toISOString(),
-        });
+        const newRow = {
+          source: "EU_FSF" as const,
+          source_record_id: e.logicalId,
+          list_name: e.regimeName || "EU FSF",
+          name: e.primaryName,
+          entity_type: e.entityType,
+          country_json: e.addresses.length > 0 ? e.addresses : e.countryCodes.map(c => ({ country_code: c })),
+          dob_json: e.designationDate ? [{ designation_date: e.designationDate }] : [],
+          identifiers_json: e.identifiers,
+          addresses_json: e.addresses,
+          programmes_json: e.regimeName ? [{ name: e.regimeName, type: e.regimeType }] : [],
+          raw_json: {
+            remark: e.remark,
+            aliases: e.aliases,
+            nationality_codes: e.nationalityCodes,
+            eu_reference_number: e.logicalId,
+            xml_excerpt: e.rawXml,
+          },
+          active: true,
+          last_seen_at: now,
+        };
+
+        const existing = existingMap.get(e.logicalId);
+
+        if (existing) {
+          const changed = jsonChanged(
+            { name: existing.name, entity_type: existing.entity_type, country_json: existing.country_json, programmes_json: existing.programmes_json, identifiers_json: existing.identifiers_json },
+            { name: newRow.name, entity_type: newRow.entity_type, country_json: newRow.country_json, programmes_json: newRow.programmes_json, identifiers_json: newRow.identifiers_json }
+          );
+
+          const { error: updateErr } = await supabase
+            .from("sanctions_entity")
+            .update({ ...newRow, updated_at: now })
+            .eq("id", existing.id);
+
+          if (updateErr) {
+            console.error(`[EU FSF] Update error for ${e.logicalId}:`, updateErr);
+          } else if (changed) {
+            await supabase.from("sanctions_entity_change").insert({
+              sanctions_entity_id: existing.id,
+              change_type: "UPDATED",
+              old_json: { name: existing.name, entity_type: existing.entity_type, country_json: existing.country_json, programmes_json: existing.programmes_json },
+              new_json: { name: newRow.name, entity_type: newRow.entity_type, country_json: newRow.country_json, programmes_json: newRow.programmes_json },
+              ingestion_run_id: runId,
+            });
+            totalChanged++;
+          }
+        } else {
+          const { data: inserted, error: insertErr } = await supabase
+            .from("sanctions_entity")
+            .insert({ ...newRow, first_seen_at: now, created_at: now, updated_at: now })
+            .select("id")
+            .single();
+
+          if (insertErr) {
+            console.error(`[EU FSF] Insert error for ${e.logicalId}:`, insertErr);
+            await supabase.from("ingestion_error").insert({
+              ingestion_run_id: runId,
+              error_message: `Insert error for ${e.logicalId}: ${insertErr.message}`,
+              error_detail: { logicalId: e.logicalId, error: insertErr },
+            });
+          } else if (inserted) {
+            await supabase.from("sanctions_entity_change").insert({
+              sanctions_entity_id: inserted.id,
+              change_type: "ADDED",
+              old_json: null,
+              new_json: { name: newRow.name, entity_type: newRow.entity_type, programmes_json: newRow.programmes_json },
+              ingestion_run_id: runId,
+            });
+            totalChanged++;
+          }
+        }
 
         totalProcessed++;
       }
+    }
 
-      if (rows.length > 0) {
-        const { error: insertErr } = await supabase
+    // ── 5. Soft-remove entities not seen in this run ──
+    for (const [recordId, existing] of existingMap) {
+      if (!seenIds.has(recordId) && existing.active) {
+        await supabase
           .from("sanctions_entity")
-          .upsert(rows as any, { onConflict: "id", ignoreDuplicates: false });
+          .update({ active: false, updated_at: now })
+          .eq("id", existing.id);
 
-        if (insertErr) {
-          console.error(`[EU FSF] Batch insert error:`, insertErr);
-          await supabase.from("ingestion_error").insert({
-            ingestion_run_id: runId,
-            error_message: `Batch insert error at offset ${batch}: ${insertErr.message}`,
-            error_detail: { batch_offset: batch, error: insertErr },
-          });
-        }
+        await supabase.from("sanctions_entity_change").insert({
+          sanctions_entity_id: existing.id,
+          change_type: "REMOVED",
+          old_json: { name: existing.name, active: true },
+          new_json: { name: existing.name, active: false },
+          ingestion_run_id: runId,
+        });
+        totalChanged++;
       }
     }
 
-    console.log(`[EU FSF] Processed ${totalProcessed} entities across ${regimeCountryMap.size} regimes`);
+    console.log(`[EU FSF] Processed ${totalProcessed} entities, ${totalChanged} changes across ${regimeCountryMap.size} regimes`);
 
-    // ── 5. Derive SANCTIONS_EU_PROGRAMME jurisdiction indicators ──
-    const countryRegimeStatus: Map<string, "COMPREHENSIVE" | "TARGETED"> = new Map();
+    // ── 6. Derive SANCTIONS_EU_PROGRAMME jurisdiction indicators ──
+    const countryStatus: Map<string, "COMPREHENSIVE" | "TARGETED"> = new Map();
 
     for (const [regime, codes] of regimeCountryMap) {
       const type = classifyRegime(regime);
       for (const code of codes) {
-        const current = countryRegimeStatus.get(code);
+        const current = countryStatus.get(code);
         if (type === "COMPREHENSIVE" || !current) {
-          countryRegimeStatus.set(code, type === "COMPREHENSIVE" ? "COMPREHENSIVE" : (current || "TARGETED"));
+          countryStatus.set(code, type === "COMPREHENSIVE" ? "COMPREHENSIVE" : (current || "TARGETED"));
         }
       }
     }
 
-    // Also resolve regime name itself
     for (const [regime] of regimeCountryMap) {
       const code = resolveCountryCode(regime);
       if (code) {
         const type = classifyRegime(regime);
-        const current = countryRegimeStatus.get(code);
+        const current = countryStatus.get(code);
         if (type === "COMPREHENSIVE" || !current) {
-          countryRegimeStatus.set(code, type === "COMPREHENSIVE" ? "COMPREHENSIVE" : (current || "TARGETED"));
+          countryStatus.set(code, type === "COMPREHENSIVE" ? "COMPREHENSIVE" : (current || "TARGETED"));
         }
       }
     }
 
-    console.log(`[EU FSF] Derived indicators for ${countryRegimeStatus.size} countries`);
+    console.log(`[EU FSF] Derived indicators for ${countryStatus.size} countries`);
 
-    // Get existing EU indicators
     const { data: existingIndicators } = await supabase
       .from("jurisdiction_indicator")
       .select("*, jurisdiction:jurisdiction_id(country_code)")
@@ -421,11 +520,10 @@ Deno.serve(async (req) => {
     }
 
     const today = new Date().toISOString().split("T")[0];
-    const newCodes = new Set(countryRegimeStatus.keys());
+    const newCodes = new Set(countryStatus.keys());
     const existingCodes = new Set(Object.keys(existingByCode));
 
-    // ADDED or CHANGED
-    for (const [code, status] of countryRegimeStatus) {
+    for (const [code, status] of countryStatus) {
       await supabase.from("jurisdiction").upsert(
         { country_code: code, country_name: code },
         { onConflict: "country_code" }
@@ -463,9 +561,9 @@ Deno.serve(async (req) => {
             source_name: "EU FSF",
             source_url: EU_FSF_XML_URL,
             source_snapshot_hash: snapshotHash,
-            retrieved_at: new Date().toISOString(),
+            retrieved_at: now,
             ingestion_run_id: runId,
-            updated_at: new Date().toISOString(),
+            updated_at: now,
           },
           { onConflict: "jurisdiction_id,indicator_type" }
         )
@@ -490,7 +588,7 @@ Deno.serve(async (req) => {
       }
     }
 
-    // REMOVED
+    // REMOVED indicators
     for (const code of existingCodes) {
       if (!newCodes.has(code)) {
         const existing = existingByCode[code];
@@ -508,9 +606,9 @@ Deno.serve(async (req) => {
             effective_date: today,
             source_url: EU_FSF_XML_URL,
             source_snapshot_hash: snapshotHash,
-            retrieved_at: new Date().toISOString(),
+            retrieved_at: now,
             ingestion_run_id: runId,
-            updated_at: new Date().toISOString(),
+            updated_at: now,
           })
           .eq("id", existing.id);
 
@@ -531,12 +629,20 @@ Deno.serve(async (req) => {
       }
     }
 
-    // ── 6. Finalize ──
+    // ── 7. Update jurisdiction.last_refreshed_at for touched countries ──
+    for (const code of touchedCountryCodes) {
+      await supabase
+        .from("jurisdiction")
+        .update({ last_refreshed_at: now, updated_at: now })
+        .eq("country_code", code);
+    }
+
+    // ── 8. Finalize ──
     await supabase
       .from("ingestion_run")
       .update({
         status: "completed",
-        finished_at: new Date().toISOString(),
+        finished_at: now,
         records_processed: totalProcessed,
         records_changed: totalChanged,
         metadata: {
@@ -552,11 +658,11 @@ Deno.serve(async (req) => {
     if (dataSourceId) {
       await supabase
         .from("data_source")
-        .update({ last_run_at: new Date().toISOString(), last_run_status: "completed" })
+        .update({ last_run_at: now, last_run_status: "completed" })
         .eq("id", dataSourceId);
     }
 
-    console.log(`[EU FSF] Complete: ${totalProcessed} entities, ${totalChanged} indicator changes`);
+    console.log(`[EU FSF] Complete: ${totalProcessed} entities, ${totalChanged} changes`);
 
     return new Response(
       JSON.stringify({
@@ -565,7 +671,8 @@ Deno.serve(async (req) => {
         records_processed: totalProcessed,
         records_changed: totalChanged,
         regimes_found: regimeCountryMap.size,
-        countries_with_indicators: countryRegimeStatus.size,
+        countries_with_indicators: countryStatus.size,
+        jurisdictions_refreshed: touchedCountryCodes.size,
         schema_version: schemaVersion,
         generation_date: generationDate,
       }),
