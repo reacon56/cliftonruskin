@@ -45,7 +45,7 @@ export default function CaseDetailPage() {
   const isOfficer = canWork && !isManager;
 
   const [caseData, setCaseData] = useState<any>(null);
-  const [messages, setMessages] = useState<any[]>([]);
+  
   const [deliverables, setDeliverables] = useState<any[]>([]);
   const [newMessage, setNewMessage] = useState("");
   const [entity, setEntity] = useState<any>(null);
