@@ -56,6 +56,7 @@ import EntitlementSettingsPage from "@/pages/EntitlementSettingsPage";
 import ServiceRequestPage from "@/pages/ServiceRequestPage";
 import CommercialDashboardPage from "@/pages/CommercialDashboardPage";
 import ClientSpendSummaryPage from "@/pages/ClientSpendSummaryPage";
+import IngestionSourcesPage from "@/pages/IngestionSourcesPage";
 
 // Website pages
 import WebsiteLayout from "@/components/website/WebsiteLayout";
