@@ -843,25 +843,43 @@ export type Database = {
           base_url: string | null
           created_at: string
           description: string | null
+          expected_format: string
           id: string
           is_active: boolean
+          last_run_at: string | null
+          last_run_status: string | null
           name: string
+          refresh_cadence: string
+          source_type: string
+          urls: string[]
         }
         Insert: {
           base_url?: string | null
           created_at?: string
           description?: string | null
+          expected_format?: string
           id?: string
           is_active?: boolean
+          last_run_at?: string | null
+          last_run_status?: string | null
           name: string
+          refresh_cadence?: string
+          source_type?: string
+          urls?: string[]
         }
         Update: {
           base_url?: string | null
           created_at?: string
           description?: string | null
+          expected_format?: string
           id?: string
           is_active?: boolean
+          last_run_at?: string | null
+          last_run_status?: string | null
           name?: string
+          refresh_cadence?: string
+          source_type?: string
+          urls?: string[]
         }
         Relationships: []
       }

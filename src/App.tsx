@@ -56,6 +56,7 @@ import EntitlementSettingsPage from "@/pages/EntitlementSettingsPage";
 import ServiceRequestPage from "@/pages/ServiceRequestPage";
 import CommercialDashboardPage from "@/pages/CommercialDashboardPage";
 import ClientSpendSummaryPage from "@/pages/ClientSpendSummaryPage";
+import IngestionSourcesPage from "@/pages/IngestionSourcesPage";
 
 // Website pages
 import WebsiteLayout from "@/components/website/WebsiteLayout";
@@ -153,6 +154,7 @@ function AppRoutes() {
         <Route path="/partner-requests" element={<InternalRouteGuard><PartnerRequestsPage /></InternalRouteGuard>} />
         <Route path="/knowledge-base" element={<InternalRouteGuard><KnowledgeBasePage /></InternalRouteGuard>} />
         <Route path="/source-registry" element={<InternalRouteGuard managerOnly><SourceRegistryPage /></InternalRouteGuard>} />
+        <Route path="/ingestion-sources" element={<InternalRouteGuard managerOnly><IngestionSourcesPage /></InternalRouteGuard>} />
         <Route path="/research-console" element={<InternalRouteGuard><ResearchConsolePage /></InternalRouteGuard>} />
 
         <Route path="/users" element={<StubPage title="Users & Roles" description="Manage team members and role assignments" />} />
