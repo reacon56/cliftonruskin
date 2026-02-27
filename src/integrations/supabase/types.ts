@@ -3839,6 +3839,83 @@ export type Database = {
           },
         ]
       }
+      sanctions_entity: {
+        Row: {
+          aliases: Json | null
+          country_codes: string[] | null
+          created_at: string
+          designation_date: string | null
+          designation_source: string | null
+          entity_type: string
+          id: string
+          ingestion_run_id: string | null
+          is_active: boolean
+          nationality_codes: string[] | null
+          primary_name: string
+          raw_data: Json | null
+          regime_name: string | null
+          regime_type: string | null
+          retrieved_at: string
+          source_entity_id: string | null
+          source_list: string
+          source_snapshot_hash: string | null
+          source_url: string | null
+          updated_at: string
+        }
+        Insert: {
+          aliases?: Json | null
+          country_codes?: string[] | null
+          created_at?: string
+          designation_date?: string | null
+          designation_source?: string | null
+          entity_type?: string
+          id?: string
+          ingestion_run_id?: string | null
+          is_active?: boolean
+          nationality_codes?: string[] | null
+          primary_name: string
+          raw_data?: Json | null
+          regime_name?: string | null
+          regime_type?: string | null
+          retrieved_at?: string
+          source_entity_id?: string | null
+          source_list?: string
+          source_snapshot_hash?: string | null
+          source_url?: string | null
+          updated_at?: string
+        }
+        Update: {
+          aliases?: Json | null
+          country_codes?: string[] | null
+          created_at?: string
+          designation_date?: string | null
+          designation_source?: string | null
+          entity_type?: string
+          id?: string
+          ingestion_run_id?: string | null
+          is_active?: boolean
+          nationality_codes?: string[] | null
+          primary_name?: string
+          raw_data?: Json | null
+          regime_name?: string | null
+          regime_type?: string | null
+          retrieved_at?: string
+          source_entity_id?: string | null
+          source_list?: string
+          source_snapshot_hash?: string | null
+          source_url?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sanctions_entity_ingestion_run_id_fkey"
+            columns: ["ingestion_run_id"]
+            isOneToOne: false
+            referencedRelation: "ingestion_run"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       saved_views: {
         Row: {
           created_at: string
