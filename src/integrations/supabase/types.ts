@@ -14,6 +14,44 @@ export type Database = {
   }
   public: {
     Tables: {
+      all_stations_notices: {
+        Row: {
+          body: string
+          case_id: string
+          created_at: string
+          id: string
+          org_id: string
+          sender_user_id: string
+          subject: string
+        }
+        Insert: {
+          body: string
+          case_id: string
+          created_at?: string
+          id?: string
+          org_id: string
+          sender_user_id: string
+          subject: string
+        }
+        Update: {
+          body?: string
+          case_id?: string
+          created_at?: string
+          id?: string
+          org_id?: string
+          sender_user_id?: string
+          subject?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "all_stations_notices_case_id_fkey"
+            columns: ["case_id"]
+            isOneToOne: false
+            referencedRelation: "cases"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       audit_events: {
         Row: {
           action_type: string
@@ -234,6 +272,7 @@ export type Database = {
         Row: {
           attachments: Json | null
           case_id: string
+          channel: string
           created_at: string
           id: string
           message: string
@@ -242,6 +281,7 @@ export type Database = {
         Insert: {
           attachments?: Json | null
           case_id: string
+          channel?: string
           created_at?: string
           id?: string
           message: string
@@ -250,6 +290,7 @@ export type Database = {
         Update: {
           attachments?: Json | null
           case_id?: string
+          channel?: string
           created_at?: string
           id?: string
           message?: string

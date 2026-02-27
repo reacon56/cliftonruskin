@@ -23,6 +23,7 @@ import QuotePanel from "@/components/case-detail/QuotePanel";
 import CaseTaskBoard from "@/components/case-detail/CaseTaskBoard";
 import EvidenceLocker from "@/components/case-detail/EvidenceLocker";
 import CaseRetrievalLogs from "@/components/case-detail/CaseRetrievalLogs";
+import CaseChatPanel from "@/components/case-detail/CaseChatPanel";
 import {
   CASE_STATUSES, STATUS_LABELS, STATUS_COLORS, STATUS_AUDIT_MAP,
   CASE_TYPE_LABELS, REPORT_TIER_LABELS,
@@ -44,9 +45,9 @@ export default function CaseDetailPage() {
   const isOfficer = canWork && !isManager;
 
   const [caseData, setCaseData] = useState<any>(null);
-  const [messages, setMessages] = useState<any[]>([]);
+  
   const [deliverables, setDeliverables] = useState<any[]>([]);
-  const [newMessage, setNewMessage] = useState("");
+  
   const [entity, setEntity] = useState<any>(null);
   const [showReport, setShowReport] = useState(false);
   const [simulating, setSimulating] = useState(false);
@@ -58,21 +59,18 @@ export default function CaseDetailPage() {
   const [editingNotes, setEditingNotes] = useState(false);
   const [internalNotes, setInternalNotes] = useState("");
   const [activeTab, setActiveTab] = useState("scope");
-  // Internal vs client message filter
-  const [messageFilter, setMessageFilter] = useState<"internal" | "client">("internal");
 
   useEffect(() => { if (id) loadCase(); }, [id]);
 
   const loadCase = async () => {
-    const [caseRes, msgsRes, delsRes, auditRes, modulesRes] = await Promise.all([
+    const [caseRes, delsRes, auditRes, modulesRes] = await Promise.all([
       supabase.from("cases").select("*").eq("id", id!).single(),
-      supabase.from("case_messages").select("*").eq("case_id", id!).order("created_at"),
       supabase.from("deliverables").select("*").eq("case_id", id!).order("created_at", { ascending: false }),
       supabase.from("audit_events").select("*").eq("object_id", id!).eq("object_type", "case").order("created_at"),
       supabase.from("case_modules").select("*").eq("case_id", id!),
     ]);
     setCaseData(caseRes.data);
-    setMessages(msgsRes.data ?? []);
+    setDeliverables(delsRes.data ?? []);
     setDeliverables(delsRes.data ?? []);
     setAuditEvents(auditRes.data ?? []);
     setInternalNotes((caseRes.data as any)?.internal_notes ?? "");
@@ -105,12 +103,6 @@ export default function CaseDetailPage() {
     }
   };
 
-  const sendMessage = async () => {
-    if (!newMessage.trim() || !user) return;
-    await supabase.from("case_messages").insert({ case_id: id!, sender_user_id: user.id, message: newMessage });
-    setNewMessage("");
-    loadCase();
-  };
 
   const transitionTo = async (status: string, extraPayload?: Record<string, any>, comment?: string) => {
     if (!user || !profile) return;
@@ -332,34 +324,7 @@ export default function CaseDetailPage() {
 
           {/* ── MESSAGES ── */}
           <TabsContent value="messages">
-            <div className="rounded-lg border bg-card p-4 space-y-4">
-              {isInternal && (
-                <div className="flex gap-1">
-                  <Button size="sm" variant={messageFilter === "internal" ? "default" : "outline"} className="text-xs h-7" onClick={() => setMessageFilter("internal")}>Internal Chat</Button>
-                  <Button size="sm" variant={messageFilter === "client" ? "default" : "outline"} className="text-xs h-7" onClick={() => setMessageFilter("client")}>Client Thread</Button>
-                </div>
-              )}
-              <div className="space-y-3 max-h-[400px] overflow-y-auto">
-                {messages.length === 0 ? (
-                  <p className="text-sm text-muted-foreground text-center py-4">No messages yet.</p>
-                ) : messages.map((m) => {
-                  const isMe = m.sender_user_id === user?.id;
-                  return (
-                    <div key={m.id} className={`border rounded-lg p-3 ${isMe ? "border-accent/20 bg-accent/5" : ""}`}>
-                      <div className="flex items-center justify-between mb-1">
-                        <span className="text-xs font-medium text-foreground">{isMe ? "You" : primaryRoleLabel}</span>
-                        <span className="text-[10px] text-muted-foreground">{new Date(m.created_at).toLocaleString()}</span>
-                      </div>
-                      <p className="text-sm text-foreground">{m.message}</p>
-                    </div>
-                  );
-                })}
-              </div>
-              <div className="flex gap-2">
-                <Textarea value={newMessage} onChange={(e) => setNewMessage(e.target.value)} placeholder="Type a message…" rows={2} className="flex-1" />
-                <Button onClick={sendMessage} disabled={!newMessage.trim()} size="sm" className="self-end"><Send size={14} className="mr-1" /> Send</Button>
-              </div>
-            </div>
+            <CaseChatPanel caseId={id!} orgId={caseData.org_id} />
           </TabsContent>
 
           {/* ── EVIDENCE LOCKER ── */}
@@ -423,7 +388,7 @@ export default function CaseDetailPage() {
             {/* Activity Timeline */}
             <div className="rounded-lg border bg-card p-4">
               <h3 className="font-display text-sm font-semibold text-foreground mb-3">Activity Timeline</h3>
-              <CaseActivityTimeline caseData={caseData} messages={messages} deliverables={deliverables} auditEvents={auditEvents} currentUserId={user?.id} />
+              <CaseActivityTimeline caseData={caseData} messages={[]} deliverables={deliverables} auditEvents={auditEvents} currentUserId={user?.id} />
             </div>
 
             {showReport && deliverables.length > 0 && (
