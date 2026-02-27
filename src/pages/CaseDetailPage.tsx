@@ -67,6 +67,8 @@ export default function CaseDetailPage() {
   const [internalNotes, setInternalNotes] = useState("");
   const [activeTab, setActiveTab] = useState("scope");
   const [deviationOverrides, setDeviationOverrides] = useState<any[]>([]);
+  const [urgentJustification, setUrgentJustification] = useState("");
+  const [showUrgentDialog, setShowUrgentDialog] = useState(false);
 
   useEffect(() => { if (id) { loadCase(); loadDeviations(); } }, [id]);
 
