@@ -1,11 +1,18 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
+import { useToast } from "@/hooks/use-toast";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
 import {
   CheckCircle2, AlertTriangle, XCircle, Shield,
-  ChevronDown, ChevronUp,
+  ChevronDown, ChevronUp, Send, ShieldOff,
 } from "lucide-react";
+import {
+  Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription,
+} from "@/components/ui/dialog";
+import { requestDeviationOverride } from "./TierDeviationPanel";
 
 const SOURCE_LABELS: Record<string, string> = {
   sanctions: "Sanctions Check",
@@ -26,7 +33,8 @@ const COMMENTARY_LABELS: Record<string, string> = {
 
 interface Requirement {
   label: string;
-  status: "complete" | "missing" | "warning";
+  ruleKey: string;
+  status: "complete" | "missing" | "warning" | "waived";
   detail?: string;
 }
 
@@ -39,6 +47,8 @@ interface Props {
   preQaPassed: boolean;
   aiReviewCompleted: boolean;
   structuredDataLocked: boolean;
+  deviationOverrides?: any[];
+  onDeviationRequested?: () => void;
 }
 
 export default function TierRequirementsPanel({
@@ -50,12 +60,20 @@ export default function TierRequirementsPanel({
   preQaPassed,
   aiReviewCompleted,
   structuredDataLocked,
+  deviationOverrides = [],
+  onDeviationRequested,
 }: Props) {
-  const { user, profile } = useAuth();
+  const { user, profile, canQuote: isManager } = useAuth();
+  const isOfficer = !isManager;
+  const { toast } = useToast();
   const [matrixRule, setMatrixRule] = useState<any>(null);
   const [matrixVersion, setMatrixVersion] = useState<any>(null);
   const [expanded, setExpanded] = useState(true);
   const [logged, setLogged] = useState(false);
+  const [requestingFor, setRequestingFor] = useState<Requirement | null>(null);
+  const [deviationReason, setDeviationReason] = useState("");
+  const [deviationNotes, setDeviationNotes] = useState("");
+  const [submittingDeviation, setSubmittingDeviation] = useState(false);
 
   useEffect(() => { loadMatrix(); }, [reportTier]);
 
@@ -82,6 +100,15 @@ export default function TierRequirementsPanel({
     setMatrixRule(rData);
   };
 
+  // ── Helper: check if a requirement has an approved waiver ──
+  const getWaiverStatus = (ruleKey: string): "approved" | "pending" | null => {
+    const match = deviationOverrides.find((o: any) => o.requirement_rule_key === ruleKey);
+    if (!match) return null;
+    if (match.status === "approved") return "approved";
+    if (match.status === "pending") return "pending";
+    return null;
+  };
+
   // ── Evaluate requirements ──
   const { requirements, completeCount, missingCount, totalCount, allComplete } = (() => {
     if (!matrixRule) return { requirements: [] as Requirement[], completeCount: 0, missingCount: 0, totalCount: 0, allComplete: false };
@@ -93,45 +120,57 @@ export default function TierRequirementsPanel({
     requiredSources.forEach((cat: string) => {
       const logCount = retrievalLogs.filter((l: any) => l.category === cat).length;
       const required = minLogsCfg[cat] ?? 1;
+      const baseComplete = logCount >= required;
+      const waiver = getWaiverStatus(`source_${cat}`);
       reqs.push({
         label: SOURCE_LABELS[cat] || cat,
-        status: logCount >= required ? "complete" : "missing",
-        detail: `${logCount}/${required} logs`,
+        ruleKey: `source_${cat}`,
+        status: baseComplete ? "complete" : waiver === "approved" ? "waived" : "missing",
+        detail: waiver === "approved" ? "Waived by Manager" : `${logCount}/${required} logs`,
       });
     });
 
     const requiredCommentary: string[] = matrixRule.required_commentary_sections ?? [];
     requiredCommentary.forEach((key: string) => {
       const filled = !!(officerCommentary && (officerCommentary as any)[key]?.trim());
+      const waiver = getWaiverStatus(`commentary_${key}`);
       reqs.push({
         label: COMMENTARY_LABELS[key] || key,
-        status: filled ? "complete" : "missing",
-        detail: filled ? "Populated" : "Required",
+        ruleKey: `commentary_${key}`,
+        status: filled ? "complete" : waiver === "approved" ? "waived" : "missing",
+        detail: filled ? "Populated" : waiver === "approved" ? "Waived by Manager" : "Required",
       });
     });
 
-    reqs.push({ label: "Structured Data Locked", status: structuredDataLocked ? "complete" : "missing" });
-    reqs.push({ label: "Risk Model Executed", status: riskModelExecuted ? "complete" : "missing" });
-    reqs.push({ label: "Pre-QA Review Passed", status: preQaPassed ? "complete" : "missing" });
+    const sdWaiver = getWaiverStatus("structured_data_locked");
+    reqs.push({ label: "Structured Data Locked", ruleKey: "structured_data_locked", status: structuredDataLocked ? "complete" : sdWaiver === "approved" ? "waived" : "missing", detail: sdWaiver === "approved" ? "Waived by Manager" : undefined });
+    const rmWaiver = getWaiverStatus("risk_model_executed");
+    reqs.push({ label: "Risk Model Executed", ruleKey: "risk_model_executed", status: riskModelExecuted ? "complete" : rmWaiver === "approved" ? "waived" : "missing", detail: rmWaiver === "approved" ? "Waived by Manager" : undefined });
+    const pqWaiver = getWaiverStatus("pre_qa_passed");
+    reqs.push({ label: "Pre-QA Review Passed", ruleKey: "pre_qa_passed", status: preQaPassed ? "complete" : pqWaiver === "approved" ? "waived" : "missing", detail: pqWaiver === "approved" ? "Waived by Manager" : undefined });
 
     if (matrixRule.ai_review_required) {
-      reqs.push({ label: "AI Review Completed", status: aiReviewCompleted ? "complete" : "missing" });
+      const aiWaiver = getWaiverStatus("ai_review_completed");
+      reqs.push({ label: "AI Review Completed", ruleKey: "ai_review_completed", status: aiReviewCompleted ? "complete" : aiWaiver === "approved" ? "waived" : "missing", detail: aiWaiver === "approved" ? "Waived by Manager" : undefined });
     }
 
     const qaItems: string[] = matrixRule.qa_checklist_items ?? [];
-    qaItems.forEach((item: string) => {
-      let status: "complete" | "missing" | "warning" = "warning";
+    qaItems.forEach((item: string, idx: number) => {
+      const ruleKey = `qa_checklist_${idx}`;
+      let status: "complete" | "missing" | "warning" | "waived" = "warning";
       if (item.toLowerCase().includes("structured data") && structuredDataLocked) status = "complete";
       else if (item.toLowerCase().includes("commentary") && officerCommentary) status = "complete";
       else if (item.toLowerCase().includes("risk model") && riskModelExecuted) status = "complete";
       else if (item.toLowerCase().includes("pre-qa") && preQaPassed) status = "complete";
       else if (item.toLowerCase().includes("ai review") && aiReviewCompleted) status = "complete";
+      const waiver = getWaiverStatus(ruleKey);
+      if (status !== "complete" && waiver === "approved") status = "waived";
       if (!reqs.some((r) => r.label.toLowerCase().includes(item.toLowerCase().slice(0, 15)))) {
-        reqs.push({ label: item, status, detail: status === "warning" ? "Manual check" : undefined });
+        reqs.push({ label: item, ruleKey, status, detail: status === "waived" ? "Waived by Manager" : status === "warning" ? "Manual check" : undefined });
       }
     });
 
-    const cc = reqs.filter((r) => r.status === "complete").length;
+    const cc = reqs.filter((r) => r.status === "complete" || r.status === "waived").length;
     const mc = reqs.filter((r) => r.status === "missing").length;
     return { requirements: reqs, completeCount: cc, missingCount: mc, totalCount: reqs.length, allComplete: mc === 0 };
   })();
@@ -159,6 +198,7 @@ export default function TierRequirementsPanel({
   if (!matrixRule || !matrixVersion) return null;
 
   return (
+  <>
     <div className="rounded-lg border bg-card p-4 space-y-3">
       <button
         onClick={() => setExpanded(!expanded)}
@@ -178,31 +218,118 @@ export default function TierRequirementsPanel({
 
       {expanded && (
         <div className="space-y-1.5">
-          {requirements.map((req, i) => (
-            <div key={i} className="flex items-center gap-2 text-xs">
-              {req.status === "complete" ? (
-                <CheckCircle2 size={12} className="text-success shrink-0" />
-              ) : req.status === "missing" ? (
-                <XCircle size={12} className="text-destructive shrink-0" />
-              ) : (
-                <AlertTriangle size={12} className="text-warning shrink-0" />
-              )}
-              <span className={req.status === "complete" ? "text-foreground" : req.status === "missing" ? "text-destructive" : "text-warning"}>
-                {req.label}
-              </span>
-              {req.detail && (
-                <span className="text-[10px] text-muted-foreground ml-auto">{req.detail}</span>
-              )}
-            </div>
-          ))}
+          {requirements.map((req, i) => {
+            const hasPendingOverride = deviationOverrides.some(
+              (o: any) => o.requirement_rule_key === req.ruleKey && o.status === "pending"
+            );
+            return (
+              <div key={i} className="flex items-center gap-2 text-xs">
+                {req.status === "complete" ? (
+                  <CheckCircle2 size={12} className="text-success shrink-0" />
+                ) : req.status === "waived" ? (
+                  <ShieldOff size={12} className="text-accent shrink-0" />
+                ) : req.status === "missing" ? (
+                  <XCircle size={12} className="text-destructive shrink-0" />
+                ) : (
+                  <AlertTriangle size={12} className="text-warning shrink-0" />
+                )}
+                <span className={
+                  req.status === "complete" ? "text-foreground"
+                    : req.status === "waived" ? "text-accent"
+                    : req.status === "missing" ? "text-destructive"
+                    : "text-warning"
+                }>
+                  {req.label}
+                </span>
+                {req.detail && (
+                  <span className="text-[10px] text-muted-foreground ml-auto">{req.detail}</span>
+                )}
+                {/* Officer: request deviation for missing items */}
+                {req.status === "missing" && isOfficer && !hasPendingOverride && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-5 px-1.5 text-[9px] ml-1 text-muted-foreground hover:text-foreground"
+                    onClick={() => setRequestingFor(req)}
+                  >
+                    Request Override
+                  </Button>
+                )}
+                {hasPendingOverride && (
+                  <Badge className="bg-warning/10 text-warning text-[9px] ml-1">Pending</Badge>
+                )}
+              </div>
+            );
+          })}
 
           {!allComplete && (
             <p className="text-[10px] text-destructive italic mt-2">
-              All required items must be complete before QA submission.
+              All required items must be complete (or waived) before QA submission.
             </p>
           )}
         </div>
       )}
     </div>
+
+    {/* Deviation Request Dialog */}
+    <Dialog open={!!requestingFor} onOpenChange={() => { setRequestingFor(null); setDeviationReason(""); setDeviationNotes(""); }}>
+      <DialogContent className="sm:max-w-md">
+        <DialogHeader>
+          <DialogTitle className="text-sm font-display">Request Deviation Override</DialogTitle>
+          <DialogDescription className="text-xs">
+            Request manager approval to waive: <strong>{requestingFor?.label}</strong>
+          </DialogDescription>
+        </DialogHeader>
+        <Textarea
+          rows={3}
+          placeholder="Reason for deviation (mandatory)…"
+          value={deviationReason}
+          onChange={(e) => setDeviationReason(e.target.value)}
+          className="text-xs"
+        />
+        <Textarea
+          rows={2}
+          placeholder="Supporting notes (optional)…"
+          value={deviationNotes}
+          onChange={(e) => setDeviationNotes(e.target.value)}
+          className="text-xs"
+        />
+        <div className="flex justify-end gap-2">
+          <Button variant="outline" size="sm" className="text-xs" onClick={() => setRequestingFor(null)}>Cancel</Button>
+          <Button
+            size="sm"
+            className="text-xs gap-1"
+            disabled={!deviationReason.trim() || submittingDeviation}
+            onClick={async () => {
+              if (!requestingFor || !user || !profile) return;
+              setSubmittingDeviation(true);
+              const ok = await requestDeviationOverride({
+                caseId,
+                requirementLabel: requestingFor.label,
+                requirementRuleKey: requestingFor.ruleKey,
+                matrixVersionId: matrixVersion?.id ?? null,
+                reason: deviationReason.trim(),
+                supportingNotes: deviationNotes.trim(),
+                userId: user.id,
+                orgId: profile.org_id,
+              });
+              setSubmittingDeviation(false);
+              if (ok) {
+                toast({ title: "Override request submitted" });
+                setRequestingFor(null);
+                setDeviationReason("");
+                setDeviationNotes("");
+                onDeviationRequested?.();
+              } else {
+                toast({ title: "Failed to submit request", variant: "destructive" });
+              }
+            }}
+          >
+            <Send size={12} /> {submittingDeviation ? "Submitting…" : "Submit Request"}
+          </Button>
+        </div>
+      </DialogContent>
+    </Dialog>
+  </>
   );
 }

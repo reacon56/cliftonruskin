@@ -30,6 +30,7 @@ import CaseChatPanel from "@/components/case-detail/CaseChatPanel";
 import PartnerEscalationPanel from "@/components/case-detail/PartnerEscalationPanel";
 import CaseTimeTracker from "@/components/case-detail/CaseTimeTracker";
 import TierRequirementsPanel from "@/components/case-detail/TierRequirementsPanel";
+import TierDeviationPanel from "@/components/case-detail/TierDeviationPanel";
 import {
   CASE_STATUSES, STATUS_LABELS, STATUS_COLORS, STATUS_AUDIT_MAP,
   CASE_TYPE_LABELS, REPORT_TIER_LABELS,
@@ -65,8 +66,9 @@ export default function CaseDetailPage() {
   const [editingNotes, setEditingNotes] = useState(false);
   const [internalNotes, setInternalNotes] = useState("");
   const [activeTab, setActiveTab] = useState("scope");
+  const [deviationOverrides, setDeviationOverrides] = useState<any[]>([]);
 
-  useEffect(() => { if (id) loadCase(); }, [id]);
+  useEffect(() => { if (id) { loadCase(); loadDeviations(); } }, [id]);
 
   const loadCase = async () => {
     const [caseRes, delsRes, auditRes, modulesRes] = await Promise.all([
@@ -108,6 +110,16 @@ export default function CaseDetailPage() {
       setAllowPreApprovalStart((orgData as any)?.allow_pre_approval_start ?? false);
     }
   };
+
+  const loadDeviations = async () => {
+    const { data } = await supabase
+      .from("tier_deviation_overrides" as any)
+      .select("*")
+      .eq("case_id", id!)
+      .order("created_at", { ascending: false });
+    setDeviationOverrides((data as any[]) ?? []);
+  };
+
 
 
   const transitionTo = async (status: string, extraPayload?: Record<string, any>, comment?: string) => {
@@ -392,6 +404,18 @@ export default function CaseDetailPage() {
                 preQaPassed={false}
                 aiReviewCompleted={false}
                 structuredDataLocked={false}
+                deviationOverrides={deviationOverrides}
+                onDeviationRequested={loadDeviations}
+              />
+            )}
+
+            {/* Active Deviations – internal only */}
+            {isInternal && (
+              <TierDeviationPanel
+                caseId={id!}
+                matrixVersionId={null}
+                isManager={isManager}
+                onDeviationChange={loadDeviations}
               />
             )}
 
