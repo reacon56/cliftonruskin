@@ -9,10 +9,11 @@ import { Textarea } from "@/components/ui/textarea";
 import {
   Database, Pen, Sparkles, ShieldCheck, Lock, Unlock,
   CheckCircle2, AlertTriangle, FileText, Save,
-  RefreshCw, XCircle,
+  RefreshCw, XCircle, BarChart3,
 } from "lucide-react";
 import ReportPdfRenderer from "@/components/case-detail/ReportPdfRenderer";
 import ReportAmendmentPanel from "@/components/case-detail/ReportAmendmentPanel";
+import AutomationCoverageMap from "@/components/case-detail/AutomationCoverageMap";
 
 /* ────── types ────── */
 interface StructuredData {
