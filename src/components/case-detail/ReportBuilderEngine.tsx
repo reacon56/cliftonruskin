@@ -139,6 +139,18 @@ export default function ReportBuilderEngine({ caseId, caseData, entity, isManage
 
   useEffect(() => { loadDraft(); }, [loadDraft]);
 
+  /* ── load partner escalation count ── */
+  useEffect(() => {
+    (async () => {
+      const { count } = await supabase
+        .from("partner_escalations" as any)
+        .select("id", { count: "exact", head: true })
+        .eq("case_id", caseId)
+        .in("status", ["completed", "in_progress", "partner_selected"]);
+      setPartnerEscalationCount(count ?? 0);
+    })();
+  }, [caseId]);
+
   /* ── auto-fill structured data from case ── */
   const buildStructuredData = (): StructuredData => ({
     entity_core_data: {
