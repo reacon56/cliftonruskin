@@ -17,6 +17,7 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import AssuranceNoteReport from "@/components/AssuranceNoteReport";
 import ReportBuilderEngine from "@/components/case-detail/ReportBuilderEngine";
+import AiAssurancePanel from "@/components/case-detail/AiAssurancePanel";
 import CaseActivityTimeline from "@/components/CaseActivityTimeline";
 import DataProtectionSummary from "@/components/case-detail/DataProtectionSummary";
 import CaseProcessingRecord from "@/components/case-detail/CaseProcessingRecord";
@@ -337,7 +338,7 @@ export default function CaseDetailPage() {
           </TabsContent>
 
           {/* ── RISK ASSESSMENT ── */}
-          <TabsContent value="risk">
+          <TabsContent value="risk" className="space-y-4">
             <div className="rounded-lg border bg-card p-4 space-y-3">
               <h3 className="font-display text-sm font-semibold text-foreground flex items-center gap-2"><BarChart3 className="h-4 w-4" /> Risk Assessment</h3>
               <div className="grid grid-cols-2 gap-3">
@@ -359,6 +360,9 @@ export default function CaseDetailPage() {
                 </div>
               </div>
             </div>
+
+            {/* AI Assurance Assistant – internal only */}
+            {isInternal && <AiAssurancePanel caseId={id!} />}
           </TabsContent>
 
           {/* ── QA & RELEASE ── */}
