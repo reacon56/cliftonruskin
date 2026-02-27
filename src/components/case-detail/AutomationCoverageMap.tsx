@@ -246,11 +246,12 @@ export default function AutomationCoverageMap({
   aiDraft, aiDraftReviewed, aiDraftDismissed,
   aiDecisions = [],
   preQaChecks = [], preQaRanAt,
+  partnerEscalationCount = 0,
 }: Props) {
 
   const { rows, autoPct, manualPct, aiPct, coveragePct, missingCount } = computeCoverageRows({
     structuredData, officerCommentary, aiDraft, aiDraftDismissed,
-    aiDecisions, preQaChecks, preQaRanAt,
+    aiDecisions, preQaChecks, preQaRanAt, partnerEscalationCount,
   });
   const total = rows.length;
   const filledCount = total - missingCount;
