@@ -203,6 +203,17 @@ export default function AutomationCoverageMap({
     });
   }
 
+  // Pre-QA System Check rows
+  if (preQaChecks.length > 0) {
+    rows.push({
+      section: "Pre-QA Completeness Check",
+      status: "system_check",
+      dataSources: ["System — Pre-QA Agent"],
+      lastUpdatedBy: "System",
+      timestamp: preQaRanAt ?? now,
+    });
+  }
+
   // Coverage stats
   const total = rows.length;
   const autoCount = rows.filter((r) => r.status === "auto_filled").length;
