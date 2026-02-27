@@ -98,6 +98,9 @@ export default function AgenticReviewPanel({ caseId }: Props) {
   const [loading, setLoading] = useState(false);
   const [review, setReview] = useState<AgenticReview | null>(null);
   const [generatedAt, setGeneratedAt] = useState<string | null>(null);
+  const [aiDisclaimer, setAiDisclaimer] = useState<string | null>(null);
+  const [violationCount, setViolationCount] = useState(0);
+  const [humanReviewed, setHumanReviewed] = useState(false);
   const [acks, setAcks] = useState<Record<string, StageAck>>({});
 
   const runReview = async () => {
