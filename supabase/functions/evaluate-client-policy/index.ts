@@ -58,49 +58,57 @@ serve(async (req) => {
       });
     }
 
-    // 3. Get entity's linked jurisdictions
-    const { data: opCountries } = await sb
-      .from("entity_operating_countries")
-      .select("country_code")
+    // 3. Get entity's linked jurisdictions — prefer explicit links, fallback to legacy
+    const { data: explicitLinks } = await sb
+      .from("entity_jurisdiction_link")
+      .select("jurisdiction_id, link_type, jurisdiction(id, country_code)")
       .eq("entity_id", entity_id);
 
-    const { data: entityData } = await sb
-      .from("entities")
-      .select("incorporation_country_code, hq_country_code")
-      .eq("id", entity_id)
-      .single();
+    let jurisdictionIds: string[] = [];
 
-    const countryCodes = new Set<string>();
-    (opCountries || []).forEach((oc: any) => countryCodes.add(oc.country_code));
-    if (entityData?.incorporation_country_code) countryCodes.add(entityData.incorporation_country_code);
-    if (entityData?.hq_country_code) countryCodes.add(entityData.hq_country_code);
+    if (explicitLinks && explicitLinks.length > 0) {
+      // Use explicit links
+      jurisdictionIds = [...new Set((explicitLinks as any[]).map(l => l.jurisdiction_id))];
+    } else {
+      // Fallback to legacy country codes
+      const { data: opCountries } = await sb
+        .from("entity_operating_countries")
+        .select("country_code")
+        .eq("entity_id", entity_id);
 
-    if (countryCodes.size === 0) {
+      const { data: entityData } = await sb
+        .from("entities")
+        .select("incorporation_country_code, hq_country_code")
+        .eq("id", entity_id)
+        .single();
+
+      const countryCodes = new Set<string>();
+      (opCountries || []).forEach((oc: any) => countryCodes.add(oc.country_code));
+      if (entityData?.incorporation_country_code) countryCodes.add(entityData.incorporation_country_code);
+      if (entityData?.hq_country_code) countryCodes.add(entityData.hq_country_code);
+
+      if (countryCodes.size > 0) {
+        const { data: jurisdictions } = await sb
+          .from("jurisdiction")
+          .select("id")
+          .in("country_code", Array.from(countryCodes));
+        jurisdictionIds = (jurisdictions || []).map((j: any) => j.id);
+      }
+    }
+
+    if (jurisdictionIds.length === 0) {
       return new Response(JSON.stringify({ message: "No linked jurisdictions" }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
-    // 4. Get jurisdiction IDs for these country codes
-    const { data: jurisdictions } = await sb
-      .from("jurisdiction")
-      .select("id, country_code")
-      .in("country_code", Array.from(countryCodes));
-
-    const jurisdictionIds = (jurisdictions || []).map((j: any) => j.id);
-    if (jurisdictionIds.length === 0) {
-      return new Response(JSON.stringify({ message: "No jurisdiction records found" }), {
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
-
-    // 5. Load all indicators for these jurisdictions
+    // 4. Load all indicators for these jurisdictions
     const { data: indicators } = await sb
       .from("jurisdiction_indicator")
       .select("*")
       .in("jurisdiction_id", jurisdictionIds);
 
-    // 6. Evaluate rules
+    // 5. Evaluate rules
     const mergedActions = new Set<string>();
     const matchedRules: any[] = [];
 
@@ -130,7 +138,7 @@ serve(async (req) => {
       indicators_checked: (indicators || []).length,
     };
 
-    // 7. Store outcome
+    // 6. Store outcome
     const { data: stored, error: storeErr } = await sb
       .from("client_policy_outcome")
       .insert({
@@ -163,7 +171,6 @@ function evaluateCondition(valueJson: any, operator: string, compareJson: any): 
   if (operator === "EXISTS") return true;
   if (operator === "NOT_EXISTS") return false;
 
-  // Extract the primary value from the indicator
   const indVal = valueJson?.status || valueJson?.programme_status || valueJson?.score;
   const compareVal = compareJson?.value;
   const compareValues = compareJson?.values;
