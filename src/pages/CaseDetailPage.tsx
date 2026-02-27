@@ -390,6 +390,9 @@ export default function CaseDetailPage() {
               </div>
             </div>
 
+            {/* Jurisdiction Indicators Annex */}
+            {isInternal && <ReportAnnexPreview entityId={caseData.entity_id} caseId={id!} />}
+
             {/* AI Assurance Assistant – internal only */}
             {isInternal && <AiAssurancePanel caseId={id!} />}
           </TabsContent>
