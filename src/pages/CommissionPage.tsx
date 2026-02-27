@@ -376,25 +376,33 @@ export default function CommissionPage() {
 
             {moduleTypes.map((mt) => {
               const isSelected = form.selectedModules.includes(mt.code);
+              const addonKey = mt.code === "COMMERCIAL_POSTURE" ? "commercial_posture" : mt.code === "JURISDICTION_BENCHMARK" ? "jurisdiction_benchmark" : mt.code.toLowerCase();
+              const allowed = canUseAddon(addonKey);
               return (
                 <label
                   key={mt.id}
-                  className={`block rounded-lg border p-5 cursor-pointer transition-all duration-300 ${
-                    isSelected
-                      ? "border-accent/50 bg-accent/5"
-                      : "border-border hover:border-border hover:bg-muted/30"
+                  className={`block rounded-lg border p-5 transition-all duration-300 ${
+                    !allowed
+                      ? "opacity-50 cursor-not-allowed border-border bg-muted/20"
+                      : isSelected
+                      ? "border-accent/50 bg-accent/5 cursor-pointer"
+                      : "border-border hover:border-border hover:bg-muted/30 cursor-pointer"
                   }`}
-                  style={isSelected ? { boxShadow: "var(--shadow-gold-glow)" } : undefined}
+                  style={isSelected && allowed ? { boxShadow: "var(--shadow-gold-glow)" } : undefined}
                 >
                   <div className="flex items-start gap-3">
                     <Checkbox
                       checked={isSelected}
-                      onCheckedChange={() => toggleModule(mt.code)}
+                      onCheckedChange={() => allowed && toggleModule(mt.code)}
+                      disabled={!allowed}
                       className="mt-0.5"
                     />
                     <div className="flex-1">
                       <div className="flex items-center justify-between">
-                        <div className="font-medium text-foreground text-sm">{mt.name} <span className="text-accent text-xs font-normal">(EDD+)</span></div>
+                        <div className="font-medium text-foreground text-sm">
+                          {mt.name} <span className="text-accent text-xs font-normal">(EDD+)</span>
+                          {!allowed && <Badge variant="outline" className="ml-2 text-[10px]">Upgrade Required</Badge>}
+                        </div>
                         <span className="text-xs text-accent font-display font-semibold">+£{(MODULE_PRICING[mt.code] ?? 0).toLocaleString()}</span>
                       </div>
                       <div className="text-[12px] text-muted-foreground mt-1.5 leading-relaxed">
