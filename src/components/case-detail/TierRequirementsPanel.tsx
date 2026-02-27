@@ -82,86 +82,63 @@ export default function TierRequirementsPanel({
     setMatrixRule(rData);
   };
 
-  if (!matrixRule || !matrixVersion) return null;
-
   // ── Evaluate requirements ──
-  const requirements: Requirement[] = [];
+  const { requirements, completeCount, missingCount, totalCount, allComplete } = (() => {
+    if (!matrixRule) return { requirements: [] as Requirement[], completeCount: 0, missingCount: 0, totalCount: 0, allComplete: false };
+    const reqs: Requirement[] = [];
 
-  // Source categories
-  const requiredSources: string[] = matrixRule.required_source_categories ?? [];
-  const minLogs: Record<string, number> = matrixRule.min_retrieval_logs ?? {};
+    const requiredSources: string[] = matrixRule.required_source_categories ?? [];
+    const minLogsCfg: Record<string, number> = matrixRule.min_retrieval_logs ?? {};
 
-  requiredSources.forEach((cat) => {
-    const logCount = retrievalLogs.filter((l: any) => l.category === cat).length;
-    const required = minLogs[cat] ?? 1;
-    requirements.push({
-      label: SOURCE_LABELS[cat] || cat,
-      status: logCount >= required ? "complete" : "missing",
-      detail: `${logCount}/${required} logs`,
+    requiredSources.forEach((cat: string) => {
+      const logCount = retrievalLogs.filter((l: any) => l.category === cat).length;
+      const required = minLogsCfg[cat] ?? 1;
+      reqs.push({
+        label: SOURCE_LABELS[cat] || cat,
+        status: logCount >= required ? "complete" : "missing",
+        detail: `${logCount}/${required} logs`,
+      });
     });
-  });
 
-  // Commentary sections
-  const requiredCommentary: string[] = matrixRule.required_commentary_sections ?? [];
-  requiredCommentary.forEach((key) => {
-    const filled = !!(officerCommentary && (officerCommentary as any)[key]?.trim());
-    requirements.push({
-      label: COMMENTARY_LABELS[key] || key,
-      status: filled ? "complete" : "missing",
-      detail: filled ? "Populated" : "Required",
+    const requiredCommentary: string[] = matrixRule.required_commentary_sections ?? [];
+    requiredCommentary.forEach((key: string) => {
+      const filled = !!(officerCommentary && (officerCommentary as any)[key]?.trim());
+      reqs.push({
+        label: COMMENTARY_LABELS[key] || key,
+        status: filled ? "complete" : "missing",
+        detail: filled ? "Populated" : "Required",
+      });
     });
-  });
 
-  // Structured data
-  requirements.push({
-    label: "Structured Data Locked",
-    status: structuredDataLocked ? "complete" : "missing",
-  });
+    reqs.push({ label: "Structured Data Locked", status: structuredDataLocked ? "complete" : "missing" });
+    reqs.push({ label: "Risk Model Executed", status: riskModelExecuted ? "complete" : "missing" });
+    reqs.push({ label: "Pre-QA Review Passed", status: preQaPassed ? "complete" : "missing" });
 
-  // Risk model
-  requirements.push({
-    label: "Risk Model Executed",
-    status: riskModelExecuted ? "complete" : "missing",
-  });
-
-  // Pre-QA
-  requirements.push({
-    label: "Pre-QA Review Passed",
-    status: preQaPassed ? "complete" : "missing",
-  });
-
-  // AI Review
-  if (matrixRule.ai_review_required) {
-    requirements.push({
-      label: "AI Review Completed",
-      status: aiReviewCompleted ? "complete" : "missing",
-    });
-  }
-
-  // QA checklist items (advisory)
-  const qaItems: string[] = matrixRule.qa_checklist_items ?? [];
-  qaItems.forEach((item) => {
-    // Map known items to actual status
-    let status: "complete" | "missing" | "warning" = "warning";
-    if (item.toLowerCase().includes("structured data") && structuredDataLocked) status = "complete";
-    else if (item.toLowerCase().includes("commentary") && officerCommentary) status = "complete";
-    else if (item.toLowerCase().includes("risk model") && riskModelExecuted) status = "complete";
-    else if (item.toLowerCase().includes("pre-qa") && preQaPassed) status = "complete";
-    else if (item.toLowerCase().includes("ai review") && aiReviewCompleted) status = "complete";
-    // Don't duplicate items already added
-    if (!requirements.some((r) => r.label.toLowerCase().includes(item.toLowerCase().slice(0, 15)))) {
-      requirements.push({ label: item, status, detail: status === "warning" ? "Manual check" : undefined });
+    if (matrixRule.ai_review_required) {
+      reqs.push({ label: "AI Review Completed", status: aiReviewCompleted ? "complete" : "missing" });
     }
-  });
 
-  const completeCount = requirements.filter((r) => r.status === "complete").length;
-  const missingCount = requirements.filter((r) => r.status === "missing").length;
-  const totalCount = requirements.length;
-  const allComplete = missingCount === 0;
+    const qaItems: string[] = matrixRule.qa_checklist_items ?? [];
+    qaItems.forEach((item: string) => {
+      let status: "complete" | "missing" | "warning" = "warning";
+      if (item.toLowerCase().includes("structured data") && structuredDataLocked) status = "complete";
+      else if (item.toLowerCase().includes("commentary") && officerCommentary) status = "complete";
+      else if (item.toLowerCase().includes("risk model") && riskModelExecuted) status = "complete";
+      else if (item.toLowerCase().includes("pre-qa") && preQaPassed) status = "complete";
+      else if (item.toLowerCase().includes("ai review") && aiReviewCompleted) status = "complete";
+      if (!reqs.some((r) => r.label.toLowerCase().includes(item.toLowerCase().slice(0, 15)))) {
+        reqs.push({ label: item, status, detail: status === "warning" ? "Manual check" : undefined });
+      }
+    });
+
+    const cc = reqs.filter((r) => r.status === "complete").length;
+    const mc = reqs.filter((r) => r.status === "missing").length;
+    return { requirements: reqs, completeCount: cc, missingCount: mc, totalCount: reqs.length, allComplete: mc === 0 };
+  })();
 
   // Log enforcement check once
   useEffect(() => {
-    if (logged || !user || !profile) return;
+    if (logged || !user || !profile || !matrixVersion) return;
     setLogged(true);
     supabase.from("audit_events").insert({
       user_id: user.id,
@@ -177,7 +154,9 @@ export default function TierRequirementsPanel({
         total: totalCount,
       },
     });
-  }, [logged, user, profile, caseId]);
+  }, [logged, user, profile, caseId, matrixVersion]);
+
+  if (!matrixRule || !matrixVersion) return null;
 
   return (
     <div className="rounded-lg border bg-card p-4 space-y-3">
