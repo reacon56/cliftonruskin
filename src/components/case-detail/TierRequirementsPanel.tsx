@@ -47,6 +47,8 @@ interface Props {
   preQaPassed: boolean;
   aiReviewCompleted: boolean;
   structuredDataLocked: boolean;
+  deviationOverrides?: any[];
+  onDeviationRequested?: () => void;
 }
 
 export default function TierRequirementsPanel({
