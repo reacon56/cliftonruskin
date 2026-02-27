@@ -62,6 +62,7 @@ import JurisdictionProfilePage from "@/pages/JurisdictionProfilePage";
 import AdminSourcesPage from "@/pages/admin/AdminSourcesPage";
 import AdminIngestionRunsPage from "@/pages/admin/AdminIngestionRunsPage";
 import AdminIngestionRunDetailPage from "@/pages/admin/AdminIngestionRunDetailPage";
+import ClientAlertsPage from "@/pages/ClientAlertsPage";
 
 // Website pages
 import WebsiteLayout from "@/components/website/WebsiteLayout";
