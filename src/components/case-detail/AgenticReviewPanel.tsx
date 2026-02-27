@@ -113,6 +113,9 @@ export default function AgenticReviewPanel({ caseId }: Props) {
       if (data?.error) throw new Error(data.error);
       setReview(data.review);
       setGeneratedAt(data.generated_at);
+      setAiDisclaimer(data.ai_disclaimer ?? null);
+      setViolationCount(data.violations_sanitised ?? 0);
+      setHumanReviewed(false);
       setAcks({});
       if (user && profile) {
         await supabase.from("audit_events").insert({
