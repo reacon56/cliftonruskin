@@ -102,6 +102,7 @@ export default function ReportBuilderEngine({ caseId, caseData, entity, isManage
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [activeSection, setActiveSection] = useState("structured");
+  const [aiDecisions, setAiDecisions] = useState<{ key: string; status: "accepted" | "edited" | "rejected"; reviewer: string; decidedAt: string }[]>([]);
 
   /* ── load or create draft ── */
   const loadDraft = useCallback(async () => {
