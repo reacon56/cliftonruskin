@@ -2,12 +2,12 @@ import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import {
   BarChart3, Database, Pen, Sparkles, AlertCircle,
-  CheckCircle2, Clock, ClipboardCheck,
+  CheckCircle2, Clock, ClipboardCheck, Globe,
 } from "lucide-react";
 import type { PreQaCheckResult } from "@/components/case-detail/PreQaReviewPanel";
 
 /* ────── types ────── */
-type CompletionStatus = "auto_filled" | "manual" | "ai_draft" | "ai_accepted" | "ai_edited" | "ai_rejected" | "system_check" | "missing";
+type CompletionStatus = "auto_filled" | "manual" | "ai_draft" | "ai_accepted" | "ai_edited" | "ai_rejected" | "system_check" | "external_partner" | "missing";
 
 interface AiSectionDecision {
   key: string;
@@ -61,6 +61,7 @@ interface Props {
   aiDecisions?: AiSectionDecision[];
   preQaChecks?: PreQaCheckResult[];
   preQaRanAt?: string;
+  partnerEscalationCount?: number;
 }
 
 const STATUS_CONFIG: Record<CompletionStatus, { label: string; color: string; icon: typeof Database }> = {
@@ -71,6 +72,7 @@ const STATUS_CONFIG: Record<CompletionStatus, { label: string; color: string; ic
   ai_edited: { label: "AI Edited", color: "bg-primary/10 text-primary", icon: Pen },
   ai_rejected: { label: "AI Rejected", color: "bg-destructive/10 text-destructive", icon: AlertCircle },
   system_check: { label: "System Check", color: "bg-secondary/50 text-secondary-foreground", icon: ClipboardCheck },
+  external_partner: { label: "External Partner", color: "bg-accent/10 text-accent-foreground", icon: Globe },
   missing: { label: "Missing", color: "bg-destructive/10 text-destructive", icon: AlertCircle },
 };
 
@@ -113,8 +115,9 @@ export function computeCoverageRows(props: {
   aiDecisions: AiSectionDecision[];
   preQaChecks: PreQaCheckResult[];
   preQaRanAt?: string;
+  partnerEscalationCount?: number;
 }): { rows: CoverageRow[]; autoPct: number; manualPct: number; aiPct: number; coveragePct: number; missingCount: number } {
-  const { structuredData, officerCommentary, aiDraft, aiDraftDismissed, aiDecisions, preQaChecks, preQaRanAt } = props;
+  const { structuredData, officerCommentary, aiDraft, aiDraftDismissed, aiDecisions, preQaChecks, preQaRanAt, partnerEscalationCount = 0 } = props;
   const rows: CoverageRow[] = [];
   const now = new Date().toISOString();
 
@@ -212,9 +215,20 @@ export function computeCoverageRows(props: {
     });
   }
 
+  // Partner escalation rows
+  if (partnerEscalationCount > 0) {
+    rows.push({
+      section: "External Partner Inputs",
+      status: "external_partner",
+      dataSources: ["Trusted Partner Network"],
+      lastUpdatedBy: "Partner / Officer",
+      timestamp: now,
+    });
+  }
+
   const total = rows.length;
   const autoCount = rows.filter((r) => r.status === "auto_filled").length;
-  const manualCount = rows.filter((r) => r.status === "manual").length;
+  const manualCount = rows.filter((r) => r.status === "manual" || r.status === "external_partner").length;
   const aiCount = rows.filter((r) => r.status === "ai_draft").length;
   const missingCount = rows.filter((r) => r.status === "missing").length;
   const filledCount = total - missingCount;
@@ -232,11 +246,12 @@ export default function AutomationCoverageMap({
   aiDraft, aiDraftReviewed, aiDraftDismissed,
   aiDecisions = [],
   preQaChecks = [], preQaRanAt,
+  partnerEscalationCount = 0,
 }: Props) {
 
   const { rows, autoPct, manualPct, aiPct, coveragePct, missingCount } = computeCoverageRows({
     structuredData, officerCommentary, aiDraft, aiDraftDismissed,
-    aiDecisions, preQaChecks, preQaRanAt,
+    aiDecisions, preQaChecks, preQaRanAt, partnerEscalationCount,
   });
   const total = rows.length;
   const filledCount = total - missingCount;

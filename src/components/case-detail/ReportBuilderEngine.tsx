@@ -106,6 +106,7 @@ export default function ReportBuilderEngine({ caseId, caseData, entity, isManage
   const [activeSection, setActiveSection] = useState("structured");
   const [aiDecisions, setAiDecisions] = useState<{ key: string; status: "accepted" | "edited" | "rejected"; reviewer: string; decidedAt: string }[]>([]);
   const [preQaResult, setPreQaResult] = useState<PreQaReviewResult | null>(null);
+  const [partnerEscalationCount, setPartnerEscalationCount] = useState(0);
 
   /* ── load or create draft ── */
   const loadDraft = useCallback(async () => {
@@ -137,6 +138,18 @@ export default function ReportBuilderEngine({ caseId, caseData, entity, isManage
   }, [caseId]);
 
   useEffect(() => { loadDraft(); }, [loadDraft]);
+
+  /* ── load partner escalation count ── */
+  useEffect(() => {
+    (async () => {
+      const { count } = await supabase
+        .from("partner_escalations" as any)
+        .select("id", { count: "exact", head: true })
+        .eq("case_id", caseId)
+        .in("status", ["completed", "in_progress", "partner_selected"]);
+      setPartnerEscalationCount(count ?? 0);
+    })();
+  }, [caseId]);
 
   /* ── auto-fill structured data from case ── */
   const buildStructuredData = (): StructuredData => ({
@@ -626,6 +639,7 @@ export default function ReportBuilderEngine({ caseId, caseData, entity, isManage
                 aiDecisions,
                 preQaChecks: preQaResult?.checks ?? [],
                 preQaRanAt: preQaResult?.ranAt,
+                partnerEscalationCount,
               });
               return (
                 <ReportPdfRenderer
@@ -665,6 +679,7 @@ export default function ReportBuilderEngine({ caseId, caseData, entity, isManage
             aiDecisions={aiDecisions}
             preQaChecks={preQaResult?.checks}
             preQaRanAt={preQaResult?.ranAt}
+            partnerEscalationCount={partnerEscalationCount}
           />
         </TabsContent>
       </Tabs>
