@@ -59,6 +59,9 @@ import ClientSpendSummaryPage from "@/pages/ClientSpendSummaryPage";
 import IngestionSourcesPage from "@/pages/IngestionSourcesPage";
 import JurisdictionsListPage from "@/pages/JurisdictionsListPage";
 import JurisdictionProfilePage from "@/pages/JurisdictionProfilePage";
+import AdminSourcesPage from "@/pages/admin/AdminSourcesPage";
+import AdminIngestionRunsPage from "@/pages/admin/AdminIngestionRunsPage";
+import AdminIngestionRunDetailPage from "@/pages/admin/AdminIngestionRunDetailPage";
 
 // Website pages
 import WebsiteLayout from "@/components/website/WebsiteLayout";
