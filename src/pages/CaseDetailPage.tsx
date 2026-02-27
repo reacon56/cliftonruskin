@@ -67,6 +67,8 @@ export default function CaseDetailPage() {
   const [internalNotes, setInternalNotes] = useState("");
   const [activeTab, setActiveTab] = useState("scope");
   const [deviationOverrides, setDeviationOverrides] = useState<any[]>([]);
+  const [urgentJustification, setUrgentJustification] = useState("");
+  const [showUrgentDialog, setShowUrgentDialog] = useState(false);
 
   useEffect(() => { if (id) { loadCase(); loadDeviations(); } }, [id]);
 
@@ -543,6 +545,58 @@ export default function CaseDetailPage() {
           {isManager && currentStatus === "released" && (
             <ActionCard title="Archive">
               <Button className="w-full" size="sm" onClick={() => transitionTo("archived")}><Package size={14} className="mr-1" /> Archive Case</Button>
+            </ActionCard>
+          )}
+
+          {/* Urgent Authorised — Manager can force-start work before approval */}
+          {isManager && (currentStatus === "new" || currentStatus === "scheduled" || currentStatus === "quoted") && (
+            <ActionCard title="Urgent Override">
+              {!showUrgentDialog ? (
+                <Button variant="destructive" className="w-full" size="sm" onClick={() => setShowUrgentDialog(true)}>
+                  <AlertTriangle size={14} className="mr-1" /> Urgent Authorised Start
+                </Button>
+              ) : (
+                <div className="space-y-2">
+                  <p className="text-[11px] text-muted-foreground">Work will begin before formal approval. A justification is mandatory and will be logged.</p>
+                  <Textarea
+                    value={urgentJustification}
+                    onChange={e => setUrgentJustification(e.target.value)}
+                    placeholder="Justification for urgent start…"
+                    rows={2}
+                    className="text-xs"
+                  />
+                  <div className="flex gap-1.5">
+                    <Button
+                      size="sm"
+                      variant="destructive"
+                      className="flex-1 text-xs"
+                      disabled={!urgentJustification.trim()}
+                      onClick={async () => {
+                        await transitionTo("assigned", { assigned_to: user?.id }, `URGENT AUTHORISED: ${urgentJustification}`);
+                        await supabase.from("audit_events").insert({
+                          user_id: user!.id,
+                          org_id: profile?.org_id,
+                          action_type: "URGENT_AUTHORISED_START",
+                          object_type: "case",
+                          object_id: id,
+                          metadata: {
+                            justification: urgentJustification,
+                            from_status: currentStatus,
+                            entity_name: entity?.name,
+                          },
+                        });
+                        setShowUrgentDialog(false);
+                        setUrgentJustification("");
+                      }}
+                    >
+                      Confirm
+                    </Button>
+                    <Button size="sm" variant="outline" className="text-xs" onClick={() => { setShowUrgentDialog(false); setUrgentJustification(""); }}>
+                      Cancel
+                    </Button>
+                  </div>
+                </div>
+              )}
             </ActionCard>
           )}
 
