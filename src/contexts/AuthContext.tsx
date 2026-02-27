@@ -134,6 +134,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         canFilterOwnership: canFilterOwnershipStructure(roleStrings),
         canProvenance: canToggleProvenance(roleStrings),
         canEditRels: canEditRelationships(roleStrings),
+        isPlatformAdmin: checkPlatformAdmin(roleStrings),
+        isClientAdmin: checkClientAdmin(roleStrings),
         primaryRoleLabel: getPrimaryRoleLabel(roleStrings),
       }}
     >
