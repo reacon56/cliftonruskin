@@ -57,6 +57,8 @@ import ServiceRequestPage from "@/pages/ServiceRequestPage";
 import CommercialDashboardPage from "@/pages/CommercialDashboardPage";
 import ClientSpendSummaryPage from "@/pages/ClientSpendSummaryPage";
 import IngestionSourcesPage from "@/pages/IngestionSourcesPage";
+import JurisdictionsListPage from "@/pages/JurisdictionsListPage";
+import JurisdictionProfilePage from "@/pages/JurisdictionProfilePage";
 
 // Website pages
 import WebsiteLayout from "@/components/website/WebsiteLayout";
