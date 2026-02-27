@@ -94,6 +94,7 @@ export default function AppSidebar() {
     { label: "Unit Economics", path: "/unit-economics", icon: <BarChart3 size={18} /> },
     { label: "Product Catalogue", path: "/product-catalogue", icon: <Package size={18} /> },
     { label: "Budget Controls", path: "/budget-controls", icon: <Wallet size={18} /> },
+    { label: "Billing Handoff", path: "/billing-handoff", icon: <Receipt size={18} /> },
     { label: "Audit Log", path: "/audit-log", icon: <ClipboardList size={18} /> },
   ];
 
