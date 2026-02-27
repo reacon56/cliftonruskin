@@ -60,12 +60,20 @@ export default function TierRequirementsPanel({
   preQaPassed,
   aiReviewCompleted,
   structuredDataLocked,
+  deviationOverrides = [],
+  onDeviationRequested,
 }: Props) {
-  const { user, profile } = useAuth();
+  const { user, profile, canQuote: isManager } = useAuth();
+  const isOfficer = !isManager;
+  const { toast } = useToast();
   const [matrixRule, setMatrixRule] = useState<any>(null);
   const [matrixVersion, setMatrixVersion] = useState<any>(null);
   const [expanded, setExpanded] = useState(true);
   const [logged, setLogged] = useState(false);
+  const [requestingFor, setRequestingFor] = useState<Requirement | null>(null);
+  const [deviationReason, setDeviationReason] = useState("");
+  const [deviationNotes, setDeviationNotes] = useState("");
+  const [submittingDeviation, setSubmittingDeviation] = useState(false);
 
   useEffect(() => { loadMatrix(); }, [reportTier]);
 
