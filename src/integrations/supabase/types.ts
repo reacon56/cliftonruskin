@@ -3719,6 +3719,82 @@ export type Database = {
         }
         Relationships: []
       }
+      work_orders: {
+        Row: {
+          assigned_officer: string | null
+          case_id: string
+          created_at: string
+          delivery_date: string | null
+          delivery_status: string
+          external_invoice_reference: string | null
+          id: string
+          invoice_status: string
+          notes: string | null
+          org_id: string
+          partner_cost: number
+          qa_required: boolean
+          quote_id: string | null
+          total_value: number
+          updated_at: string
+        }
+        Insert: {
+          assigned_officer?: string | null
+          case_id: string
+          created_at?: string
+          delivery_date?: string | null
+          delivery_status?: string
+          external_invoice_reference?: string | null
+          id?: string
+          invoice_status?: string
+          notes?: string | null
+          org_id: string
+          partner_cost?: number
+          qa_required?: boolean
+          quote_id?: string | null
+          total_value?: number
+          updated_at?: string
+        }
+        Update: {
+          assigned_officer?: string | null
+          case_id?: string
+          created_at?: string
+          delivery_date?: string | null
+          delivery_status?: string
+          external_invoice_reference?: string | null
+          id?: string
+          invoice_status?: string
+          notes?: string | null
+          org_id?: string
+          partner_cost?: number
+          qa_required?: boolean
+          quote_id?: string | null
+          total_value?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "work_orders_case_id_fkey"
+            columns: ["case_id"]
+            isOneToOne: false
+            referencedRelation: "cases"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "work_orders_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organisations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "work_orders_quote_id_fkey"
+            columns: ["quote_id"]
+            isOneToOne: false
+            referencedRelation: "quotes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never

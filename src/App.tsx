@@ -50,6 +50,8 @@ import UnitEconomicsPage from "@/pages/UnitEconomicsPage";
 import TierMatrixPage from "@/pages/TierMatrixPage";
 import ProductCataloguePage from "@/pages/ProductCataloguePage";
 import BudgetControlsPage from "@/pages/BudgetControlsPage";
+import BillingHandoffPage from "@/pages/BillingHandoffPage";
+import WorkOrdersPage from "@/pages/WorkOrdersPage";
 
 // Website pages
 import WebsiteLayout from "@/components/website/WebsiteLayout";
@@ -134,6 +136,8 @@ function AppRoutes() {
         <Route path="/tier-matrix" element={<InternalRouteGuard managerOnly><TierMatrixPage /></InternalRouteGuard>} />
         <Route path="/product-catalogue" element={<InternalRouteGuard><ProductCataloguePage /></InternalRouteGuard>} />
         <Route path="/budget-controls" element={<BudgetControlsPage />} />
+        <Route path="/billing-handoff" element={<InternalRouteGuard managerOnly><BillingHandoffPage /></InternalRouteGuard>} />
+        <Route path="/work-orders" element={<WorkOrdersPage />} />
 
         {/* ── Internal routes (officer + manager) ── */}
         <Route path="/qa-queue" element={<InternalRouteGuard><QaQueuePage /></InternalRouteGuard>} />
