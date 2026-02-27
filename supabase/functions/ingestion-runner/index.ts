@@ -6,6 +6,38 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
+/**
+ * Canonicalise a country input to a jurisdiction record.
+ * Resolution: ISO code → country_name → jurisdiction_alias → null
+ */
+function canonicalise(
+  input: string,
+  jurisdictions: Array<{ id: string; country_code: string; country_name: string }>,
+  aliases: Array<{ jurisdiction_id: string; alias_name: string }>
+): { id: string; country_code: string } | null {
+  const trimmed = input.trim();
+  if (!trimmed) return null;
+  const upper = trimmed.toUpperCase();
+  const lower = trimmed.toLowerCase();
+
+  // 1. Exact ISO2 code
+  const byCode = jurisdictions.find((j) => j.country_code.toUpperCase() === upper);
+  if (byCode) return { id: byCode.id, country_code: byCode.country_code };
+
+  // 2. Country name (case-insensitive)
+  const byName = jurisdictions.find((j) => j.country_name.toLowerCase() === lower);
+  if (byName) return { id: byName.id, country_code: byName.country_code };
+
+  // 3. Alias (case-insensitive)
+  const aliasMatch = aliases.find((a) => a.alias_name.toLowerCase() === lower);
+  if (aliasMatch) {
+    const j = jurisdictions.find((j) => j.id === aliasMatch.jurisdiction_id);
+    if (j) return { id: j.id, country_code: j.country_code };
+  }
+
+  return null;
+}
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -18,6 +50,14 @@ Deno.serve(async (req) => {
 
     const body = await req.json().catch(() => ({}));
     const sourceId: string | undefined = body.source_id;
+
+    // Pre-load canonicalisation lookup tables
+    const [jurisdictionsRes, aliasesRes] = await Promise.all([
+      supabase.from("jurisdiction").select("id, country_code, country_name"),
+      supabase.from("jurisdiction_alias").select("jurisdiction_id, alias_name"),
+    ]);
+    const jurisdictions = jurisdictionsRes.data || [];
+    const aliases = aliasesRes.data || [];
 
     // Fetch enabled sources (or a specific one)
     let query = supabase.from("data_source").select("*").eq("is_active", true);
@@ -62,26 +102,64 @@ Deno.serve(async (req) => {
       let status = "completed";
       let recordsProcessed = 0;
       let recordsChanged = 0;
+      const unmappedCountries: string[] = [];
 
       try {
-        // Placeholder: iterate URLs and simulate processing
-        // In production, this would fetch, parse, diff, and upsert indicators
+        // Process URLs — in production this fetches, parses, and upserts indicators.
+        // Each parsed record with a country field goes through canonicalisation.
         const urls: string[] = source.urls || [];
         for (const url of urls) {
-          console.log(`[${source.name}] Would process: ${url} (${source.source_type} / ${source.expected_format})`);
+          console.log(`[${source.name}] Processing: ${url} (${source.source_type} / ${source.expected_format})`);
           recordsProcessed++;
+
+          // --- Canonicalisation demo ---
+          // In a real pipeline, each parsed row would contain a country_name field.
+          // Example: simulate extracting country names from fetched data.
+          // For now we demonstrate the lookup path; real implementation would
+          // replace this with actual parsed records.
+          //
+          // const parsedRows = await fetchAndParse(url, source);
+          // for (const row of parsedRows) {
+          //   const match = canonicalise(row.country_name, jurisdictions, aliases);
+          //   if (!match) {
+          //     unmappedCountries.push(row.country_name);
+          //     continue; // skip unmapped
+          //   }
+          //   // upsert indicator for match.id ...
+          //   recordsChanged++;
+          // }
         }
 
-        // If no URLs configured, note it
         if (urls.length === 0 && source.base_url) {
           console.log(`[${source.name}] Would process base_url: ${source.base_url}`);
           recordsProcessed = 1;
+        }
+
+        // Log unmapped country errors
+        for (const country of unmappedCountries) {
+          await supabase.from("ingestion_error").insert({
+            ingestion_run_id: run.id,
+            error_message: `Unmapped country name: "${country}"`,
+            error_detail: {
+              country_name: country,
+              resolution_steps: [
+                "1. Check jurisdiction table for typo",
+                "2. Add entry to jurisdiction_alias",
+                "3. Or create new jurisdiction record",
+              ],
+            },
+          });
+        }
+
+        if (unmappedCountries.length > 0) {
+          console.warn(
+            `[${source.name}] ${unmappedCountries.length} unmapped countries: ${unmappedCountries.join(", ")}`
+          );
         }
       } catch (procErr) {
         console.error(`[${source.name}] Processing error:`, procErr);
         status = "failed";
 
-        // Log error
         await supabase.from("ingestion_error").insert({
           ingestion_run_id: run.id,
           error_message: procErr instanceof Error ? procErr.message : String(procErr),
