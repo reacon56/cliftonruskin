@@ -47,6 +47,8 @@ export default function AdminSourcesPage() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editId, setEditId] = useState<string | null>(null);
   const [form, setForm] = useState(emptyForm);
+  const [testParseDialog, setTestParseDialog] = useState(false);
+  const [testParseResult, setTestParseResult] = useState<any>(null);
 
   const { data: sources = [], isLoading } = useQuery({
     queryKey: ["admin-data-sources"],
