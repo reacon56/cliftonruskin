@@ -12,7 +12,7 @@ import {
   AlertTriangle, Sparkles, Calendar, DollarSign, UserCheck,
   ShieldCheck, Package, X, Save, Globe, Briefcase,
   ListTodo, FlaskConical, Users, Lock, BarChart3, Eye,
-  Upload,
+  Upload, Timer,
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import AssuranceNoteReport from "@/components/AssuranceNoteReport";
@@ -28,6 +28,7 @@ import EvidenceLocker from "@/components/case-detail/EvidenceLocker";
 import CaseRetrievalLogs from "@/components/case-detail/CaseRetrievalLogs";
 import CaseChatPanel from "@/components/case-detail/CaseChatPanel";
 import PartnerEscalationPanel from "@/components/case-detail/PartnerEscalationPanel";
+import CaseTimeTracker from "@/components/case-detail/CaseTimeTracker";
 import {
   CASE_STATUSES, STATUS_LABELS, STATUS_COLORS, STATUS_AUDIT_MAP,
   CASE_TYPE_LABELS, REPORT_TIER_LABELS,
@@ -211,6 +212,7 @@ export default function CaseDetailPage() {
             <TabsTrigger value="evidence" className="text-xs gap-1.5 data-[state=active]:bg-primary/10"><Lock className="h-3.5 w-3.5" /> Evidence</TabsTrigger>
             <TabsTrigger value="risk" className="text-xs gap-1.5 data-[state=active]:bg-primary/10"><BarChart3 className="h-3.5 w-3.5" /> Risk</TabsTrigger>
             <TabsTrigger value="qa" className="text-xs gap-1.5 data-[state=active]:bg-primary/10"><Eye className="h-3.5 w-3.5" /> QA</TabsTrigger>
+            {isInternal && <TabsTrigger value="time" className="text-xs gap-1.5 data-[state=active]:bg-primary/10"><Timer className="h-3.5 w-3.5" /> Time</TabsTrigger>}
           </TabsList>
 
           {/* ── SCOPE & MANDATE ── */}
@@ -421,6 +423,13 @@ export default function CaseDetailPage() {
               </div>
             )}
           </TabsContent>
+
+          {/* ── TIME TRACKING ── */}
+          {isInternal && (
+            <TabsContent value="time">
+              <CaseTimeTracker caseId={id!} isManager={isManager} />
+            </TabsContent>
+          )}
         </Tabs>
 
         {/* ── Right Sidebar: Actions ── */}
