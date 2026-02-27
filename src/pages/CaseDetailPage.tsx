@@ -404,6 +404,18 @@ export default function CaseDetailPage() {
                 preQaPassed={false}
                 aiReviewCompleted={false}
                 structuredDataLocked={false}
+                deviationOverrides={deviationOverrides}
+                onDeviationRequested={loadDeviations}
+              />
+            )}
+
+            {/* Active Deviations – internal only */}
+            {isInternal && (
+              <TierDeviationPanel
+                caseId={id!}
+                matrixVersionId={null}
+                isManager={isManager}
+                onDeviationChange={loadDeviations}
               />
             )}
 
