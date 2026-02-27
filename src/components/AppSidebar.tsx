@@ -67,6 +67,7 @@ export default function AppSidebar() {
     clientNav.push({ label: "Approval Settings", path: "/approval-settings", icon: <Settings size={18} /> });
     clientNav.push({ label: "Budget & Spend", path: "/budget-controls", icon: <Wallet size={18} /> });
     clientNav.push({ label: "Work Orders", path: "/work-orders", icon: <Receipt size={18} /> });
+    clientNav.push({ label: "Spend Summary", path: "/spend-summary", icon: <DollarSign size={18} /> });
   }
 
   clientNav.push(
