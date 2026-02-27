@@ -228,7 +228,7 @@ export function computeCoverageRows(props: {
 
   const total = rows.length;
   const autoCount = rows.filter((r) => r.status === "auto_filled").length;
-  const manualCount = rows.filter((r) => r.status === "manual").length;
+  const manualCount = rows.filter((r) => r.status === "manual" || r.status === "external_partner").length;
   const aiCount = rows.filter((r) => r.status === "ai_draft").length;
   const missingCount = rows.filter((r) => r.status === "missing").length;
   const filledCount = total - missingCount;
