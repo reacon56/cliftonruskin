@@ -113,6 +113,23 @@ export default function AdminSourcesPage() {
     onError: (e: any) => toast.error(`Run failed: ${e.message}`),
   });
 
+  const testParse = useMutation({
+    mutationFn: async () => {
+      const { data, error } = await supabase.functions.invoke("fatf-ingest", {
+        body: { dry_run: true },
+      });
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: (data) => {
+      setTestParseResult(data);
+      setTestParseDialog(true);
+    },
+    onError: (e: any) => toast.error(e.message),
+  });
+
+  const isFatfSource = (name: string) => name.toLowerCase().includes("fatf");
+
   const openNew = () => { setEditId(null); setForm(emptyForm); setDialogOpen(true); };
   const openEdit = (s: DataSource) => {
     setEditId(s.id);
