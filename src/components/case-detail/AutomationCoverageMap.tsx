@@ -110,6 +110,7 @@ export default function AutomationCoverageMap({
   officerCommentary, officerCommentaryComplete,
   aiDraft, aiDraftReviewed, aiDraftDismissed,
   aiDecisions = [],
+  preQaChecks = [], preQaRanAt,
 }: Props) {
 
   const rows: CoverageRow[] = [];
