@@ -63,6 +63,7 @@ import AdminSourcesPage from "@/pages/admin/AdminSourcesPage";
 import AdminIngestionRunsPage from "@/pages/admin/AdminIngestionRunsPage";
 import AdminIngestionRunDetailPage from "@/pages/admin/AdminIngestionRunDetailPage";
 import ClientAlertsPage from "@/pages/ClientAlertsPage";
+import ClientPolicyPage from "@/pages/ClientPolicyPage";
 
 // Website pages
 import WebsiteLayout from "@/components/website/WebsiteLayout";
