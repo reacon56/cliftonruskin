@@ -647,6 +647,8 @@ export default function ReportBuilderEngine({ caseId, caseData, entity, isManage
             aiDraftReviewed={draft.ai_draft_reviewed}
             aiDraftDismissed={draft.ai_draft_dismissed}
             aiDecisions={aiDecisions}
+            preQaChecks={preQaResult?.checks}
+            preQaRanAt={preQaResult?.ranAt}
           />
         </TabsContent>
       </Tabs>
