@@ -47,7 +47,7 @@ export default function CaseDetailPage() {
   const [caseData, setCaseData] = useState<any>(null);
   
   const [deliverables, setDeliverables] = useState<any[]>([]);
-  const [newMessage, setNewMessage] = useState("");
+  
   const [entity, setEntity] = useState<any>(null);
   const [showReport, setShowReport] = useState(false);
   const [simulating, setSimulating] = useState(false);
