@@ -20,3 +20,6 @@ verify_jwt = false
 
 [functions.ingestion-runner]
 verify_jwt = false
+
+[functions.fatf-ingest]
+verify_jwt = false
