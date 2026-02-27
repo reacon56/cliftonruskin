@@ -139,6 +139,7 @@ function splitByTag(xml: string, tag: string): string[] {
 interface OfacEntity {
   uid: string;
   sdnType: string;
+  listName: string;
   primaryName: string;
   aliases: string[];
   countryCodes: string[];
@@ -146,22 +147,20 @@ interface OfacEntity {
   programmes: string[];
   regimeType: "COMPREHENSIVE" | "TARGETED" | "NONE";
   dateOfBirth: string | null;
+  identifiers: Array<{ type: string; value: string }>;
+  addresses: Array<{ country: string; city?: string; address?: string }>;
   remarks: string;
   rawBlock: string;
 }
 
 function parseXmlEntities(xmlText: string): { entities: OfacEntity[]; publishDate: string } {
-  // Try to find publish date
   const publishDate =
     extractFirstTag(xmlText, "Publish_Date") ||
     extractFirstTag(xmlText, "publshInformation") ||
     extractAttr(xmlText, "sanctionsData", "date") ||
     new Date().toISOString();
 
-  // The SLS advanced XML uses <sdnEntry> blocks
   let entityBlocks = splitByTag(xmlText, "sdnEntry");
-
-  // Fallback: try <sanctionEntry> or <entry> tags
   if (entityBlocks.length === 0) entityBlocks = splitByTag(xmlText, "sanctionEntry");
   if (entityBlocks.length === 0) entityBlocks = splitByTag(xmlText, "entry");
 
@@ -181,11 +180,12 @@ function parseXmlEntities(xmlText: string): { entities: OfacEntity[]; publishDat
       extractFirstTag(block, "type") ||
       "Individual";
 
-    // Names
+    // Determine list name from block context
+    const listName = extractFirstTag(block, "listName") || "SDN";
+
     const lastName = extractFirstTag(block, "lastName") || extractFirstTag(block, "name");
     const firstName = extractFirstTag(block, "firstName");
     const primaryName = [firstName, lastName].filter(Boolean).join(" ").trim();
-
     if (!primaryName) continue;
 
     // Aliases
@@ -201,12 +201,16 @@ function parseXmlEntities(xmlText: string): { entities: OfacEntity[]; publishDat
     // Programmes
     const programmes = extractTagValues(block, "program");
 
-    // Addresses → country codes
+    // Addresses → country codes + structured addresses
     const addressBlocks = splitByTag(block, "address");
     const countryCodes: string[] = [];
+    const addresses: Array<{ country: string; city?: string; address?: string }> = [];
     for (const addr of addressBlocks) {
       const country = extractFirstTag(addr, "country");
+      const city = extractFirstTag(addr, "city");
+      const address1 = extractFirstTag(addr, "address1");
       if (country) {
+        addresses.push({ country, city: city || undefined, address: address1 || undefined });
         const code = resolveCountryCode(country);
         if (code && !countryCodes.includes(code)) countryCodes.push(code);
       }
@@ -223,14 +227,21 @@ function parseXmlEntities(xmlText: string): { entities: OfacEntity[]; publishDat
       }
     }
 
+    // Identifiers (passport, national ID, etc.)
+    const idBlocks = splitByTag(block, "id");
+    const identifiers: Array<{ type: string; value: string }> = [];
+    for (const idBlock of idBlocks) {
+      const idType = extractFirstTag(idBlock, "idType");
+      const idNumber = extractFirstTag(idBlock, "idNumber");
+      if (idType && idNumber) identifiers.push({ type: idType, value: idNumber });
+    }
+
     // Date of birth
     const dobBlock = splitByTag(block, "dateOfBirthItem")[0] || "";
     const dob = extractFirstTag(dobBlock, "dateOfBirth") || null;
 
-    // Remarks
     const remarks = extractFirstTag(block, "remarks");
 
-    // Classify regime from all programmes
     let regimeType: "COMPREHENSIVE" | "TARGETED" | "NONE" = "NONE";
     for (const prog of programmes) {
       const t = classifyProgramme(prog);
@@ -241,6 +252,7 @@ function parseXmlEntities(xmlText: string): { entities: OfacEntity[]; publishDat
     entities.push({
       uid,
       sdnType: sdnType.toLowerCase().includes("individual") ? "Individual" : "Entity",
+      listName,
       primaryName: primaryName.substring(0, 500),
       aliases: aliases.slice(0, 20),
       countryCodes,
@@ -248,6 +260,8 @@ function parseXmlEntities(xmlText: string): { entities: OfacEntity[]; publishDat
       programmes,
       regimeType,
       dateOfBirth: dob,
+      identifiers,
+      addresses,
       remarks,
       rawBlock: block.substring(0, 5000),
     });
@@ -258,7 +272,6 @@ function parseXmlEntities(xmlText: string): { entities: OfacEntity[]; publishDat
 
 // ── Fallback CSV parser (SDN.csv) ──
 function parseSDNCsv(csvText: string): OfacEntity[] {
-  // SDN.csv columns: uid, name, sdnType, program, title, ...address..., remarks, ...
   const lines = csvText.split("\n");
   const entities: OfacEntity[] = [];
 
@@ -287,6 +300,7 @@ function parseSDNCsv(csvText: string): OfacEntity[] {
     entities.push({
       uid,
       sdnType: sdnType.toLowerCase().includes("individual") ? "Individual" : "Entity",
+      listName: "SDN",
       primaryName: name.substring(0, 500),
       aliases: [],
       countryCodes: [],
@@ -294,6 +308,8 @@ function parseSDNCsv(csvText: string): OfacEntity[] {
       programmes,
       regimeType,
       dateOfBirth: null,
+      identifiers: [],
+      addresses: [],
       remarks,
       rawBlock: line.substring(0, 5000),
     });
@@ -321,6 +337,11 @@ function parseCSVLine(line: string): string[] {
   }
   result.push(current);
   return result;
+}
+
+// ── Deep-compare two JSON values for change detection ──
+function jsonChanged(a: unknown, b: unknown): boolean {
+  return JSON.stringify(a) !== JSON.stringify(b);
 }
 
 Deno.serve(async (req) => {
@@ -396,72 +417,146 @@ Deno.serve(async (req) => {
       throw new Error("No entities parsed from OFAC data");
     }
 
-    // ── 2. Mark existing OFAC entities as potentially stale ──
-    await supabase
-      .from("sanctions_entity")
-      .update({ is_active: false, updated_at: new Date().toISOString() })
-      .eq("source_list", "OFAC");
+    // ── 2. Load existing OFAC entities for diff ──
+    const existingMap = new Map<string, any>();
+    let page = 0;
+    const PAGE_SIZE = 1000;
+    while (true) {
+      const { data: rows } = await supabase
+        .from("sanctions_entity")
+        .select("*")
+        .eq("source", "OFAC")
+        .range(page * PAGE_SIZE, (page + 1) * PAGE_SIZE - 1);
+      if (!rows || rows.length === 0) break;
+      for (const r of rows) existingMap.set(r.source_record_id, r);
+      if (rows.length < PAGE_SIZE) break;
+      page++;
+    }
 
-    // ── 3. Batch upsert ──
+    const seenIds = new Set<string>();
+    const now = new Date().toISOString();
+
+    // ── 3. Batch upsert with change tracking ──
     const BATCH_SIZE = 100;
     const progCountryMap: Map<string, Set<string>> = new Map();
+    const touchedCountryCodes = new Set<string>();
 
     for (let batch = 0; batch < entities.length; batch += BATCH_SIZE) {
       const chunk = entities.slice(batch, batch + BATCH_SIZE);
-      const rows: Array<Record<string, unknown>> = [];
 
       for (const e of chunk) {
-        // Track programme → countries
+        seenIds.add(e.uid);
+
+        // Track programme → countries for jurisdiction indicators
         for (const prog of e.programmes) {
           if (!progCountryMap.has(prog)) progCountryMap.set(prog, new Set());
-          for (const cc of e.countryCodes) progCountryMap.get(prog)!.add(cc);
+          for (const cc of e.countryCodes) {
+            progCountryMap.get(prog)!.add(cc);
+            touchedCountryCodes.add(cc);
+          }
           const progCode = resolveCountryCode(prog);
-          if (progCode) progCountryMap.get(prog)!.add(progCode);
+          if (progCode) {
+            progCountryMap.get(prog)!.add(progCode);
+            touchedCountryCodes.add(progCode);
+          }
         }
+        for (const cc of e.countryCodes) touchedCountryCodes.add(cc);
 
-        rows.push({
-          source_list: "OFAC",
-          source_entity_id: e.uid,
+        const newRow = {
+          source: "OFAC" as const,
+          source_record_id: e.uid,
+          list_name: e.listName,
+          name: e.primaryName,
           entity_type: e.sdnType,
-          primary_name: e.primaryName,
-          aliases: e.aliases,
-          nationality_codes: e.nationalityCodes,
-          country_codes: e.countryCodes,
-          regime_name: e.programmes.join("; ") || null,
-          regime_type: e.regimeType,
-          designation_date: null,
-          designation_source: "US OFAC Sanctions List Service",
-          raw_data: { remarks: e.remarks, dob: e.dateOfBirth, programmes: e.programmes },
-          ingestion_run_id: runId,
-          source_url: sourceUrl,
-          source_snapshot_hash: snapshotHash,
-          retrieved_at: new Date().toISOString(),
-          is_active: true,
-          updated_at: new Date().toISOString(),
-        });
+          country_json: e.addresses.length > 0 ? e.addresses : e.countryCodes.map(c => ({ country_code: c })),
+          dob_json: e.dateOfBirth ? [{ date: e.dateOfBirth }] : [],
+          identifiers_json: e.identifiers,
+          addresses_json: e.addresses,
+          programmes_json: e.programmes.map(p => ({ name: p, type: classifyProgramme(p) })),
+          raw_json: { remarks: e.remarks, aliases: e.aliases, nationality_codes: e.nationalityCodes },
+          active: true,
+          last_seen_at: now,
+        };
+
+        const existing = existingMap.get(e.uid);
+
+        if (existing) {
+          // Check for changes
+          const changed = jsonChanged(
+            { name: existing.name, entity_type: existing.entity_type, country_json: existing.country_json, programmes_json: existing.programmes_json, identifiers_json: existing.identifiers_json },
+            { name: newRow.name, entity_type: newRow.entity_type, country_json: newRow.country_json, programmes_json: newRow.programmes_json, identifiers_json: newRow.identifiers_json }
+          );
+
+          const { error: updateErr } = await supabase
+            .from("sanctions_entity")
+            .update({ ...newRow, updated_at: now })
+            .eq("id", existing.id);
+
+          if (updateErr) {
+            console.error(`[OFAC] Update error for ${e.uid}:`, updateErr);
+          } else if (changed) {
+            await supabase.from("sanctions_entity_change").insert({
+              sanctions_entity_id: existing.id,
+              change_type: "UPDATED",
+              old_json: { name: existing.name, entity_type: existing.entity_type, country_json: existing.country_json, programmes_json: existing.programmes_json },
+              new_json: { name: newRow.name, entity_type: newRow.entity_type, country_json: newRow.country_json, programmes_json: newRow.programmes_json },
+              ingestion_run_id: runId,
+            });
+            totalChanged++;
+          }
+        } else {
+          // New entity
+          const { data: inserted, error: insertErr } = await supabase
+            .from("sanctions_entity")
+            .insert({ ...newRow, first_seen_at: now, created_at: now, updated_at: now })
+            .select("id")
+            .single();
+
+          if (insertErr) {
+            console.error(`[OFAC] Insert error for ${e.uid}:`, insertErr);
+            await supabase.from("ingestion_error").insert({
+              ingestion_run_id: runId,
+              error_message: `Insert error for ${e.uid}: ${insertErr.message}`,
+              error_detail: { uid: e.uid, error: insertErr },
+            });
+          } else if (inserted) {
+            await supabase.from("sanctions_entity_change").insert({
+              sanctions_entity_id: inserted.id,
+              change_type: "ADDED",
+              old_json: null,
+              new_json: { name: newRow.name, entity_type: newRow.entity_type, programmes_json: newRow.programmes_json },
+              ingestion_run_id: runId,
+            });
+            totalChanged++;
+          }
+        }
 
         totalProcessed++;
       }
+    }
 
-      if (rows.length > 0) {
-        const { error: insertErr } = await supabase
+    // ── 4. Soft-remove entities not seen in this run ──
+    for (const [recordId, existing] of existingMap) {
+      if (!seenIds.has(recordId) && existing.active) {
+        await supabase
           .from("sanctions_entity")
-          .upsert(rows as any, { onConflict: "id", ignoreDuplicates: false });
+          .update({ active: false, updated_at: now })
+          .eq("id", existing.id);
 
-        if (insertErr) {
-          console.error(`[OFAC] Batch insert error:`, insertErr);
-          await supabase.from("ingestion_error").insert({
-            ingestion_run_id: runId,
-            error_message: `Batch insert error at offset ${batch}: ${insertErr.message}`,
-            error_detail: { batch_offset: batch, error: insertErr },
-          });
-        }
+        await supabase.from("sanctions_entity_change").insert({
+          sanctions_entity_id: existing.id,
+          change_type: "REMOVED",
+          old_json: { name: existing.name, active: true },
+          new_json: { name: existing.name, active: false },
+          ingestion_run_id: runId,
+        });
+        totalChanged++;
       }
     }
 
-    console.log(`[OFAC] Processed ${totalProcessed} entities across ${progCountryMap.size} programmes`);
+    console.log(`[OFAC] Processed ${totalProcessed} entities, ${totalChanged} changes across ${progCountryMap.size} programmes`);
 
-    // ── 4. Derive SANCTIONS_US_OFAC_PROGRAMME jurisdiction indicators ──
+    // ── 5. Derive SANCTIONS_US_OFAC_PROGRAMME jurisdiction indicators ──
     const countryStatus: Map<string, "COMPREHENSIVE" | "TARGETED"> = new Map();
 
     for (const [prog, codes] of progCountryMap) {
@@ -540,9 +635,9 @@ Deno.serve(async (req) => {
             source_name: "US OFAC",
             source_url: sourceUrl,
             source_snapshot_hash: snapshotHash,
-            retrieved_at: new Date().toISOString(),
+            retrieved_at: now,
             ingestion_run_id: runId,
-            updated_at: new Date().toISOString(),
+            updated_at: now,
           },
           { onConflict: "jurisdiction_id,indicator_type" }
         )
@@ -567,7 +662,7 @@ Deno.serve(async (req) => {
       }
     }
 
-    // REMOVED
+    // REMOVED indicators
     for (const code of existingCodes) {
       if (!newCodes.has(code)) {
         const existing = existingByCode[code];
@@ -585,9 +680,9 @@ Deno.serve(async (req) => {
             effective_date: today,
             source_url: sourceUrl,
             source_snapshot_hash: snapshotHash,
-            retrieved_at: new Date().toISOString(),
+            retrieved_at: now,
             ingestion_run_id: runId,
-            updated_at: new Date().toISOString(),
+            updated_at: now,
           })
           .eq("id", existing.id);
 
@@ -608,12 +703,20 @@ Deno.serve(async (req) => {
       }
     }
 
-    // ── 5. Finalize ──
+    // ── 6. Update jurisdiction.last_refreshed_at for touched countries ──
+    for (const code of touchedCountryCodes) {
+      await supabase
+        .from("jurisdiction")
+        .update({ last_refreshed_at: now, updated_at: now })
+        .eq("country_code", code);
+    }
+
+    // ── 7. Finalize ──
     await supabase
       .from("ingestion_run")
       .update({
         status: "completed",
-        finished_at: new Date().toISOString(),
+        finished_at: now,
         records_processed: totalProcessed,
         records_changed: totalChanged,
         metadata: {
@@ -629,11 +732,11 @@ Deno.serve(async (req) => {
     if (dataSourceId) {
       await supabase
         .from("data_source")
-        .update({ last_run_at: new Date().toISOString(), last_run_status: "completed" })
+        .update({ last_run_at: now, last_run_status: "completed" })
         .eq("id", dataSourceId);
     }
 
-    console.log(`[OFAC] Complete: ${totalProcessed} entities, ${totalChanged} indicator changes`);
+    console.log(`[OFAC] Complete: ${totalProcessed} entities, ${totalChanged} changes`);
 
     return new Response(
       JSON.stringify({
@@ -643,6 +746,7 @@ Deno.serve(async (req) => {
         records_changed: totalChanged,
         programmes_found: progCountryMap.size,
         countries_with_indicators: countryStatus.size,
+        jurisdictions_refreshed: touchedCountryCodes.size,
         publish_date: publishDate,
         used_fallback: usedFallback,
       }),
