@@ -35,6 +35,7 @@ export default function CommissionPage() {
   const { profile, user } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { canAccessReportTier, canUseAddon, canUsePartnerEscalation, canExportAiBrief } = useEntitlements();
   const [searchParams] = useSearchParams();
   const [step, setStep] = useState(0);
   const [entities, setEntities] = useState<any[]>([]);
