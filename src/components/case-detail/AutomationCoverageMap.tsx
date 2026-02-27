@@ -105,6 +105,7 @@ export default function AutomationCoverageMap({
   structuredData, structuredDataLocked,
   officerCommentary, officerCommentaryComplete,
   aiDraft, aiDraftReviewed, aiDraftDismissed,
+  aiDecisions = [],
 }: Props) {
 
   const rows: CoverageRow[] = [];
