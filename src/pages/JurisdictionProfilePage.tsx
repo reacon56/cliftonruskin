@@ -127,6 +127,9 @@ export default function JurisdictionProfilePage() {
         </div>
       </div>
 
+      {/* Subscribe Toggle */}
+      {id && <JurisdictionSubscribeToggle jurisdictionId={id} />}
+
       {/* Current Indicators */}
       <Card>
         <CardHeader className="pb-3">
