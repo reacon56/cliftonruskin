@@ -13,6 +13,7 @@ import { useToast } from "@/hooks/use-toast";
 import { ChevronRight, Check, AlertTriangle, Sparkles } from "lucide-react";
 import { requiresApproval } from "@/lib/approval-utils";
 import EnhancementSuggestionPanel from "@/components/EnhancementSuggestionPanel";
+import { useEntitlements } from "@/hooks/use-entitlements";
 import DpDeclarationStep, {
   DP_DECLARATION_INITIAL, computeDpDeclarationRisk, type DpDeclarationState,
 } from "@/components/commission/DpDeclarationStep";
