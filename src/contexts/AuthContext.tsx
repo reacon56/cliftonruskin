@@ -9,6 +9,8 @@ import {
   canViewOwnershipStructure, canExportOwnershipStructure,
   canFilterOwnershipStructure, canToggleProvenance,
   canEditRelationships,
+  isPlatformAdmin as checkPlatformAdmin,
+  isClientAdmin as checkClientAdmin,
 } from "@/lib/fvc-roles";
 
 type AppRole = Database["public"]["Enums"]["app_role"];
@@ -45,6 +47,8 @@ interface AuthContextType {
   canFilterOwnership: boolean;
   canProvenance: boolean;
   canEditRels: boolean;
+  isPlatformAdmin: boolean;
+  isClientAdmin: boolean;
   primaryRoleLabel: string;
 }
 
@@ -130,6 +134,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         canFilterOwnership: canFilterOwnershipStructure(roleStrings),
         canProvenance: canToggleProvenance(roleStrings),
         canEditRels: canEditRelationships(roleStrings),
+        isPlatformAdmin: checkPlatformAdmin(roleStrings),
+        isClientAdmin: checkClientAdmin(roleStrings),
         primaryRoleLabel: getPrimaryRoleLabel(roleStrings),
       }}
     >

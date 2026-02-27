@@ -129,10 +129,10 @@ function AppRoutes() {
         <Route path="/lia-library" element={<LiaLibraryPage />} />
         <Route path="/approval-settings" element={<AutoApprovalSettingsPage />} />
         <Route path="/org-settings" element={<OrgSettingsPage />} />
-        <Route path="/feature-controls" element={<FeatureControlsPage />} />
-        <Route path="/upgrade-requests" element={<UpgradeRequestsPage />} />
+        <Route path="/feature-controls" element={<InternalRouteGuard managerOnly><FeatureControlsPage /></InternalRouteGuard>} />
+        <Route path="/upgrade-requests" element={<InternalRouteGuard managerOnly><UpgradeRequestsPage /></InternalRouteGuard>} />
         <Route path="/cases" element={<CaseQueuePage />} />
-        <Route path="/admin/market-lessons" element={<MarketLessonsAdminPage />} />
+        <Route path="/admin/market-lessons" element={<InternalRouteGuard managerOnly><MarketLessonsAdminPage /></InternalRouteGuard>} />
         <Route path="/admin/sources" element={<InternalRouteGuard managerOnly><AdminSourcesPage /></InternalRouteGuard>} />
         <Route path="/admin/ingestion-runs" element={<InternalRouteGuard managerOnly><AdminIngestionRunsPage /></InternalRouteGuard>} />
         <Route path="/admin/ingestion-runs/:id" element={<InternalRouteGuard managerOnly><AdminIngestionRunDetailPage /></InternalRouteGuard>} />
