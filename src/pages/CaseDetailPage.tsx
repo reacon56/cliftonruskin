@@ -28,6 +28,7 @@ import EvidenceLocker from "@/components/case-detail/EvidenceLocker";
 import CaseRetrievalLogs from "@/components/case-detail/CaseRetrievalLogs";
 import CaseChatPanel from "@/components/case-detail/CaseChatPanel";
 import PartnerEscalationPanel from "@/components/case-detail/PartnerEscalationPanel";
+import CaseTimeTracker from "@/components/case-detail/CaseTimeTracker";
 import {
   CASE_STATUSES, STATUS_LABELS, STATUS_COLORS, STATUS_AUDIT_MAP,
   CASE_TYPE_LABELS, REPORT_TIER_LABELS,
