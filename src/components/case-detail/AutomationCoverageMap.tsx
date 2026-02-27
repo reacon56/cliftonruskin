@@ -64,6 +64,9 @@ const STATUS_CONFIG: Record<CompletionStatus, { label: string; color: string; ic
   auto_filled: { label: "Auto-filled", color: "bg-primary/10 text-primary", icon: Database },
   manual: { label: "Manual", color: "bg-accent/10 text-accent", icon: Pen },
   ai_draft: { label: "AI Draft", color: "bg-warning/10 text-warning", icon: Sparkles },
+  ai_accepted: { label: "AI Accepted", color: "bg-success/10 text-success", icon: CheckCircle2 },
+  ai_edited: { label: "AI Edited", color: "bg-primary/10 text-primary", icon: Pen },
+  ai_rejected: { label: "AI Rejected", color: "bg-destructive/10 text-destructive", icon: AlertCircle },
   missing: { label: "Missing", color: "bg-destructive/10 text-destructive", icon: AlertCircle },
 };
 
