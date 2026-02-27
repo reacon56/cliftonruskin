@@ -115,8 +115,9 @@ export function computeCoverageRows(props: {
   aiDecisions: AiSectionDecision[];
   preQaChecks: PreQaCheckResult[];
   preQaRanAt?: string;
+  partnerEscalationCount?: number;
 }): { rows: CoverageRow[]; autoPct: number; manualPct: number; aiPct: number; coveragePct: number; missingCount: number } {
-  const { structuredData, officerCommentary, aiDraft, aiDraftDismissed, aiDecisions, preQaChecks, preQaRanAt } = props;
+  const { structuredData, officerCommentary, aiDraft, aiDraftDismissed, aiDecisions, preQaChecks, preQaRanAt, partnerEscalationCount = 0 } = props;
   const rows: CoverageRow[] = [];
   const now = new Date().toISOString();
 
