@@ -59,8 +59,6 @@ export default function CaseDetailPage() {
   const [editingNotes, setEditingNotes] = useState(false);
   const [internalNotes, setInternalNotes] = useState("");
   const [activeTab, setActiveTab] = useState("scope");
-  // Internal vs client message filter
-  const [messageFilter, setMessageFilter] = useState<"internal" | "client">("internal");
 
   useEffect(() => { if (id) loadCase(); }, [id]);
 
