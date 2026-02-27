@@ -47,6 +47,8 @@ interface AuthContextType {
   canFilterOwnership: boolean;
   canProvenance: boolean;
   canEditRels: boolean;
+  isPlatformAdmin: boolean;
+  isClientAdmin: boolean;
   primaryRoleLabel: string;
 }
 
