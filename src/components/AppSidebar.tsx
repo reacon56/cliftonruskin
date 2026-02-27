@@ -115,6 +115,7 @@ export default function AppSidebar() {
     { label: "Knowledge Base", path: "/knowledge-base", icon: <BookOpen size={18} /> },
     { label: "Research Console", path: "/research-console", icon: <FlaskConical size={18} /> },
     { label: "Jurisdiction Library", path: "/jurisdiction-library", icon: <Globe size={18} /> },
+    { label: "Jurisdictions", path: "/jurisdictions", icon: <Globe size={18} /> },
     { label: "Submitted to QA", path: "/qa-queue", icon: <Eye size={18} /> },
   ];
 
