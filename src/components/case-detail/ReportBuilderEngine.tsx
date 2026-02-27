@@ -83,6 +83,7 @@ const COMMENTARY_FIELDS: { key: keyof OfficerCommentary; label: string; placehol
   { key: "explanation_of_material_findings", label: "Explanation of Material Findings", placeholder: "Detail any material findings and their significance…" },
   { key: "mitigating_factors", label: "Mitigating Factors", placeholder: "Note any mitigating factors that reduce identified risks…" },
   { key: "recommended_follow_up_actions", label: "Recommended Follow-up Actions", placeholder: "Suggest follow-up actions or monitoring requirements…" },
+  { key: "client_safe_notes", label: "Client-safe Notes (optional)", placeholder: "Notes safe for client visibility — no sensitive internal commentary…" },
 ];
 
 const AI_FIELDS: { key: keyof AiDraft; label: string }[] = [
