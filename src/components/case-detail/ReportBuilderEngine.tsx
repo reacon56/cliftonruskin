@@ -32,6 +32,7 @@ interface OfficerCommentary {
   explanation_of_material_findings?: string;
   mitigating_factors?: string;
   recommended_follow_up_actions?: string;
+  client_safe_notes?: string;
 }
 
 interface AiDraft {
