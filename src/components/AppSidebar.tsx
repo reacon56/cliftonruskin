@@ -15,6 +15,7 @@ import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { useTheme } from "@/hooks/use-theme";
 import { useViewMode } from "@/contexts/ViewModeContext";
+import { useAlertNotifications } from "@/hooks/use-alert-notifications";
 
 interface NavItem {
   label: string;
