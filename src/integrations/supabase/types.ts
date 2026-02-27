@@ -3121,6 +3121,72 @@ export type Database = {
           },
         ]
       }
+      tier_deviation_overrides: {
+        Row: {
+          case_id: string
+          created_at: string
+          id: string
+          matrix_version_id: string | null
+          officer_id: string
+          reason_for_deviation: string
+          requirement_label: string
+          requirement_rule_key: string
+          reviewed_at: string | null
+          reviewer_id: string | null
+          reviewer_reason: string | null
+          status: string
+          supporting_notes: string | null
+          updated_at: string
+        }
+        Insert: {
+          case_id: string
+          created_at?: string
+          id?: string
+          matrix_version_id?: string | null
+          officer_id: string
+          reason_for_deviation: string
+          requirement_label: string
+          requirement_rule_key: string
+          reviewed_at?: string | null
+          reviewer_id?: string | null
+          reviewer_reason?: string | null
+          status?: string
+          supporting_notes?: string | null
+          updated_at?: string
+        }
+        Update: {
+          case_id?: string
+          created_at?: string
+          id?: string
+          matrix_version_id?: string | null
+          officer_id?: string
+          reason_for_deviation?: string
+          requirement_label?: string
+          requirement_rule_key?: string
+          reviewed_at?: string | null
+          reviewer_id?: string | null
+          reviewer_reason?: string | null
+          status?: string
+          supporting_notes?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tier_deviation_overrides_case_id_fkey"
+            columns: ["case_id"]
+            isOneToOne: false
+            referencedRelation: "cases"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tier_deviation_overrides_matrix_version_id_fkey"
+            columns: ["matrix_version_id"]
+            isOneToOne: false
+            referencedRelation: "tier_matrix_versions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       tier_matrix_versions: {
         Row: {
           change_log: string | null
