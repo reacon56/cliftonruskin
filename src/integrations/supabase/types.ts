@@ -1097,6 +1097,84 @@ export type Database = {
           },
         ]
       }
+      cr_risk_engine_config: {
+        Row: {
+          created_at: string
+          enabled: boolean
+          engine_version: string
+          id: string
+          thresholds_json: Json
+          weights_json: Json
+        }
+        Insert: {
+          created_at?: string
+          enabled?: boolean
+          engine_version: string
+          id?: string
+          thresholds_json?: Json
+          weights_json?: Json
+        }
+        Update: {
+          created_at?: string
+          enabled?: boolean
+          engine_version?: string
+          id?: string
+          thresholds_json?: Json
+          weights_json?: Json
+        }
+        Relationships: []
+      }
+      cr_risk_result: {
+        Row: {
+          contributing_factors_json: Json
+          engine_version: string
+          entity_id: string
+          generated_at: string
+          id: string
+          jurisdiction_id: string | null
+          recommended_controls_json: Json
+          risk_band: Database["public"]["Enums"]["cr_risk_band"]
+          risk_score: number
+        }
+        Insert: {
+          contributing_factors_json?: Json
+          engine_version: string
+          entity_id: string
+          generated_at?: string
+          id?: string
+          jurisdiction_id?: string | null
+          recommended_controls_json?: Json
+          risk_band?: Database["public"]["Enums"]["cr_risk_band"]
+          risk_score?: number
+        }
+        Update: {
+          contributing_factors_json?: Json
+          engine_version?: string
+          entity_id?: string
+          generated_at?: string
+          id?: string
+          jurisdiction_id?: string | null
+          recommended_controls_json?: Json
+          risk_band?: Database["public"]["Enums"]["cr_risk_band"]
+          risk_score?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cr_risk_result_entity_id_fkey"
+            columns: ["entity_id"]
+            isOneToOne: false
+            referencedRelation: "entities"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cr_risk_result_jurisdiction_id_fkey"
+            columns: ["jurisdiction_id"]
+            isOneToOne: false
+            referencedRelation: "jurisdiction"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       data_protection_reviews: {
         Row: {
           case_id: string
@@ -4746,6 +4824,7 @@ export type Database = {
         | "EU_SANCTIONS_CHANGE"
         | "OFAC_SANCTIONS_CHANGE"
         | "CPI_CHANGE"
+      cr_risk_band: "LOW" | "MEDIUM" | "HIGH" | "SEVERE"
       indicator_type:
         | "FATF_STATUS"
         | "EU_AML_HRTC"
@@ -4915,6 +4994,7 @@ export const Constants = {
         "OFAC_SANCTIONS_CHANGE",
         "CPI_CHANGE",
       ],
+      cr_risk_band: ["LOW", "MEDIUM", "HIGH", "SEVERE"],
       indicator_type: [
         "FATF_STATUS",
         "EU_AML_HRTC",
