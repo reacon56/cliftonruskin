@@ -27,6 +27,7 @@ import CaseTaskBoard from "@/components/case-detail/CaseTaskBoard";
 import EvidenceLocker from "@/components/case-detail/EvidenceLocker";
 import CaseRetrievalLogs from "@/components/case-detail/CaseRetrievalLogs";
 import CaseChatPanel from "@/components/case-detail/CaseChatPanel";
+import PartnerEscalationPanel from "@/components/case-detail/PartnerEscalationPanel";
 import {
   CASE_STATUSES, STATUS_LABELS, STATUS_COLORS, STATUS_AUDIT_MAP,
   CASE_TYPE_LABELS, REPORT_TIER_LABELS,
@@ -309,7 +310,7 @@ export default function CaseDetailPage() {
 
           {/* ── PARTNER ENGAGEMENT ── */}
           {isInternal && (
-            <TabsContent value="partners">
+            <TabsContent value="partners" className="space-y-4">
               <div className="rounded-lg border bg-card p-4">
                 <h3 className="font-display text-sm font-semibold text-foreground mb-3 flex items-center gap-2"><Globe className="h-4 w-4" /> Partner Engagement</h3>
                 {currentStatus === "with_partner" ? (
@@ -321,6 +322,15 @@ export default function CaseDetailPage() {
                 ) : (
                   <p className="text-sm text-muted-foreground">No active partner engagement. Use the Actions panel to send this case to a partner.</p>
                 )}
+              </div>
+
+              <div className="rounded-lg border bg-card p-4">
+                <PartnerEscalationPanel
+                  caseId={id!}
+                  entityId={caseData.entity_id}
+                  entityCountry={entity?.country}
+                  isManager={isManager}
+                />
               </div>
             </TabsContent>
           )}
