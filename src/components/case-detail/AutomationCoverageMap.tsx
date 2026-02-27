@@ -7,7 +7,7 @@ import {
 import type { PreQaCheckResult } from "@/components/case-detail/PreQaReviewPanel";
 
 /* ────── types ────── */
-type CompletionStatus = "auto_filled" | "manual" | "ai_draft" | "ai_accepted" | "ai_edited" | "ai_rejected" | "system_check" | "missing";
+type CompletionStatus = "auto_filled" | "manual" | "ai_draft" | "ai_accepted" | "ai_edited" | "ai_rejected" | "system_check" | "external_partner" | "missing";
 
 interface AiSectionDecision {
   key: string;
