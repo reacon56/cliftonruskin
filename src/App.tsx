@@ -52,6 +52,7 @@ import ProductCataloguePage from "@/pages/ProductCataloguePage";
 import BudgetControlsPage from "@/pages/BudgetControlsPage";
 import BillingHandoffPage from "@/pages/BillingHandoffPage";
 import WorkOrdersPage from "@/pages/WorkOrdersPage";
+import EntitlementSettingsPage from "@/pages/EntitlementSettingsPage";
 
 // Website pages
 import WebsiteLayout from "@/components/website/WebsiteLayout";
@@ -138,6 +139,7 @@ function AppRoutes() {
         <Route path="/budget-controls" element={<BudgetControlsPage />} />
         <Route path="/billing-handoff" element={<InternalRouteGuard managerOnly><BillingHandoffPage /></InternalRouteGuard>} />
         <Route path="/work-orders" element={<WorkOrdersPage />} />
+        <Route path="/entitlement-settings" element={<InternalRouteGuard managerOnly><EntitlementSettingsPage /></InternalRouteGuard>} />
 
         {/* ── Internal routes (officer + manager) ── */}
         <Route path="/qa-queue" element={<InternalRouteGuard><QaQueuePage /></InternalRouteGuard>} />

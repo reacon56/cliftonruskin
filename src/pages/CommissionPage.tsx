@@ -11,8 +11,10 @@ import {
 } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { ChevronRight, Check, AlertTriangle, Sparkles } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
 import { requiresApproval } from "@/lib/approval-utils";
 import EnhancementSuggestionPanel from "@/components/EnhancementSuggestionPanel";
+import { useEntitlements } from "@/hooks/use-entitlements";
 import DpDeclarationStep, {
   DP_DECLARATION_INITIAL, computeDpDeclarationRisk, type DpDeclarationState,
 } from "@/components/commission/DpDeclarationStep";
@@ -34,6 +36,7 @@ export default function CommissionPage() {
   const { profile, user } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { canAccessReportTier, canUseAddon, canUsePartnerEscalation, canExportAiBrief } = useEntitlements();
   const [searchParams] = useSearchParams();
   const [step, setStep] = useState(0);
   const [entities, setEntities] = useState<any[]>([]);
@@ -284,31 +287,42 @@ export default function CommissionPage() {
 
         {step === 1 && (
           <div className="space-y-3 animate-fade-in">
-            {(["Assurance Note", "Assurance Dossier", "Refresh Note"] as const).map((p) => (
-              <label
-                key={p}
-                className={`block rounded-lg border p-5 cursor-pointer transition-all duration-300 ${
-                  form.product_type === p
-                    ? "border-accent/50 bg-accent/5"
-                    : "border-border hover:border-border hover:bg-muted/30"
-                }`}
-                style={form.product_type === p ? { boxShadow: "var(--shadow-gold-glow)" } : undefined}
-              >
-                <input
-                  type="radio"
-                  name="product"
-                  className="sr-only"
-                  checked={form.product_type === p}
-                  onChange={() => setForm({ ...form, product_type: p })}
-                />
-                <div className="font-medium text-foreground text-sm">{p}</div>
-                <div className="text-[12px] text-muted-foreground mt-1.5 leading-relaxed">
-                  {p === "Assurance Note" && "Concise due diligence summary with key risk indicators."}
-                  {p === "Assurance Dossier" && "Comprehensive investigation report with evidence pack."}
-                  {p === "Refresh Note" && "Update an existing assessment with new findings."}
-                </div>
-              </label>
-            ))}
+            {(["Assurance Note", "Assurance Dossier", "Refresh Note"] as const).map((p) => {
+              // Dossier requires "enhanced" report tier entitlement
+              const tierNeeded = p === "Assurance Dossier" ? "enhanced" : "standard";
+              const allowed = canAccessReportTier(tierNeeded);
+              return (
+                <label
+                  key={p}
+                  className={`block rounded-lg border p-5 transition-all duration-300 ${
+                    !allowed
+                      ? "opacity-50 cursor-not-allowed border-border bg-muted/20"
+                      : form.product_type === p
+                      ? "border-accent/50 bg-accent/5 cursor-pointer"
+                      : "border-border hover:border-border hover:bg-muted/30 cursor-pointer"
+                  }`}
+                  style={form.product_type === p && allowed ? { boxShadow: "var(--shadow-gold-glow)" } : undefined}
+                >
+                  <input
+                    type="radio"
+                    name="product"
+                    className="sr-only"
+                    checked={form.product_type === p}
+                    onChange={() => allowed && setForm({ ...form, product_type: p })}
+                    disabled={!allowed}
+                  />
+                  <div className="font-medium text-foreground text-sm flex items-center gap-2">
+                    {p}
+                    {!allowed && <Badge variant="outline" className="text-[10px]">Upgrade Required</Badge>}
+                  </div>
+                  <div className="text-[12px] text-muted-foreground mt-1.5 leading-relaxed">
+                    {p === "Assurance Note" && "Concise due diligence summary with key risk indicators."}
+                    {p === "Assurance Dossier" && "Comprehensive investigation report with evidence pack."}
+                    {p === "Refresh Note" && "Update an existing assessment with new findings."}
+                  </div>
+                </label>
+              );
+            })}
           </div>
         )}
 
@@ -363,25 +377,33 @@ export default function CommissionPage() {
 
             {moduleTypes.map((mt) => {
               const isSelected = form.selectedModules.includes(mt.code);
+              const addonKey = mt.code === "COMMERCIAL_POSTURE" ? "commercial_posture" : mt.code === "JURISDICTION_BENCHMARK" ? "jurisdiction_benchmark" : mt.code.toLowerCase();
+              const allowed = canUseAddon(addonKey);
               return (
                 <label
                   key={mt.id}
-                  className={`block rounded-lg border p-5 cursor-pointer transition-all duration-300 ${
-                    isSelected
-                      ? "border-accent/50 bg-accent/5"
-                      : "border-border hover:border-border hover:bg-muted/30"
+                  className={`block rounded-lg border p-5 transition-all duration-300 ${
+                    !allowed
+                      ? "opacity-50 cursor-not-allowed border-border bg-muted/20"
+                      : isSelected
+                      ? "border-accent/50 bg-accent/5 cursor-pointer"
+                      : "border-border hover:border-border hover:bg-muted/30 cursor-pointer"
                   }`}
-                  style={isSelected ? { boxShadow: "var(--shadow-gold-glow)" } : undefined}
+                  style={isSelected && allowed ? { boxShadow: "var(--shadow-gold-glow)" } : undefined}
                 >
                   <div className="flex items-start gap-3">
                     <Checkbox
                       checked={isSelected}
-                      onCheckedChange={() => toggleModule(mt.code)}
+                      onCheckedChange={() => allowed && toggleModule(mt.code)}
+                      disabled={!allowed}
                       className="mt-0.5"
                     />
                     <div className="flex-1">
                       <div className="flex items-center justify-between">
-                        <div className="font-medium text-foreground text-sm">{mt.name} <span className="text-accent text-xs font-normal">(EDD+)</span></div>
+                        <div className="font-medium text-foreground text-sm">
+                          {mt.name} <span className="text-accent text-xs font-normal">(EDD+)</span>
+                          {!allowed && <Badge variant="outline" className="ml-2 text-[10px]">Upgrade Required</Badge>}
+                        </div>
                         <span className="text-xs text-accent font-display font-semibold">+£{(MODULE_PRICING[mt.code] ?? 0).toLocaleString()}</span>
                       </div>
                       <div className="text-[12px] text-muted-foreground mt-1.5 leading-relaxed">

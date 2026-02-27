@@ -1047,6 +1047,47 @@ export type Database = {
           },
         ]
       }
+      entitlement_change_log: {
+        Row: {
+          changed_by: string
+          created_at: string
+          field_changed: string
+          id: string
+          new_value: string | null
+          old_value: string | null
+          org_id: string
+          reason: string | null
+        }
+        Insert: {
+          changed_by: string
+          created_at?: string
+          field_changed: string
+          id?: string
+          new_value?: string | null
+          old_value?: string | null
+          org_id: string
+          reason?: string | null
+        }
+        Update: {
+          changed_by?: string
+          created_at?: string
+          field_changed?: string
+          id?: string
+          new_value?: string | null
+          old_value?: string | null
+          org_id?: string
+          reason?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "entitlement_change_log_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organisations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       entity_import_logs: {
         Row: {
           created_at: string
@@ -2092,6 +2133,59 @@ export type Database = {
             columns: ["risk_policy_default_id"]
             isOneToOne: false
             referencedRelation: "policies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      package_entitlements: {
+        Row: {
+          addon_entitlements: Json
+          ai_brief_export_enabled: boolean
+          allowed_report_tiers: string[]
+          created_at: string
+          dashboard_modules: Json
+          id: string
+          org_id: string
+          package: string
+          partner_escalation_enabled: boolean
+          source_tier_access: string
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          addon_entitlements?: Json
+          ai_brief_export_enabled?: boolean
+          allowed_report_tiers?: string[]
+          created_at?: string
+          dashboard_modules?: Json
+          id?: string
+          org_id: string
+          package?: string
+          partner_escalation_enabled?: boolean
+          source_tier_access?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          addon_entitlements?: Json
+          ai_brief_export_enabled?: boolean
+          allowed_report_tiers?: string[]
+          created_at?: string
+          dashboard_modules?: Json
+          id?: string
+          org_id?: string
+          package?: string
+          partner_escalation_enabled?: boolean
+          source_tier_access?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "package_entitlements_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: true
+            referencedRelation: "organisations"
             referencedColumns: ["id"]
           },
         ]
