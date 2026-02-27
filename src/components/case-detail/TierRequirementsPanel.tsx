@@ -33,7 +33,8 @@ const COMMENTARY_LABELS: Record<string, string> = {
 
 interface Requirement {
   label: string;
-  status: "complete" | "missing" | "warning";
+  ruleKey: string;
+  status: "complete" | "missing" | "warning" | "waived";
   detail?: string;
 }
 
