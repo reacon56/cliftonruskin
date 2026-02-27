@@ -63,6 +63,7 @@ import AdminSourcesPage from "@/pages/admin/AdminSourcesPage";
 import AdminIngestionRunsPage from "@/pages/admin/AdminIngestionRunsPage";
 import AdminIngestionRunDetailPage from "@/pages/admin/AdminIngestionRunDetailPage";
 import ClientAlertsPage from "@/pages/ClientAlertsPage";
+import ClientPolicyPage from "@/pages/ClientPolicyPage";
 
 // Website pages
 import WebsiteLayout from "@/components/website/WebsiteLayout";
@@ -124,6 +125,7 @@ function AppRoutes() {
         <Route path="/policies" element={<PoliciesPage />} />
         <Route path="/audit-log" element={<AuditLogPage />} />
         <Route path="/client/alerts" element={<ClientAlertsPage />} />
+        <Route path="/client/policy" element={<ClientPolicyPage />} />
         <Route path="/lia-library" element={<LiaLibraryPage />} />
         <Route path="/approval-settings" element={<AutoApprovalSettingsPage />} />
         <Route path="/org-settings" element={<OrgSettingsPage />} />

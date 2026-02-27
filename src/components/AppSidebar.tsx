@@ -75,6 +75,7 @@ export default function AppSidebar() {
 
   clientNav.push(
     { label: "Jurisdiction Alerts", path: "/client/alerts", icon: <Bell size={18} /> },
+    { label: "Policy Mapping", path: "/client/policy", icon: <Shield size={18} /> },
     { label: "Audit Log", path: "/audit-log", icon: <ClipboardList size={18} /> },
     { label: "Support", path: "/support", icon: <HeadphonesIcon size={18} /> }
   );

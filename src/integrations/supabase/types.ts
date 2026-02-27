@@ -909,6 +909,150 @@ export type Database = {
           },
         ]
       }
+      client_policy_outcome: {
+        Row: {
+          case_id: string | null
+          computed_at: string
+          engine_version: string
+          entity_id: string | null
+          id: string
+          org_id: string
+          outcome_json: Json
+          ruleset_id: string
+        }
+        Insert: {
+          case_id?: string | null
+          computed_at?: string
+          engine_version?: string
+          entity_id?: string | null
+          id?: string
+          org_id: string
+          outcome_json?: Json
+          ruleset_id: string
+        }
+        Update: {
+          case_id?: string | null
+          computed_at?: string
+          engine_version?: string
+          entity_id?: string | null
+          id?: string
+          org_id?: string
+          outcome_json?: Json
+          ruleset_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "client_policy_outcome_case_id_fkey"
+            columns: ["case_id"]
+            isOneToOne: false
+            referencedRelation: "cases"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "client_policy_outcome_entity_id_fkey"
+            columns: ["entity_id"]
+            isOneToOne: false
+            referencedRelation: "entities"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "client_policy_outcome_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organisations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "client_policy_outcome_ruleset_id_fkey"
+            columns: ["ruleset_id"]
+            isOneToOne: false
+            referencedRelation: "client_policy_ruleset"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      client_policy_rule: {
+        Row: {
+          compare_value_json: Json
+          created_at: string
+          id: string
+          if_indicator_type: string
+          notes: string | null
+          operator: Database["public"]["Enums"]["policy_operator"]
+          priority: number
+          ruleset_id: string
+          then_outcome_json: Json
+        }
+        Insert: {
+          compare_value_json?: Json
+          created_at?: string
+          id?: string
+          if_indicator_type: string
+          notes?: string | null
+          operator?: Database["public"]["Enums"]["policy_operator"]
+          priority?: number
+          ruleset_id: string
+          then_outcome_json?: Json
+        }
+        Update: {
+          compare_value_json?: Json
+          created_at?: string
+          id?: string
+          if_indicator_type?: string
+          notes?: string | null
+          operator?: Database["public"]["Enums"]["policy_operator"]
+          priority?: number
+          ruleset_id?: string
+          then_outcome_json?: Json
+        }
+        Relationships: [
+          {
+            foreignKeyName: "client_policy_rule_ruleset_id_fkey"
+            columns: ["ruleset_id"]
+            isOneToOne: false
+            referencedRelation: "client_policy_ruleset"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      client_policy_ruleset: {
+        Row: {
+          created_at: string
+          enabled: boolean
+          id: string
+          name: string
+          org_id: string
+          updated_at: string
+          version: number
+        }
+        Insert: {
+          created_at?: string
+          enabled?: boolean
+          id?: string
+          name: string
+          org_id: string
+          updated_at?: string
+          version?: number
+        }
+        Update: {
+          created_at?: string
+          enabled?: boolean
+          id?: string
+          name?: string
+          org_id?: string
+          updated_at?: string
+          version?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "client_policy_ruleset_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organisations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       commercial_posture_inputs: {
         Row: {
           attachment_url: string | null
@@ -4612,6 +4756,17 @@ export type Database = {
         | "US_FINCEN_311"
         | "EU_TAX_NONCOOP"
         | "CPI_SCORE"
+      policy_operator:
+        | "EQUALS"
+        | "NOT_EQUALS"
+        | "IN"
+        | "NOT_IN"
+        | "GTE"
+        | "LTE"
+        | "GT"
+        | "LT"
+        | "EXISTS"
+        | "NOT_EXISTS"
       sanctions_source: "UKSL" | "OFAC" | "EU_FSF"
     }
     CompositeTypes: {
@@ -4770,6 +4925,18 @@ export const Constants = {
         "US_FINCEN_311",
         "EU_TAX_NONCOOP",
         "CPI_SCORE",
+      ],
+      policy_operator: [
+        "EQUALS",
+        "NOT_EQUALS",
+        "IN",
+        "NOT_IN",
+        "GTE",
+        "LTE",
+        "GT",
+        "LT",
+        "EXISTS",
+        "NOT_EXISTS",
       ],
       sanctions_source: ["UKSL", "OFAC", "EU_FSF"],
     },
