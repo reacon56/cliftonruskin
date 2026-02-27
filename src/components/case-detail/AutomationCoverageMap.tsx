@@ -156,28 +156,45 @@ export default function AutomationCoverageMap({
     });
   }
 
-  // AI Draft sections
-  const aiKeys: { key: keyof AiDraft; label: string }[] = [
-    { key: "draft_executive_summary", label: "Executive Summary (AI)" },
-    { key: "draft_risk_driver_explanation", label: "Risk Drivers (AI)" },
-    { key: "suggested_follow_up_actions", label: "Suggested Follow-up (AI)" },
-    { key: "gap_analysis_prompts", label: "Gap Analysis (AI)" },
+  // AI Draft sections — map decision keys to draft keys
+  const aiKeysWithDecisionMap: { key: keyof AiDraft; label: string; decisionKey: string }[] = [
+    { key: "draft_executive_summary", label: "Executive Summary (AI)", decisionKey: "executive_summary" },
+    { key: "draft_risk_driver_explanation", label: "Risk Drivers (AI)", decisionKey: "risk_driver" },
+    { key: "suggested_follow_up_actions", label: "Suggested Follow-up (AI)", decisionKey: "follow_ups" },
+    { key: "gap_analysis_prompts", label: "Gap Analysis (AI)", decisionKey: "inconsistencies" },
   ];
 
-  for (const { key, label } of aiKeys) {
+  for (const { key, label, decisionKey } of aiKeysWithDecisionMap) {
     const val = aiDraft?.[key];
     const filled = !!val && val.trim().length > 0;
-    const status: CompletionStatus = aiDraftDismissed
-      ? "missing"
-      : filled
-      ? "ai_draft"
-      : "missing";
+    const decision = aiDecisions.find((d) => d.key === decisionKey);
+
+    let status: CompletionStatus;
+    let updatedBy = "—";
+    let timestamp: string | null = null;
+
+    if (decision) {
+      status = decision.status === "accepted" ? "ai_accepted"
+        : decision.status === "edited" ? "ai_edited"
+        : "ai_rejected";
+      updatedBy = decision.reviewer;
+      timestamp = decision.decidedAt;
+    } else if (aiDraftDismissed) {
+      status = "missing";
+    } else if (filled) {
+      status = "ai_draft";
+      updatedBy = "AI";
+      timestamp = now;
+    } else {
+      status = "missing";
+    }
+
     rows.push({
       section: label,
       status,
       dataSources: filled && !aiDraftDismissed ? ["AI Assurance Assistant"] : [],
-      lastUpdatedBy: filled && !aiDraftDismissed ? "AI" : "—",
-      timestamp: filled && !aiDraftDismissed ? now : null,
+      lastUpdatedBy: updatedBy,
+      timestamp,
     });
   }
 
