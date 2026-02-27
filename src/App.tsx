@@ -62,6 +62,7 @@ import JurisdictionProfilePage from "@/pages/JurisdictionProfilePage";
 import AdminSourcesPage from "@/pages/admin/AdminSourcesPage";
 import AdminIngestionRunsPage from "@/pages/admin/AdminIngestionRunsPage";
 import AdminIngestionRunDetailPage from "@/pages/admin/AdminIngestionRunDetailPage";
+import ClientAlertsPage from "@/pages/ClientAlertsPage";
 
 // Website pages
 import WebsiteLayout from "@/components/website/WebsiteLayout";
@@ -122,6 +123,7 @@ function AppRoutes() {
         <Route path="/monitoring" element={<MonitoringPage />} />
         <Route path="/policies" element={<PoliciesPage />} />
         <Route path="/audit-log" element={<AuditLogPage />} />
+        <Route path="/client/alerts" element={<ClientAlertsPage />} />
         <Route path="/lia-library" element={<LiaLibraryPage />} />
         <Route path="/approval-settings" element={<AutoApprovalSettingsPage />} />
         <Route path="/org-settings" element={<OrgSettingsPage />} />

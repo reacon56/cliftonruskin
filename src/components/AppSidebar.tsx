@@ -7,7 +7,7 @@ import {
   ArrowLeftRight, CheckCircle2, Scale, ArrowUpCircle, Newspaper,
   Briefcase, Eye, BookOpen, GitMerge, BarChart3, Search,
   Send, Layers, Database, FlaskConical, Globe, Package, Wallet, Receipt,
-  DollarSign, TrendingUp, Server,
+  DollarSign, TrendingUp, Server, Bell,
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
@@ -15,6 +15,7 @@ import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { useTheme } from "@/hooks/use-theme";
 import { useViewMode } from "@/contexts/ViewModeContext";
+import { useAlertNotifications } from "@/hooks/use-alert-notifications";
 
 interface NavItem {
   label: string;
@@ -29,6 +30,7 @@ export default function AppSidebar() {
   const [collapsed, setCollapsed] = useState(false);
   const { activeView, canToggle, toggle: toggleView, setView: setViewAs } = useViewMode();
   const [pendingApprovals, setPendingApprovals] = useState(0);
+  const { unreadCount: alertCount } = useAlertNotifications();
 
   const isManager = hasRole("fvc_assurance_manager" as any) || hasRole("fvc_ops_admin" as any);
   const isOfficer = hasRole("fvc_assurance_officer" as any) || hasRole("fvc_analyst" as any);
@@ -72,6 +74,7 @@ export default function AppSidebar() {
   }
 
   clientNav.push(
+    { label: "Jurisdiction Alerts", path: "/client/alerts", icon: <Bell size={18} /> },
     { label: "Audit Log", path: "/audit-log", icon: <ClipboardList size={18} /> },
     { label: "Support", path: "/support", icon: <HeadphonesIcon size={18} /> }
   );
@@ -195,6 +198,16 @@ export default function AppSidebar() {
               {collapsed && item.label === "Approvals" && pendingApprovals > 0 && (
                 <span className="absolute -top-0.5 -right-0.5 inline-flex items-center justify-center min-w-[14px] h-[14px] rounded-full bg-sidebar-primary text-sidebar-primary-foreground text-[8px] font-bold px-0.5">
                   {pendingApprovals}
+                </span>
+              )}
+              {!collapsed && item.label === "Jurisdiction Alerts" && alertCount > 0 && (
+                <span className="ml-auto inline-flex items-center justify-center min-w-[18px] h-[18px] rounded-full bg-destructive text-destructive-foreground text-[10px] font-semibold px-1">
+                  {alertCount}
+                </span>
+              )}
+              {collapsed && item.label === "Jurisdiction Alerts" && alertCount > 0 && (
+                <span className="absolute -top-0.5 -right-0.5 inline-flex items-center justify-center min-w-[14px] h-[14px] rounded-full bg-destructive text-destructive-foreground text-[8px] font-bold px-0.5">
+                  {alertCount}
                 </span>
               )}
             </NavLink>

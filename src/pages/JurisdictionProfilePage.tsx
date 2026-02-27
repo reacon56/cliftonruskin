@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { ArrowLeft, Globe, ExternalLink, Info, ArrowUp, ArrowDown, Minus, Clock } from "lucide-react";
 import { countryCodeToFlag } from "@/lib/country-flag";
 import { format } from "date-fns";
+import JurisdictionSubscribeToggle from "@/components/JurisdictionSubscribeToggle";
 
 const INDICATOR_LABELS: Record<string, string> = {
   FATF_STATUS: "FATF Status",
@@ -125,6 +126,9 @@ export default function JurisdictionProfilePage() {
           </div>
         </div>
       </div>
+
+      {/* Subscribe Toggle */}
+      {id && <JurisdictionSubscribeToggle jurisdictionId={id} />}
 
       {/* Current Indicators */}
       <Card>
