@@ -181,7 +181,12 @@ export default function ReportAmendmentPanel({
         action_type: "REPORT_AMENDMENT_CLIENT_NOTIFIED",
         object_type: "report_amendment",
         object_id: amendment.id,
-        metadata: { case_id: caseId, version: amendment.new_version },
+        metadata: {
+          case_id: caseId,
+          version: amendment.new_version,
+          notification_type: "client_notification_record",
+          notified_at: new Date().toISOString(),
+        },
       });
     }
 
