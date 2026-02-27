@@ -17,3 +17,6 @@ verify_jwt = false
 
 [functions.agentic-review]
 verify_jwt = false
+
+[functions.ingestion-runner]
+verify_jwt = false
