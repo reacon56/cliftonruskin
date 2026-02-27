@@ -94,6 +94,7 @@ export default function AppSidebar() {
     { label: "Upgrade Requests", path: "/upgrade-requests", icon: <ArrowUpCircle size={18} /> },
     { label: "Market Lessons", path: "/admin/market-lessons", icon: <Newspaper size={18} /> },
     { label: "Source Registry", path: "/source-registry", icon: <Database size={18} /> },
+    { label: "Ingestion Sources", path: "/ingestion-sources", icon: <Server size={18} /> },
     { label: "Jurisdiction Library", path: "/jurisdiction-library", icon: <Globe size={18} /> },
     { label: "Unit Economics", path: "/unit-economics", icon: <BarChart3 size={18} /> },
     { label: "Commercial Dashboard", path: "/commercial-dashboard", icon: <TrendingUp size={18} /> },
