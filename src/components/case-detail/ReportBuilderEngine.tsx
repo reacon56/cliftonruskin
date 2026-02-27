@@ -13,7 +13,7 @@ import {
 } from "lucide-react";
 import ReportPdfRenderer from "@/components/case-detail/ReportPdfRenderer";
 import ReportAmendmentPanel from "@/components/case-detail/ReportAmendmentPanel";
-import AutomationCoverageMap from "@/components/case-detail/AutomationCoverageMap";
+import AutomationCoverageMap, { computeCoverageRows } from "@/components/case-detail/AutomationCoverageMap";
 import AiAssurancePanel from "@/components/case-detail/AiAssurancePanel";
 import type { AiDecisionEvent } from "@/components/case-detail/AiAssurancePanel";
 import PreQaReviewPanel from "@/components/case-detail/PreQaReviewPanel";
