@@ -909,6 +909,45 @@ export type Database = {
           },
         ]
       }
+      client_monitored_entity: {
+        Row: {
+          created_at: string
+          enabled: boolean
+          entity_id: string
+          id: string
+          org_id: string
+        }
+        Insert: {
+          created_at?: string
+          enabled?: boolean
+          entity_id: string
+          id?: string
+          org_id: string
+        }
+        Update: {
+          created_at?: string
+          enabled?: boolean
+          entity_id?: string
+          id?: string
+          org_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "client_monitored_entity_entity_id_fkey"
+            columns: ["entity_id"]
+            isOneToOne: false
+            referencedRelation: "entities"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "client_monitored_entity_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organisations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       client_policy_outcome: {
         Row: {
           case_id: string | null
