@@ -136,6 +136,8 @@ function AppRoutes() {
         <Route path="/tier-matrix" element={<InternalRouteGuard managerOnly><TierMatrixPage /></InternalRouteGuard>} />
         <Route path="/product-catalogue" element={<InternalRouteGuard><ProductCataloguePage /></InternalRouteGuard>} />
         <Route path="/budget-controls" element={<BudgetControlsPage />} />
+        <Route path="/billing-handoff" element={<InternalRouteGuard managerOnly><BillingHandoffPage /></InternalRouteGuard>} />
+        <Route path="/work-orders" element={<WorkOrdersPage />} />
 
         {/* ── Internal routes (officer + manager) ── */}
         <Route path="/qa-queue" element={<InternalRouteGuard><QaQueuePage /></InternalRouteGuard>} />
