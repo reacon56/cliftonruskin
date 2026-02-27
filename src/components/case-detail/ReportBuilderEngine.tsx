@@ -16,6 +16,8 @@ import ReportAmendmentPanel from "@/components/case-detail/ReportAmendmentPanel"
 import AutomationCoverageMap from "@/components/case-detail/AutomationCoverageMap";
 import AiAssurancePanel from "@/components/case-detail/AiAssurancePanel";
 import type { AiDecisionEvent } from "@/components/case-detail/AiAssurancePanel";
+import PreQaReviewPanel from "@/components/case-detail/PreQaReviewPanel";
+import type { PreQaReviewResult } from "@/components/case-detail/PreQaReviewPanel";
 
 /* ────── types ────── */
 interface StructuredData {
@@ -103,6 +105,7 @@ export default function ReportBuilderEngine({ caseId, caseData, entity, isManage
   const [saving, setSaving] = useState(false);
   const [activeSection, setActiveSection] = useState("structured");
   const [aiDecisions, setAiDecisions] = useState<{ key: string; status: "accepted" | "edited" | "rejected"; reviewer: string; decidedAt: string }[]>([]);
+  const [preQaResult, setPreQaResult] = useState<PreQaReviewResult | null>(null);
 
   /* ── load or create draft ── */
   const loadDraft = useCallback(async () => {
@@ -547,11 +550,34 @@ export default function ReportBuilderEngine({ caseId, caseData, entity, isManage
 
         {/* ── 4. QA ── */}
         <TabsContent value="qa" className="space-y-3">
+          {/* Pre-QA Completeness Gate */}
+          <PreQaReviewPanel
+            caseId={caseId}
+            caseData={caseData}
+            structuredData={draft.structured_data}
+            structuredDataLocked={draft.structured_data_locked}
+            officerCommentary={draft.officer_commentary}
+            officerCommentaryComplete={draft.officer_commentary_complete}
+            aiDraftReviewed={draft.ai_draft_reviewed}
+            aiDraftDismissed={draft.ai_draft_dismissed}
+            onReviewComplete={setPreQaResult}
+          />
+
           <div className="rounded-lg border bg-card p-4 space-y-4">
             <div className="flex items-center justify-between">
               <h4 className="text-sm font-semibold text-foreground flex items-center gap-2"><ShieldCheck size={14} /> QA Review</h4>
               <Badge variant="outline" className="text-[10px] capitalize">{draft.qa_approval_status}</Badge>
             </div>
+
+            {/* Show warnings visible to QA */}
+            {preQaResult && preQaResult.warningCount > 0 && !preQaResult.hasBlockers && (
+              <div className="p-2 rounded border border-warning/30 bg-warning/5">
+                <p className="text-[11px] text-warning font-medium mb-1">Pre-QA Warnings ({preQaResult.warningCount})</p>
+                {preQaResult.checks.filter((c) => c.severity === "warning").map((c) => (
+                  <p key={c.id} className="text-[11px] text-muted-foreground">• {c.label}: {c.detail}</p>
+                ))}
+              </div>
+            )}
 
             <div>
               <label className="text-xs font-medium text-foreground mb-1 block">QA Comments</label>
@@ -571,7 +597,13 @@ export default function ReportBuilderEngine({ caseId, caseData, entity, isManage
                   <Save size={12} /> Save Comments
                 </Button>
                 <Button size="sm" className="text-xs gap-1 bg-success hover:bg-success/90" onClick={approveReport}
-                  disabled={!draft.structured_data_locked || !draft.officer_commentary_complete || !(draft.ai_draft_reviewed || draft.ai_draft_dismissed)}>
+                  disabled={
+                    !draft.structured_data_locked ||
+                    !draft.officer_commentary_complete ||
+                    !(draft.ai_draft_reviewed || draft.ai_draft_dismissed) ||
+                    !preQaResult ||
+                    preQaResult.hasBlockers
+                  }>
                   <CheckCircle2 size={12} /> Approve
                 </Button>
                 <Button size="sm" variant="destructive" className="text-xs gap-1" onClick={rejectReport}>
@@ -615,6 +647,8 @@ export default function ReportBuilderEngine({ caseId, caseData, entity, isManage
             aiDraftReviewed={draft.ai_draft_reviewed}
             aiDraftDismissed={draft.ai_draft_dismissed}
             aiDecisions={aiDecisions}
+            preQaChecks={preQaResult?.checks}
+            preQaRanAt={preQaResult?.ranAt}
           />
         </TabsContent>
       </Tabs>

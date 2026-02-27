@@ -2,11 +2,12 @@ import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import {
   BarChart3, Database, Pen, Sparkles, AlertCircle,
-  CheckCircle2, Clock,
+  CheckCircle2, Clock, ClipboardCheck,
 } from "lucide-react";
+import type { PreQaCheckResult } from "@/components/case-detail/PreQaReviewPanel";
 
 /* ────── types ────── */
-type CompletionStatus = "auto_filled" | "manual" | "ai_draft" | "ai_accepted" | "ai_edited" | "ai_rejected" | "missing";
+type CompletionStatus = "auto_filled" | "manual" | "ai_draft" | "ai_accepted" | "ai_edited" | "ai_rejected" | "system_check" | "missing";
 
 interface AiSectionDecision {
   key: string;
@@ -58,6 +59,8 @@ interface Props {
   aiDraftReviewed: boolean;
   aiDraftDismissed: boolean;
   aiDecisions?: AiSectionDecision[];
+  preQaChecks?: PreQaCheckResult[];
+  preQaRanAt?: string;
 }
 
 const STATUS_CONFIG: Record<CompletionStatus, { label: string; color: string; icon: typeof Database }> = {
@@ -67,6 +70,7 @@ const STATUS_CONFIG: Record<CompletionStatus, { label: string; color: string; ic
   ai_accepted: { label: "AI Accepted", color: "bg-success/10 text-success", icon: CheckCircle2 },
   ai_edited: { label: "AI Edited", color: "bg-primary/10 text-primary", icon: Pen },
   ai_rejected: { label: "AI Rejected", color: "bg-destructive/10 text-destructive", icon: AlertCircle },
+  system_check: { label: "System Check", color: "bg-secondary/50 text-secondary-foreground", icon: ClipboardCheck },
   missing: { label: "Missing", color: "bg-destructive/10 text-destructive", icon: AlertCircle },
 };
 
@@ -106,6 +110,7 @@ export default function AutomationCoverageMap({
   officerCommentary, officerCommentaryComplete,
   aiDraft, aiDraftReviewed, aiDraftDismissed,
   aiDecisions = [],
+  preQaChecks = [], preQaRanAt,
 }: Props) {
 
   const rows: CoverageRow[] = [];
@@ -195,6 +200,17 @@ export default function AutomationCoverageMap({
       dataSources: filled && !aiDraftDismissed ? ["AI Assurance Assistant"] : [],
       lastUpdatedBy: updatedBy,
       timestamp,
+    });
+  }
+
+  // Pre-QA System Check rows
+  if (preQaChecks.length > 0) {
+    rows.push({
+      section: "Pre-QA Completeness Check",
+      status: "system_check",
+      dataSources: ["System — Pre-QA Agent"],
+      lastUpdatedBy: "System",
+      timestamp: preQaRanAt ?? now,
     });
   }
 
