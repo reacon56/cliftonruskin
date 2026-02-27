@@ -7,6 +7,7 @@ import EntityLocationSection from "./EntityLocationSection";
 import AssuranceEnhancementsPanel from "./AssuranceEnhancementsPanel";
 import ClientPolicyOutcomePanel from "./ClientPolicyOutcomePanel";
 import CrRiskBandPanel from "./CrRiskBandPanel";
+import EntityJurisdictionLinksPanel from "./EntityJurisdictionLinksPanel";
 import { OperatingCountriesPanel, type OperatingCountry } from "@/components/OperatingCountries";
 
 interface Props {
@@ -165,6 +166,9 @@ export default function OverviewTab({ entity, cases, changeLogs, monitoringEvent
 
       {/* Clifton Ruskin Risk Band */}
       <CrRiskBandPanel entityId={entity.id} />
+
+      {/* Linked Jurisdictions */}
+      <EntityJurisdictionLinksPanel entityId={entity.id} canEdit={canEdit} />
 
       {/* Client Policy Outcome */}
       <ClientPolicyOutcomePanel entityId={entity.id} />

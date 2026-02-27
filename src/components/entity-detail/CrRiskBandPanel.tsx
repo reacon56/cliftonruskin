@@ -114,9 +114,17 @@ export default function CrRiskBandPanel({ entityId }: Props) {
                     </Badge>
                   </div>
                   <p className="text-[11px] text-foreground leading-relaxed">{f.description}</p>
-                  {f.source_name && (
-                    <p className="text-[9px] text-muted-foreground">Source: {f.source_name}</p>
-                  )}
+                  <div className="flex items-center gap-2 flex-wrap">
+                    {f.source_name && (
+                      <span className="text-[9px] text-muted-foreground">Source: {f.source_name}</span>
+                    )}
+                    {f.link_type && (
+                      <Badge variant="secondary" className="text-[8px] px-1 py-0">via {f.link_type}</Badge>
+                    )}
+                    {f.weight_multiplier != null && f.weight_multiplier < 1 && (
+                      <span className="text-[8px] text-muted-foreground/60">×{f.weight_multiplier} weight</span>
+                    )}
+                  </div>
                 </div>
               ))
             )}

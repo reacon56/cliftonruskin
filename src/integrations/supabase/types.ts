@@ -1552,6 +1552,57 @@ export type Database = {
           },
         ]
       }
+      entity_jurisdiction_link: {
+        Row: {
+          confidence: Database["public"]["Enums"]["link_confidence"]
+          created_at: string
+          created_by: string | null
+          entity_id: string
+          id: string
+          jurisdiction_id: string
+          link_type: Database["public"]["Enums"]["jurisdiction_link_type"]
+          notes: string | null
+          source: string
+        }
+        Insert: {
+          confidence?: Database["public"]["Enums"]["link_confidence"]
+          created_at?: string
+          created_by?: string | null
+          entity_id: string
+          id?: string
+          jurisdiction_id: string
+          link_type: Database["public"]["Enums"]["jurisdiction_link_type"]
+          notes?: string | null
+          source?: string
+        }
+        Update: {
+          confidence?: Database["public"]["Enums"]["link_confidence"]
+          created_at?: string
+          created_by?: string | null
+          entity_id?: string
+          id?: string
+          jurisdiction_id?: string
+          link_type?: Database["public"]["Enums"]["jurisdiction_link_type"]
+          notes?: string | null
+          source?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "entity_jurisdiction_link_entity_id_fkey"
+            columns: ["entity_id"]
+            isOneToOne: false
+            referencedRelation: "entities"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "entity_jurisdiction_link_jurisdiction_id_fkey"
+            columns: ["jurisdiction_id"]
+            isOneToOne: false
+            referencedRelation: "jurisdiction"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       entity_operating_countries: {
         Row: {
           added_by: string | null
@@ -4835,6 +4886,15 @@ export type Database = {
         | "US_FINCEN_311"
         | "EU_TAX_NONCOOP"
         | "CPI_SCORE"
+      jurisdiction_link_type:
+        | "INCORPORATION"
+        | "OPERATIONS"
+        | "UBO_NATIONALITY"
+        | "BANK_LOCATION"
+        | "SUPPLIER_LOCATION"
+        | "SHIPPING_ROUTE"
+        | "OTHER"
+      link_confidence: "CONFIRMED" | "LIKELY" | "UNCONFIRMED"
       policy_operator:
         | "EQUALS"
         | "NOT_EQUALS"
@@ -5006,6 +5066,16 @@ export const Constants = {
         "EU_TAX_NONCOOP",
         "CPI_SCORE",
       ],
+      jurisdiction_link_type: [
+        "INCORPORATION",
+        "OPERATIONS",
+        "UBO_NATIONALITY",
+        "BANK_LOCATION",
+        "SUPPLIER_LOCATION",
+        "SHIPPING_ROUTE",
+        "OTHER",
+      ],
+      link_confidence: ["CONFIRMED", "LIKELY", "UNCONFIRMED"],
       policy_operator: [
         "EQUALS",
         "NOT_EQUALS",

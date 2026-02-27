@@ -8,12 +8,25 @@ const corsHeaders = {
 
 const ENGINE_VERSION = "CR-JURIS-1.0";
 
+// Weight multipliers by link_type
+const LINK_TYPE_WEIGHTS: Record<string, number> = {
+  INCORPORATION: 1.0,
+  OPERATIONS: 1.0,
+  UBO_NATIONALITY: 0.7,
+  BANK_LOCATION: 0.7,
+  SUPPLIER_LOCATION: 0.7,
+  SHIPPING_ROUTE: 0.7,
+  OTHER: 0.5,
+};
+
 interface Factor {
   indicator_type: string;
   value: any;
   score_contribution: number;
   source_name?: string;
   jurisdiction_country?: string;
+  link_type?: string;
+  weight_multiplier?: number;
   description: string;
 }
 
@@ -82,7 +95,13 @@ serve(async (req) => {
     const weights = config.weights_json as Record<string, number>;
     const thresholds = config.thresholds_json as Record<string, number[]>;
 
-    // 2. Get entity's linked jurisdictions
+    // 2. Get entity's explicit jurisdiction links (primary source)
+    const { data: explicitLinks } = await sb
+      .from("entity_jurisdiction_link")
+      .select("jurisdiction_id, link_type, confidence, jurisdiction(id, country_code, country_name)")
+      .eq("entity_id", entity_id);
+
+    // Also fall back to legacy sources if no explicit links
     const { data: entityData } = await sb
       .from("entities")
       .select("incorporation_country_code, hq_country_code")
@@ -94,72 +113,110 @@ serve(async (req) => {
       .select("country_code")
       .eq("entity_id", entity_id);
 
-    const countryCodes = new Set<string>();
-    (opCountries || []).forEach((oc: any) => countryCodes.add(oc.country_code));
-    if (entityData?.incorporation_country_code) countryCodes.add(entityData.incorporation_country_code);
-    if (entityData?.hq_country_code) countryCodes.add(entityData.hq_country_code);
+    // Build jurisdiction map with weight multipliers
+    // Keyed by jurisdiction_id → { country_name, max_weight }
+    interface JurInfo {
+      country_name: string;
+      country_code: string;
+      max_weight: number;
+      link_types: string[];
+    }
+    const jurMap = new Map<string, JurInfo>();
 
-    if (countryCodes.size === 0) {
+    // Explicit links (preferred)
+    for (const link of (explicitLinks || []) as any[]) {
+      const jur = link.jurisdiction;
+      if (!jur) continue;
+      const w = LINK_TYPE_WEIGHTS[link.link_type] ?? 0.5;
+      const existing = jurMap.get(jur.id);
+      if (existing) {
+        existing.max_weight = Math.max(existing.max_weight, w);
+        existing.link_types.push(link.link_type);
+      } else {
+        jurMap.set(jur.id, {
+          country_name: jur.country_name,
+          country_code: jur.country_code,
+          max_weight: w,
+          link_types: [link.link_type],
+        });
+      }
+    }
+
+    // Fallback: if no explicit links, use legacy country codes
+    if (jurMap.size === 0) {
+      const fallbackCodes = new Set<string>();
+      (opCountries || []).forEach((oc: any) => fallbackCodes.add(oc.country_code));
+      if (entityData?.incorporation_country_code) fallbackCodes.add(entityData.incorporation_country_code);
+      if (entityData?.hq_country_code) fallbackCodes.add(entityData.hq_country_code);
+
+      if (fallbackCodes.size > 0) {
+        const { data: fallbackJurs } = await sb
+          .from("jurisdiction")
+          .select("id, country_code, country_name")
+          .in("country_code", Array.from(fallbackCodes));
+
+        for (const j of (fallbackJurs || []) as any[]) {
+          const isInc = j.country_code === entityData?.incorporation_country_code;
+          const isHq = j.country_code === entityData?.hq_country_code;
+          const w = (isInc || isHq) ? 1.0 : 0.7;
+          jurMap.set(j.id, {
+            country_name: j.country_name,
+            country_code: j.country_code,
+            max_weight: w,
+            link_types: isInc ? ["INCORPORATION"] : isHq ? ["OPERATIONS"] : ["OPERATIONS"],
+          });
+        }
+      }
+    }
+
+    if (jurMap.size === 0) {
       return new Response(JSON.stringify({ message: "No linked jurisdictions for entity" }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
-    // 3. Get jurisdiction records
-    const { data: jurisdictions } = await sb
-      .from("jurisdiction")
-      .select("id, country_code, country_name")
-      .in("country_code", Array.from(countryCodes));
+    const jurisdictionIds = Array.from(jurMap.keys());
 
-    const jurisdictionIds = (jurisdictions || []).map((j: any) => j.id);
-    const jMap = Object.fromEntries((jurisdictions || []).map((j: any) => [j.id, j]));
-
-    if (jurisdictionIds.length === 0) {
-      return new Response(JSON.stringify({ message: "No jurisdiction records found" }), {
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
-
-    // 4. Load all indicators
+    // 3. Load all indicators
     const { data: indicators } = await sb
       .from("jurisdiction_indicator")
       .select("*")
       .in("jurisdiction_id", jurisdictionIds);
 
-    // 5. Evaluate scoring rules
+    // 4. Evaluate scoring rules with weight multipliers
     let score = 0;
     let minBand: string | null = null;
     const factors: Factor[] = [];
 
     for (const ind of (indicators || []) as any[]) {
-      const jur = jMap[ind.jurisdiction_id];
-      const country = jur?.country_name || ind.jurisdiction_id;
+      const jurInfo = jurMap.get(ind.jurisdiction_id);
+      if (!jurInfo) continue;
+      const weightMult = jurInfo.max_weight;
+      const country = jurInfo.country_name;
       const vj = ind.value_json || {};
 
       // FATF_STATUS
       if (ind.indicator_type === "FATF_STATUS") {
         const status = vj.status || vj.programme_status || "";
         if (status === "CALL_FOR_ACTION" || status === "Black List") {
-          const pts = weights.FATF_CALL_FOR_ACTION || 50;
+          const basePts = weights.FATF_CALL_FOR_ACTION || 50;
+          const pts = Math.round(basePts * weightMult);
           score += pts;
           minBand = "HIGH";
           factors.push({
-            indicator_type: "FATF_STATUS",
-            value: status,
-            score_contribution: pts,
-            source_name: ind.source_name,
-            jurisdiction_country: country,
+            indicator_type: "FATF_STATUS", value: status, score_contribution: pts,
+            source_name: ind.source_name, jurisdiction_country: country,
+            link_type: jurInfo.link_types.join(", "), weight_multiplier: weightMult,
             description: `FATF Call for Action — immediate high-risk designation for ${country}`,
           });
         } else if (status === "INCREASED_MONITORING" || status === "Grey List") {
-          const pts = weights.FATF_INCREASED_MONITORING || 25;
+          const basePts = weights.FATF_INCREASED_MONITORING || 25;
+          const pts = Math.round(basePts * weightMult);
           score += pts;
           factors.push({
-            indicator_type: "FATF_STATUS",
-            value: status,
-            score_contribution: pts,
-            source_name: ind.source_name,
-            jurisdiction_country: country,
+            indicator_type: "FATF_STATUS", value: status, score_contribution: pts,
+            source_name: ind.source_name, jurisdiction_country: country,
+            link_type: jurInfo.link_types.join(", "), weight_multiplier: weightMult,
             description: `FATF Increased Monitoring — enhanced scrutiny required for ${country}`,
           });
         }
@@ -169,14 +226,13 @@ serve(async (req) => {
       if (ind.indicator_type === "EU_AML_HRTC") {
         const status = vj.status || "";
         if (status === "YES" || status === "LISTED" || status === "High-Risk Third Country") {
-          const pts = weights.EU_AML_HRTC || 25;
+          const basePts = weights.EU_AML_HRTC || 25;
+          const pts = Math.round(basePts * weightMult);
           score += pts;
           factors.push({
-            indicator_type: "EU_AML_HRTC",
-            value: status,
-            score_contribution: pts,
-            source_name: ind.source_name,
-            jurisdiction_country: country,
+            indicator_type: "EU_AML_HRTC", value: status, score_contribution: pts,
+            source_name: ind.source_name, jurisdiction_country: country,
+            link_type: jurInfo.link_types.join(", "), weight_multiplier: weightMult,
             description: `EU AML High-Risk Third Country listing for ${country}`,
           });
         }
@@ -186,26 +242,24 @@ serve(async (req) => {
       if (ind.indicator_type?.startsWith("SANCTIONS_")) {
         const progStatus = vj.programme_status || vj.status || "";
         if (progStatus === "COMPREHENSIVE") {
-          const pts = weights.SANCTIONS_COMPREHENSIVE || 40;
+          const basePts = weights.SANCTIONS_COMPREHENSIVE || 40;
+          const pts = Math.round(basePts * weightMult);
           score += pts;
           factors.push({
-            indicator_type: ind.indicator_type,
-            value: progStatus,
-            score_contribution: pts,
-            source_name: ind.source_name,
-            jurisdiction_country: country,
-            description: `Comprehensive sanctions programme active for ${country} (${ind.indicator_type})`,
+            indicator_type: ind.indicator_type, value: progStatus, score_contribution: pts,
+            source_name: ind.source_name, jurisdiction_country: country,
+            link_type: jurInfo.link_types.join(", "), weight_multiplier: weightMult,
+            description: `Comprehensive sanctions programme active for ${country}`,
           });
         } else if (progStatus === "TARGETED" || progStatus) {
-          const pts = weights.SANCTIONS_TARGETED || 20;
+          const basePts = weights.SANCTIONS_TARGETED || 20;
+          const pts = Math.round(basePts * weightMult);
           score += pts;
           factors.push({
-            indicator_type: ind.indicator_type,
-            value: progStatus,
-            score_contribution: pts,
-            source_name: ind.source_name,
-            jurisdiction_country: country,
-            description: `Targeted sanctions programme for ${country} (${ind.indicator_type})`,
+            indicator_type: ind.indicator_type, value: progStatus, score_contribution: pts,
+            source_name: ind.source_name, jurisdiction_country: country,
+            link_type: jurInfo.link_types.join(", "), weight_multiplier: weightMult,
+            description: `Targeted sanctions programme for ${country}`,
           });
         }
       }
@@ -214,24 +268,22 @@ serve(async (req) => {
       if (ind.indicator_type === "CPI_SCORE") {
         const cpiScore = vj.score;
         if (cpiScore != null && Number(cpiScore) < 30) {
-          const pts = weights.CPI_BELOW_30 || 10;
+          const basePts = weights.CPI_BELOW_30 || 10;
+          const pts = Math.round(basePts * weightMult);
           score += pts;
           factors.push({
-            indicator_type: "CPI_SCORE",
-            value: cpiScore,
-            score_contribution: pts,
-            source_name: ind.source_name,
-            jurisdiction_country: country,
+            indicator_type: "CPI_SCORE", value: cpiScore, score_contribution: pts,
+            source_name: ind.source_name, jurisdiction_country: country,
+            link_type: jurInfo.link_types.join(", "), weight_multiplier: weightMult,
             description: `CPI score ${cpiScore} (below 30) for ${country} — indicator only, never sole trigger`,
           });
         }
       }
     }
 
-    // Cap score at 100
     score = Math.min(score, 100);
 
-    // 6. Determine band from thresholds
+    // 5. Determine band
     let band = "LOW";
     for (const [b, range] of Object.entries(thresholds)) {
       if (score >= range[0] && score <= range[1]) {
@@ -239,8 +291,6 @@ serve(async (req) => {
         break;
       }
     }
-
-    // Apply minimum band floor
     if (minBand) {
       const bandOrder = ["LOW", "MEDIUM", "HIGH", "SEVERE"];
       if (bandOrder.indexOf(minBand) > bandOrder.indexOf(band)) {
@@ -248,10 +298,9 @@ serve(async (req) => {
       }
     }
 
-    // 7. Get recommended controls
     const controls = BAND_CONTROLS[band] || BAND_CONTROLS.LOW;
 
-    // 8. Store result
+    // 6. Store result
     const { data: result, error: insertErr } = await sb
       .from("cr_risk_result")
       .insert({
