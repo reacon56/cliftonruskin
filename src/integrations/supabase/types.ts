@@ -2678,39 +2678,141 @@ export type Database = {
           },
         ]
       }
-      quotes: {
+      quote_line_items: {
         Row: {
-          case_id: string
           created_at: string
-          created_by: string | null
+          description: string
+          discount_pct: number
           id: string
-          line_items: Json
-          scope_notes: string | null
-          status: string
-          total_price: number
-          updated_at: string
+          line_total: number
+          product_id: string | null
+          quantity: number
+          quote_id: string
+          sort_order: number
+          unit_price: number
+          vat_applicability: string
         }
         Insert: {
-          case_id: string
           created_at?: string
-          created_by?: string | null
+          description: string
+          discount_pct?: number
           id?: string
-          line_items?: Json
-          scope_notes?: string | null
-          status?: string
-          total_price?: number
-          updated_at?: string
+          line_total?: number
+          product_id?: string | null
+          quantity?: number
+          quote_id: string
+          sort_order?: number
+          unit_price?: number
+          vat_applicability?: string
         }
         Update: {
-          case_id?: string
           created_at?: string
-          created_by?: string | null
+          description?: string
+          discount_pct?: number
           id?: string
-          line_items?: Json
+          line_total?: number
+          product_id?: string | null
+          quantity?: number
+          quote_id?: string
+          sort_order?: number
+          unit_price?: number
+          vat_applicability?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "quote_line_items_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "quote_line_items_quote_id_fkey"
+            columns: ["quote_id"]
+            isOneToOne: false
+            referencedRelation: "quotes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      quotes: {
+        Row: {
+          approved_at: string | null
+          approved_by: string | null
+          case_id: string
+          created_at: string
+          created_by: string
+          discount_pct: number
+          discount_reason: string | null
+          expires_at: string | null
+          id: string
+          locked: boolean
+          org_id: string
+          rate_card_id: string | null
+          rate_card_version: number | null
+          rejected_at: string | null
+          rejected_by: string | null
+          rejection_reason: string | null
+          scope_notes: string | null
+          sent_at: string | null
+          sla_days: number | null
+          status: string
+          subtotal: number
+          total_price: number
+          updated_at: string
+          vat_amount: number
+        }
+        Insert: {
+          approved_at?: string | null
+          approved_by?: string | null
+          case_id: string
+          created_at?: string
+          created_by: string
+          discount_pct?: number
+          discount_reason?: string | null
+          expires_at?: string | null
+          id?: string
+          locked?: boolean
+          org_id: string
+          rate_card_id?: string | null
+          rate_card_version?: number | null
+          rejected_at?: string | null
+          rejected_by?: string | null
+          rejection_reason?: string | null
           scope_notes?: string | null
+          sent_at?: string | null
+          sla_days?: number | null
           status?: string
+          subtotal?: number
           total_price?: number
           updated_at?: string
+          vat_amount?: number
+        }
+        Update: {
+          approved_at?: string | null
+          approved_by?: string | null
+          case_id?: string
+          created_at?: string
+          created_by?: string
+          discount_pct?: number
+          discount_reason?: string | null
+          expires_at?: string | null
+          id?: string
+          locked?: boolean
+          org_id?: string
+          rate_card_id?: string | null
+          rate_card_version?: number | null
+          rejected_at?: string | null
+          rejected_by?: string | null
+          rejection_reason?: string | null
+          scope_notes?: string | null
+          sent_at?: string | null
+          sla_days?: number | null
+          status?: string
+          subtotal?: number
+          total_price?: number
+          updated_at?: string
+          vat_amount?: number
         }
         Relationships: [
           {
@@ -2718,6 +2820,20 @@ export type Database = {
             columns: ["case_id"]
             isOneToOne: false
             referencedRelation: "cases"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "quotes_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organisations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "quotes_rate_card_id_fkey"
+            columns: ["rate_card_id"]
+            isOneToOne: false
+            referencedRelation: "rate_cards"
             referencedColumns: ["id"]
           },
         ]
