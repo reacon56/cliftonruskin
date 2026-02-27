@@ -212,6 +212,7 @@ export default function CaseDetailPage() {
             <TabsTrigger value="evidence" className="text-xs gap-1.5 data-[state=active]:bg-primary/10"><Lock className="h-3.5 w-3.5" /> Evidence</TabsTrigger>
             <TabsTrigger value="risk" className="text-xs gap-1.5 data-[state=active]:bg-primary/10"><BarChart3 className="h-3.5 w-3.5" /> Risk</TabsTrigger>
             <TabsTrigger value="qa" className="text-xs gap-1.5 data-[state=active]:bg-primary/10"><Eye className="h-3.5 w-3.5" /> QA</TabsTrigger>
+            {isInternal && <TabsTrigger value="time" className="text-xs gap-1.5 data-[state=active]:bg-primary/10"><Timer className="h-3.5 w-3.5" /> Time</TabsTrigger>}
           </TabsList>
 
           {/* ── SCOPE & MANDATE ── */}
