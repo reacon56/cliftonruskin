@@ -50,6 +50,8 @@ import UnitEconomicsPage from "@/pages/UnitEconomicsPage";
 import TierMatrixPage from "@/pages/TierMatrixPage";
 import ProductCataloguePage from "@/pages/ProductCataloguePage";
 import BudgetControlsPage from "@/pages/BudgetControlsPage";
+import BillingHandoffPage from "@/pages/BillingHandoffPage";
+import WorkOrdersPage from "@/pages/WorkOrdersPage";
 
 // Website pages
 import WebsiteLayout from "@/components/website/WebsiteLayout";
