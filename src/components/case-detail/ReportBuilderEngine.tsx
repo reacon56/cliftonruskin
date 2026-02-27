@@ -679,6 +679,7 @@ export default function ReportBuilderEngine({ caseId, caseData, entity, isManage
             aiDecisions={aiDecisions}
             preQaChecks={preQaResult?.checks}
             preQaRanAt={preQaResult?.ranAt}
+            partnerEscalationCount={partnerEscalationCount}
           />
         </TabsContent>
       </Tabs>
