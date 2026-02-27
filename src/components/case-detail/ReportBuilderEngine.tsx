@@ -311,20 +311,7 @@ export default function ReportBuilderEngine({ caseId, caseData, entity, isManage
     toast({ title: "Report returned for revision", variant: "destructive" });
   };
 
-  /* ── PDF readiness ── */
-  const canGeneratePdf = draft &&
-    draft.structured_data_locked &&
-    draft.officer_commentary_complete &&
-    (draft.ai_draft_reviewed || draft.ai_draft_dismissed) &&
-    draft.qa_approval_status === "approved";
-
-  const generatePdf = async () => {
-    if (!draft || !canGeneratePdf) return;
-    await logAudit("REPORT_PDF_GENERATED");
-    await saveDraftField("pdf_generated", true);
-    await saveDraftField("pdf_generated_at", new Date().toISOString());
-    toast({ title: "PDF generated successfully" });
-  };
+  /* ── PDF readiness (delegated to ReportPdfRenderer) ── */
 
   /* ── audit ── */
   const logAudit = async (action: string) => {
