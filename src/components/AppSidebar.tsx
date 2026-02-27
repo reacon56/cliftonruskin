@@ -200,6 +200,16 @@ export default function AppSidebar() {
                   {pendingApprovals}
                 </span>
               )}
+              {!collapsed && item.label === "Jurisdiction Alerts" && alertCount > 0 && (
+                <span className="ml-auto inline-flex items-center justify-center min-w-[18px] h-[18px] rounded-full bg-destructive text-destructive-foreground text-[10px] font-semibold px-1">
+                  {alertCount}
+                </span>
+              )}
+              {collapsed && item.label === "Jurisdiction Alerts" && alertCount > 0 && (
+                <span className="absolute -top-0.5 -right-0.5 inline-flex items-center justify-center min-w-[14px] h-[14px] rounded-full bg-destructive text-destructive-foreground text-[8px] font-bold px-0.5">
+                  {alertCount}
+                </span>
+              )}
             </NavLink>
           );
         })}
