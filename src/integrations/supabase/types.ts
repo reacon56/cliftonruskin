@@ -124,6 +124,60 @@ export type Database = {
           },
         ]
       }
+      analyst_time_entries: {
+        Row: {
+          bucket: string
+          case_id: string
+          created_at: string
+          entry_date: string
+          id: string
+          minutes: number
+          note: string | null
+          officer_id: string
+          org_id: string
+          updated_at: string
+        }
+        Insert: {
+          bucket: string
+          case_id: string
+          created_at?: string
+          entry_date?: string
+          id?: string
+          minutes: number
+          note?: string | null
+          officer_id: string
+          org_id: string
+          updated_at?: string
+        }
+        Update: {
+          bucket?: string
+          case_id?: string
+          created_at?: string
+          entry_date?: string
+          id?: string
+          minutes?: number
+          note?: string | null
+          officer_id?: string
+          org_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "analyst_time_entries_case_id_fkey"
+            columns: ["case_id"]
+            isOneToOne: false
+            referencedRelation: "cases"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "analyst_time_entries_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organisations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       audit_events: {
         Row: {
           action_type: string
