@@ -286,31 +286,42 @@ export default function CommissionPage() {
 
         {step === 1 && (
           <div className="space-y-3 animate-fade-in">
-            {(["Assurance Note", "Assurance Dossier", "Refresh Note"] as const).map((p) => (
-              <label
-                key={p}
-                className={`block rounded-lg border p-5 cursor-pointer transition-all duration-300 ${
-                  form.product_type === p
-                    ? "border-accent/50 bg-accent/5"
-                    : "border-border hover:border-border hover:bg-muted/30"
-                }`}
-                style={form.product_type === p ? { boxShadow: "var(--shadow-gold-glow)" } : undefined}
-              >
-                <input
-                  type="radio"
-                  name="product"
-                  className="sr-only"
-                  checked={form.product_type === p}
-                  onChange={() => setForm({ ...form, product_type: p })}
-                />
-                <div className="font-medium text-foreground text-sm">{p}</div>
-                <div className="text-[12px] text-muted-foreground mt-1.5 leading-relaxed">
-                  {p === "Assurance Note" && "Concise due diligence summary with key risk indicators."}
-                  {p === "Assurance Dossier" && "Comprehensive investigation report with evidence pack."}
-                  {p === "Refresh Note" && "Update an existing assessment with new findings."}
-                </div>
-              </label>
-            ))}
+            {(["Assurance Note", "Assurance Dossier", "Refresh Note"] as const).map((p) => {
+              // Dossier requires "enhanced" report tier entitlement
+              const tierNeeded = p === "Assurance Dossier" ? "enhanced" : "standard";
+              const allowed = canAccessReportTier(tierNeeded);
+              return (
+                <label
+                  key={p}
+                  className={`block rounded-lg border p-5 transition-all duration-300 ${
+                    !allowed
+                      ? "opacity-50 cursor-not-allowed border-border bg-muted/20"
+                      : form.product_type === p
+                      ? "border-accent/50 bg-accent/5 cursor-pointer"
+                      : "border-border hover:border-border hover:bg-muted/30 cursor-pointer"
+                  }`}
+                  style={form.product_type === p && allowed ? { boxShadow: "var(--shadow-gold-glow)" } : undefined}
+                >
+                  <input
+                    type="radio"
+                    name="product"
+                    className="sr-only"
+                    checked={form.product_type === p}
+                    onChange={() => allowed && setForm({ ...form, product_type: p })}
+                    disabled={!allowed}
+                  />
+                  <div className="font-medium text-foreground text-sm flex items-center gap-2">
+                    {p}
+                    {!allowed && <Badge variant="outline" className="text-[10px]">Upgrade Required</Badge>}
+                  </div>
+                  <div className="text-[12px] text-muted-foreground mt-1.5 leading-relaxed">
+                    {p === "Assurance Note" && "Concise due diligence summary with key risk indicators."}
+                    {p === "Assurance Dossier" && "Comprehensive investigation report with evidence pack."}
+                    {p === "Refresh Note" && "Update an existing assessment with new findings."}
+                  </div>
+                </label>
+              );
+            })}
           </div>
         )}
 
