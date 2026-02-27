@@ -111,6 +111,16 @@ export default function CaseDetailPage() {
     }
   };
 
+  const loadDeviations = async () => {
+    const { data } = await supabase
+      .from("tier_deviation_overrides" as any)
+      .select("*")
+      .eq("case_id", id!)
+      .order("created_at", { ascending: false });
+    setDeviationOverrides((data as any[]) ?? []);
+  };
+
+
 
   const transitionTo = async (status: string, extraPayload?: Record<string, any>, comment?: string) => {
     if (!user || !profile) return;
