@@ -12,6 +12,7 @@ import {
   RefreshCw, XCircle,
 } from "lucide-react";
 import ReportPdfRenderer from "@/components/case-detail/ReportPdfRenderer";
+import ReportAmendmentPanel from "@/components/case-detail/ReportAmendmentPanel";
 
 /* ────── types ────── */
 interface StructuredData {
