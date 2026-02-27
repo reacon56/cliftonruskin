@@ -9,10 +9,11 @@ import { Textarea } from "@/components/ui/textarea";
 import {
   Database, Pen, Sparkles, ShieldCheck, Lock, Unlock,
   CheckCircle2, AlertTriangle, FileText, Save,
-  RefreshCw, XCircle,
+  RefreshCw, XCircle, BarChart3,
 } from "lucide-react";
 import ReportPdfRenderer from "@/components/case-detail/ReportPdfRenderer";
 import ReportAmendmentPanel from "@/components/case-detail/ReportAmendmentPanel";
+import AutomationCoverageMap from "@/components/case-detail/AutomationCoverageMap";
 
 /* ────── types ────── */
 interface StructuredData {
@@ -31,6 +32,7 @@ interface OfficerCommentary {
   explanation_of_material_findings?: string;
   mitigating_factors?: string;
   recommended_follow_up_actions?: string;
+  client_safe_notes?: string;
 }
 
 interface AiDraft {
@@ -81,6 +83,7 @@ const COMMENTARY_FIELDS: { key: keyof OfficerCommentary; label: string; placehol
   { key: "explanation_of_material_findings", label: "Explanation of Material Findings", placeholder: "Detail any material findings and their significance…" },
   { key: "mitigating_factors", label: "Mitigating Factors", placeholder: "Note any mitigating factors that reduce identified risks…" },
   { key: "recommended_follow_up_actions", label: "Recommended Follow-up Actions", placeholder: "Suggest follow-up actions or monitoring requirements…" },
+  { key: "client_safe_notes", label: "Client-safe Notes (optional)", placeholder: "Notes safe for client visibility — no sensitive internal commentary…" },
 ];
 
 const AI_FIELDS: { key: keyof AiDraft; label: string }[] = [
@@ -370,11 +373,12 @@ export default function ReportBuilderEngine({ caseId, caseData, entity, isManage
 
       {/* Section tabs */}
       <Tabs value={activeSection} onValueChange={setActiveSection}>
-        <TabsList className="w-full justify-start bg-transparent p-0 gap-1">
+        <TabsList className="w-full justify-start bg-transparent p-0 gap-1 flex-wrap">
           <TabsTrigger value="structured" className="text-xs gap-1.5 data-[state=active]:bg-primary/10"><Database className="h-3.5 w-3.5" /> Structured Data</TabsTrigger>
           <TabsTrigger value="commentary" className="text-xs gap-1.5 data-[state=active]:bg-primary/10"><Pen className="h-3.5 w-3.5" /> Commentary</TabsTrigger>
           <TabsTrigger value="ai" className="text-xs gap-1.5 data-[state=active]:bg-primary/10"><Sparkles className="h-3.5 w-3.5" /> AI Draft</TabsTrigger>
           <TabsTrigger value="qa" className="text-xs gap-1.5 data-[state=active]:bg-primary/10"><ShieldCheck className="h-3.5 w-3.5" /> QA</TabsTrigger>
+          <TabsTrigger value="coverage" className="text-xs gap-1.5 data-[state=active]:bg-primary/10"><BarChart3 className="h-3.5 w-3.5" /> Coverage</TabsTrigger>
         </TabsList>
 
         {/* ── 1. STRUCTURED DATA ── */}
@@ -566,6 +570,19 @@ export default function ReportBuilderEngine({ caseId, caseData, entity, isManage
               onAmendmentCreated={loadDraft}
             />
           </div>
+        </TabsContent>
+
+        {/* ── 5. COVERAGE MAP ── */}
+        <TabsContent value="coverage">
+          <AutomationCoverageMap
+            structuredData={draft.structured_data}
+            structuredDataLocked={draft.structured_data_locked}
+            officerCommentary={draft.officer_commentary}
+            officerCommentaryComplete={draft.officer_commentary_complete}
+            aiDraft={draft.ai_draft}
+            aiDraftReviewed={draft.ai_draft_reviewed}
+            aiDraftDismissed={draft.ai_draft_dismissed}
+          />
         </TabsContent>
       </Tabs>
     </div>
