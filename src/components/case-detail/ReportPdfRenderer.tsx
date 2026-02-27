@@ -378,7 +378,7 @@ export default function ReportPdfRenderer({ draft, entityName, caseId, onPdfGene
   </div>
 </body>
 </html>`;
-  }, [draft, entityName, caseId]);
+  }, [draft, entityName, caseId, coverageRows, coverageAutoPct, coverageManualPct]);
 
   /* ── generate & open PDF ── */
   const handleGeneratePdf = useCallback(async () => {
