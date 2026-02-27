@@ -82,7 +82,7 @@ function GateCheck({ label, pass }: { label: string; pass: boolean }) {
 }
 
 /* ────── main component ────── */
-export default function ReportPdfRenderer({ draft, entityName, caseId, onPdfGenerated }: Props) {
+export default function ReportPdfRenderer({ draft, entityName, caseId, onPdfGenerated, coverageRows = [], coverageAutoPct = 0, coverageManualPct = 0 }: Props) {
   const { user, profile } = useAuth();
   const { toast } = useToast();
   const [generating, setGenerating] = useState(false);
