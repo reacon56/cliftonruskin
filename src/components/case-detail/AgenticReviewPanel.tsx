@@ -170,9 +170,44 @@ export default function AgenticReviewPanel({ caseId }: Props) {
       </div>
 
       {generatedAt && (
-        <p className="text-[10px] text-muted-foreground">
-          Generated {new Date(generatedAt).toLocaleString()} · Advisory only — does not modify data
-        </p>
+        <div className="space-y-1.5">
+          <p className="text-[10px] text-muted-foreground">
+            Generated {new Date(generatedAt).toLocaleString()} · Advisory only — does not modify data
+            {violationCount > 0 && (
+              <span className="ml-2 text-warning">· {violationCount} guardrail correction{violationCount !== 1 ? "s" : ""} applied</span>
+            )}
+          </p>
+          {aiDisclaimer && (
+            <div className="flex items-center gap-2 p-1.5 rounded border border-border bg-muted/30">
+              <ShieldAlert size={10} className="text-muted-foreground shrink-0" />
+              <span className="text-[10px] text-muted-foreground italic flex-1">{aiDisclaimer}</span>
+              {!humanReviewed ? (
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="h-5 text-[9px] px-2 gap-1 shrink-0"
+                  onClick={async () => {
+                    setHumanReviewed(true);
+                    if (user && profile) {
+                      await supabase.from("audit_events").insert({
+                        user_id: user.id,
+                        org_id: profile.org_id,
+                        action_type: "AI_OUTPUT_HUMAN_REVIEWED",
+                        object_type: "case",
+                        object_id: caseId,
+                        metadata: { function_name: "agentic-review", generated_at: generatedAt },
+                      });
+                    }
+                  }}
+                >
+                  <CheckCircle2 size={8} /> Confirm Review
+                </Button>
+              ) : (
+                <Badge className="bg-success/10 text-success text-[9px] shrink-0">Reviewed ✓</Badge>
+              )}
+            </div>
+          )}
+        </div>
       )}
 
       {review && (
