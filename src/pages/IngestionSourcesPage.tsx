@@ -335,12 +335,17 @@ export default function IngestionSourcesPage() {
               )}
             </>
           ) : (
-            <div className="flex items-center justify-center h-48 text-muted-foreground">
+          <div className="flex items-center justify-center h-48 text-muted-foreground">
               <div className="text-center">
                 <Server className="h-8 w-8 mx-auto mb-2 opacity-30" />
                 <p className="text-sm">Select a source to view run history</p>
               </div>
             </div>
+          )}
+
+          {/* CPI Upload Panel */}
+          {isManager && (
+            <CpiUploadPanel onComplete={() => qc.invalidateQueries({ queryKey: ["data-sources"] })} />
           )}
         </div>
       </div>
