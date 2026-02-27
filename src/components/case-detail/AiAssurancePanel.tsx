@@ -44,8 +44,16 @@ interface SuggestionState {
   decidedAt?: string;
 }
 
+export interface AiDecisionEvent {
+  key: string;
+  status: SuggestionStatus;
+  content: string;
+  decidedAt: string;
+}
+
 interface Props {
   caseId: string;
+  onDecision?: (event: AiDecisionEvent) => void;
 }
 
 const SEVERITY_COLORS: Record<string, string> = {
