@@ -61,6 +61,7 @@ interface Props {
   aiDecisions?: AiSectionDecision[];
   preQaChecks?: PreQaCheckResult[];
   preQaRanAt?: string;
+  partnerEscalationCount?: number;
 }
 
 const STATUS_CONFIG: Record<CompletionStatus, { label: string; color: string; icon: typeof Database }> = {
