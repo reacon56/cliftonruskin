@@ -18,6 +18,7 @@ import { useToast } from "@/hooks/use-toast";
 import AssuranceNoteReport from "@/components/AssuranceNoteReport";
 import ReportBuilderEngine from "@/components/case-detail/ReportBuilderEngine";
 import AiAssurancePanel from "@/components/case-detail/AiAssurancePanel";
+import AgenticReviewPanel from "@/components/case-detail/AgenticReviewPanel";
 import CaseActivityTimeline from "@/components/CaseActivityTimeline";
 import DataProtectionSummary from "@/components/case-detail/DataProtectionSummary";
 import CaseProcessingRecord from "@/components/case-detail/CaseProcessingRecord";
