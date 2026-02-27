@@ -53,6 +53,7 @@ import BudgetControlsPage from "@/pages/BudgetControlsPage";
 import BillingHandoffPage from "@/pages/BillingHandoffPage";
 import WorkOrdersPage from "@/pages/WorkOrdersPage";
 import EntitlementSettingsPage from "@/pages/EntitlementSettingsPage";
+import ServiceRequestPage from "@/pages/ServiceRequestPage";
 
 // Website pages
 import WebsiteLayout from "@/components/website/WebsiteLayout";
