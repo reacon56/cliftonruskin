@@ -373,11 +373,12 @@ export default function ReportBuilderEngine({ caseId, caseData, entity, isManage
 
       {/* Section tabs */}
       <Tabs value={activeSection} onValueChange={setActiveSection}>
-        <TabsList className="w-full justify-start bg-transparent p-0 gap-1">
+        <TabsList className="w-full justify-start bg-transparent p-0 gap-1 flex-wrap">
           <TabsTrigger value="structured" className="text-xs gap-1.5 data-[state=active]:bg-primary/10"><Database className="h-3.5 w-3.5" /> Structured Data</TabsTrigger>
           <TabsTrigger value="commentary" className="text-xs gap-1.5 data-[state=active]:bg-primary/10"><Pen className="h-3.5 w-3.5" /> Commentary</TabsTrigger>
           <TabsTrigger value="ai" className="text-xs gap-1.5 data-[state=active]:bg-primary/10"><Sparkles className="h-3.5 w-3.5" /> AI Draft</TabsTrigger>
           <TabsTrigger value="qa" className="text-xs gap-1.5 data-[state=active]:bg-primary/10"><ShieldCheck className="h-3.5 w-3.5" /> QA</TabsTrigger>
+          <TabsTrigger value="coverage" className="text-xs gap-1.5 data-[state=active]:bg-primary/10"><BarChart3 className="h-3.5 w-3.5" /> Coverage</TabsTrigger>
         </TabsList>
 
         {/* ── 1. STRUCTURED DATA ── */}
