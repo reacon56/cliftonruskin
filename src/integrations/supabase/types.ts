@@ -1622,6 +1622,38 @@ export type Database = {
           },
         ]
       }
+      jurisdiction_alias: {
+        Row: {
+          alias_name: string
+          created_at: string
+          id: string
+          jurisdiction_id: string
+          source_name: string
+        }
+        Insert: {
+          alias_name: string
+          created_at?: string
+          id?: string
+          jurisdiction_id: string
+          source_name?: string
+        }
+        Update: {
+          alias_name?: string
+          created_at?: string
+          id?: string
+          jurisdiction_id?: string
+          source_name?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "jurisdiction_alias_jurisdiction_id_fkey"
+            columns: ["jurisdiction_id"]
+            isOneToOne: false
+            referencedRelation: "jurisdiction"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       jurisdiction_benchmark_inputs: {
         Row: {
           abnormal_patterns: string | null
