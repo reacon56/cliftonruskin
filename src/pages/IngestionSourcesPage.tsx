@@ -14,6 +14,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Separator } from "@/components/ui/separator";
 import { Plus, Pencil, Server, Clock, AlertCircle, CheckCircle2, Play } from "lucide-react";
+import CpiUploadPanel from "@/components/CpiUploadPanel";
 import { toast } from "sonner";
 import { format } from "date-fns";
 
