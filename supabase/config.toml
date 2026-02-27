@@ -32,3 +32,6 @@ verify_jwt = false
 
 [functions.cpi-ingest]
 verify_jwt = false
+
+[functions.ofac-ingest]
+verify_jwt = false
