@@ -547,19 +547,13 @@ export default function ReportBuilderEngine({ caseId, caseData, entity, isManage
               <p className="text-xs text-muted-foreground italic">Awaiting QA reviewer approval.</p>
             )}
 
-            {/* Readiness gate */}
-            <div className="border-t border-border pt-4 mt-4">
-              <h4 className="text-xs font-semibold text-foreground mb-2">PDF Generation Readiness</h4>
-              <div className="space-y-1.5">
-                <GateCheck label="Structured data locked" pass={draft.structured_data_locked} />
-                <GateCheck label="Officer commentary completed" pass={draft.officer_commentary_complete} />
-                <GateCheck label="AI sections reviewed or dismissed" pass={draft.ai_draft_reviewed || draft.ai_draft_dismissed} />
-                <GateCheck label="QA approved" pass={draft.qa_approval_status === "approved"} />
-              </div>
-              <Button className="w-full mt-3 gap-1" size="sm" disabled={!canGeneratePdf || draft.pdf_generated} onClick={generatePdf}>
-                {draft.pdf_generated ? <><CheckCircle2 size={12} /> PDF Generated</> : <><Download size={12} /> Generate PDF</>}
-              </Button>
-            </div>
+            {/* PDF Renderer */}
+            <ReportPdfRenderer
+              draft={draft}
+              entityName={entity?.name ?? "Entity"}
+              caseId={caseId}
+              onPdfGenerated={loadDraft}
+            />
 
             {/* Amendment history */}
             {draft.amendment_history.length > 0 && (
