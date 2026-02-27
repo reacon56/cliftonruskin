@@ -2,7 +2,7 @@ import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import {
   BarChart3, Database, Pen, Sparkles, AlertCircle,
-  CheckCircle2, Clock, ClipboardCheck,
+  CheckCircle2, Clock, ClipboardCheck, Globe,
 } from "lucide-react";
 import type { PreQaCheckResult } from "@/components/case-detail/PreQaReviewPanel";
 
