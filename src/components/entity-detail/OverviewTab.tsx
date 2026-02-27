@@ -7,6 +7,7 @@ import EntityLocationSection from "./EntityLocationSection";
 import AssuranceEnhancementsPanel from "./AssuranceEnhancementsPanel";
 import ClientPolicyOutcomePanel from "./ClientPolicyOutcomePanel";
 import CrRiskBandPanel from "./CrRiskBandPanel";
+import EntityJurisdictionLinksPanel from "./EntityJurisdictionLinksPanel";
 import { OperatingCountriesPanel, type OperatingCountry } from "@/components/OperatingCountries";
 
 interface Props {
