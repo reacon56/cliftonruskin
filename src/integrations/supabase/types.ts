@@ -1512,6 +1512,7 @@ export type Database = {
           country_name: string
           created_at: string
           id: string
+          last_refreshed_at: string | null
           updated_at: string
         }
         Insert: {
@@ -1519,6 +1520,7 @@ export type Database = {
           country_name: string
           created_at?: string
           id?: string
+          last_refreshed_at?: string | null
           updated_at?: string
         }
         Update: {
@@ -1526,6 +1528,7 @@ export type Database = {
           country_name?: string
           created_at?: string
           id?: string
+          last_refreshed_at?: string | null
           updated_at?: string
         }
         Relationships: []
