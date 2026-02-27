@@ -50,6 +50,7 @@ export default function AppSidebar() {
     { label: "Dashboard", path: "/dashboard", icon: <LayoutDashboard size={18} /> },
     { label: "Entities", path: "/entities", icon: <Building2 size={18} /> },
     { label: "Commission", path: "/commission", icon: <FileCheck size={18} /> },
+    { label: "Service Request", path: "/service-request", icon: <Briefcase size={18} /> },
     { label: "Deliverables", path: "/deliverables", icon: <FolderOpen size={18} /> },
     { label: "Monitoring", path: "/monitoring", icon: <Activity size={18} /> },
     { label: "Policies", path: "/policies", icon: <Shield size={18} /> },

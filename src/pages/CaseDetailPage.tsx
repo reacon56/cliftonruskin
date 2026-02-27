@@ -548,6 +548,58 @@ export default function CaseDetailPage() {
             </ActionCard>
           )}
 
+          {/* Urgent Authorised — Manager can force-start work before approval */}
+          {isManager && (currentStatus === "new" || currentStatus === "scheduled" || currentStatus === "quoted") && (
+            <ActionCard title="Urgent Override">
+              {!showUrgentDialog ? (
+                <Button variant="destructive" className="w-full" size="sm" onClick={() => setShowUrgentDialog(true)}>
+                  <AlertTriangle size={14} className="mr-1" /> Urgent Authorised Start
+                </Button>
+              ) : (
+                <div className="space-y-2">
+                  <p className="text-[11px] text-muted-foreground">Work will begin before formal approval. A justification is mandatory and will be logged.</p>
+                  <Textarea
+                    value={urgentJustification}
+                    onChange={e => setUrgentJustification(e.target.value)}
+                    placeholder="Justification for urgent start…"
+                    rows={2}
+                    className="text-xs"
+                  />
+                  <div className="flex gap-1.5">
+                    <Button
+                      size="sm"
+                      variant="destructive"
+                      className="flex-1 text-xs"
+                      disabled={!urgentJustification.trim()}
+                      onClick={async () => {
+                        await transitionTo("assigned", { assigned_to: user?.id }, `URGENT AUTHORISED: ${urgentJustification}`);
+                        await supabase.from("audit_events").insert({
+                          user_id: user!.id,
+                          org_id: profile?.org_id,
+                          action_type: "URGENT_AUTHORISED_START",
+                          object_type: "case",
+                          object_id: id,
+                          metadata: {
+                            justification: urgentJustification,
+                            from_status: currentStatus,
+                            entity_name: entity?.name,
+                          },
+                        });
+                        setShowUrgentDialog(false);
+                        setUrgentJustification("");
+                      }}
+                    >
+                      Confirm
+                    </Button>
+                    <Button size="sm" variant="outline" className="text-xs" onClick={() => { setShowUrgentDialog(false); setUrgentJustification(""); }}>
+                      Cancel
+                    </Button>
+                  </div>
+                </div>
+              )}
+            </ActionCard>
+          )}
+
           {hasRole("client_admin") && currentStatus === "released" && (
             <ActionCard title="Acknowledge">
               <Button className="w-full" size="sm" onClick={() => transitionTo("archived")}><CheckCircle2 size={14} className="mr-1" /> Acknowledge & Close</Button>
