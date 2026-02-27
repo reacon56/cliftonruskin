@@ -571,6 +571,19 @@ export default function ReportBuilderEngine({ caseId, caseData, entity, isManage
             />
           </div>
         </TabsContent>
+
+        {/* ── 5. COVERAGE MAP ── */}
+        <TabsContent value="coverage">
+          <AutomationCoverageMap
+            structuredData={draft.structured_data}
+            structuredDataLocked={draft.structured_data_locked}
+            officerCommentary={draft.officer_commentary}
+            officerCommentaryComplete={draft.officer_commentary_complete}
+            aiDraft={draft.ai_draft}
+            aiDraftReviewed={draft.ai_draft_reviewed}
+            aiDraftDismissed={draft.ai_draft_dismissed}
+          />
+        </TabsContent>
       </Tabs>
     </div>
   );
