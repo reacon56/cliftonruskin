@@ -5,6 +5,7 @@ import { AlertTriangle, FileText, Clock, Sparkles } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import EntityLocationSection from "./EntityLocationSection";
 import AssuranceEnhancementsPanel from "./AssuranceEnhancementsPanel";
+import ClientPolicyOutcomePanel from "./ClientPolicyOutcomePanel";
 import { OperatingCountriesPanel, type OperatingCountry } from "@/components/OperatingCountries";
 
 interface Props {
