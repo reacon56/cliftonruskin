@@ -6,7 +6,14 @@ import {
 } from "lucide-react";
 
 /* ────── types ────── */
-type CompletionStatus = "auto_filled" | "manual" | "ai_draft" | "missing";
+type CompletionStatus = "auto_filled" | "manual" | "ai_draft" | "ai_accepted" | "ai_edited" | "ai_rejected" | "missing";
+
+interface AiSectionDecision {
+  key: string;
+  status: "accepted" | "edited" | "rejected";
+  reviewer: string;
+  decidedAt: string;
+}
 
 interface CoverageRow {
   section: string;
@@ -50,6 +57,7 @@ interface Props {
   aiDraft: AiDraft;
   aiDraftReviewed: boolean;
   aiDraftDismissed: boolean;
+  aiDecisions?: AiSectionDecision[];
 }
 
 const STATUS_CONFIG: Record<CompletionStatus, { label: string; color: string; icon: typeof Database }> = {
