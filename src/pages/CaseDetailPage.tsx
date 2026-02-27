@@ -18,6 +18,7 @@ import { useToast } from "@/hooks/use-toast";
 import AssuranceNoteReport from "@/components/AssuranceNoteReport";
 import ReportBuilderEngine from "@/components/case-detail/ReportBuilderEngine";
 import AiAssurancePanel from "@/components/case-detail/AiAssurancePanel";
+import AgenticReviewPanel from "@/components/case-detail/AgenticReviewPanel";
 import CaseActivityTimeline from "@/components/CaseActivityTimeline";
 import DataProtectionSummary from "@/components/case-detail/DataProtectionSummary";
 import CaseProcessingRecord from "@/components/case-detail/CaseProcessingRecord";
@@ -367,6 +368,9 @@ export default function CaseDetailPage() {
 
           {/* ── QA & RELEASE ── */}
           <TabsContent value="qa" className="space-y-4">
+            {/* Agentic Review Layer – runs before QA submission */}
+            {isInternal && <AgenticReviewPanel caseId={id!} />}
+
             {/* Report Builder Engine */}
             {isInternal && (
               <ReportBuilderEngine caseId={id!} caseData={caseData} entity={entity} isManager={isManager} />
