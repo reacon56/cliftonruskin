@@ -368,6 +368,9 @@ export default function CaseDetailPage() {
 
           {/* ── QA & RELEASE ── */}
           <TabsContent value="qa" className="space-y-4">
+            {/* Agentic Review Layer – runs before QA submission */}
+            {isInternal && <AgenticReviewPanel caseId={id!} />}
+
             {/* Report Builder Engine */}
             {isInternal && (
               <ReportBuilderEngine caseId={id!} caseData={caseData} entity={entity} isManager={isManager} />
