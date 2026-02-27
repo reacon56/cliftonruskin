@@ -108,6 +108,7 @@ function AppRoutes() {
         <Route path="/entities" element={<EntitiesPage />} />
         <Route path="/entities/:id" element={<EntityDetailPage />} />
         <Route path="/commission" element={<CommissionPage />} />
+        <Route path="/service-request" element={<ServiceRequestPage />} />
         <Route path="/approvals" element={<ApprovalsPage />} />
         <Route path="/deliverables" element={<DeliverablesPage />} />
         <Route path="/monitoring" element={<MonitoringPage />} />
