@@ -304,6 +304,68 @@ export default function AdminSourcesPage() {
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Test Parse Dialog */}
+      <Dialog open={testParseDialog} onOpenChange={setTestParseDialog}>
+        <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <FlaskConical className="h-4 w-4 text-primary" /> FATF Test Parse Preview
+            </DialogTitle>
+          </DialogHeader>
+          {testParseResult?.preview ? (
+            <div className="space-y-4 mt-2">
+              {Object.entries(testParseResult.preview).filter(([k]) => !k.endsWith("_date") && !k.endsWith("_total")).map(([listKey, countries]: [string, any]) => (
+                <Card key={listKey}>
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-sm flex items-center justify-between">
+                      <span>{listKey}</span>
+                      <div className="flex gap-2 text-xs text-muted-foreground font-normal">
+                        <span>Date: {(testParseResult.preview as any)[`${listKey}_date`] || "—"}</span>
+                        <span>Total: {(testParseResult.preview as any)[`${listKey}_total`] || 0}</span>
+                      </div>
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="p-0">
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead>Country Name</TableHead>
+                          <TableHead>Resolved Code</TableHead>
+                          <TableHead>Status</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {(countries as any[]).map((c: any, i: number) => (
+                          <TableRow key={i}>
+                            <TableCell className="text-sm">{c.name}</TableCell>
+                            <TableCell>
+                              {c.resolved_code ? (
+                                <Badge variant="default" className="text-[10px]">{c.resolved_code}</Badge>
+                              ) : (
+                                <Badge variant="destructive" className="text-[10px]">Unmapped</Badge>
+                              )}
+                            </TableCell>
+                            <TableCell>
+                              {c.jurisdiction_id ? (
+                                <CheckCircle2 className="h-3.5 w-3.5 text-primary" />
+                              ) : (
+                                <AlertCircle className="h-3.5 w-3.5 text-destructive" />
+                              )}
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          ) : (
+            <p className="text-sm text-muted-foreground text-center py-6">No results</p>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
