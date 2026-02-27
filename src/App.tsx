@@ -46,6 +46,7 @@ import MasterEntityDetailPage from "@/pages/MasterEntityDetailPage";
 import SourceRegistryPage from "@/pages/SourceRegistryPage";
 import ResearchConsolePage from "@/pages/ResearchConsolePage";
 import JurisdictionLibraryPage from "@/pages/JurisdictionLibraryPage";
+import UnitEconomicsPage from "@/pages/UnitEconomicsPage";
 
 // Website pages
 import WebsiteLayout from "@/components/website/WebsiteLayout";
