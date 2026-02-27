@@ -77,6 +77,9 @@ export default function AiAssurancePanel({ caseId }: Props) {
       if (data?.error) throw new Error(data.error);
       setAnalysis(data.analysis);
       setGeneratedAt(data.generated_at);
+      setAiDisclaimer(data.ai_disclaimer ?? null);
+      setViolationCount(data.violations_sanitised ?? 0);
+      setHumanReviewed(false);
       setDecisions({});
       // Log to audit
       if (user && profile) {
