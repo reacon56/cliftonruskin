@@ -12,6 +12,7 @@ import {
   RefreshCw, XCircle,
 } from "lucide-react";
 import ReportPdfRenderer from "@/components/case-detail/ReportPdfRenderer";
+import ReportAmendmentPanel from "@/components/case-detail/ReportAmendmentPanel";
 
 /* ────── types ────── */
 interface StructuredData {
@@ -555,20 +556,15 @@ export default function ReportBuilderEngine({ caseId, caseData, entity, isManage
               onPdfGenerated={loadDraft}
             />
 
-            {/* Amendment history */}
-            {draft.amendment_history.length > 0 && (
-              <div className="border-t border-border pt-4">
-                <h4 className="text-xs font-semibold text-foreground mb-2">Amendment History</h4>
-                <div className="space-y-2">
-                  {draft.amendment_history.map((a: any, i: number) => (
-                    <div key={i} className="text-xs text-muted-foreground border rounded p-2 bg-muted/20">
-                      <span className="font-medium text-foreground">v{a.version}</span> — Returned {new Date(a.rejected_at).toLocaleDateString("en-GB")}
-                      {a.comments && <p className="mt-1 italic">{a.comments}</p>}
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
+            {/* Version Control & Amendment Panel */}
+            <ReportAmendmentPanel
+              draftId={draft.id}
+              caseId={caseId}
+              orgId={caseData.org_id}
+              currentVersion={draft.report_version}
+              pdfGenerated={draft.pdf_generated}
+              onAmendmentCreated={loadDraft}
+            />
           </div>
         </TabsContent>
       </Tabs>
