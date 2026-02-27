@@ -86,6 +86,156 @@ export type Database = {
           },
         ]
       }
+      alert_event: {
+        Row: {
+          alert_type: Database["public"]["Enums"]["client_alert_type"]
+          created_at: string
+          details_json: Json | null
+          detected_at: string
+          effective_date: string | null
+          id: string
+          indicator_change_id: string | null
+          jurisdiction_id: string
+          source_url: string | null
+          summary: string
+        }
+        Insert: {
+          alert_type: Database["public"]["Enums"]["client_alert_type"]
+          created_at?: string
+          details_json?: Json | null
+          detected_at?: string
+          effective_date?: string | null
+          id?: string
+          indicator_change_id?: string | null
+          jurisdiction_id: string
+          source_url?: string | null
+          summary: string
+        }
+        Update: {
+          alert_type?: Database["public"]["Enums"]["client_alert_type"]
+          created_at?: string
+          details_json?: Json | null
+          detected_at?: string
+          effective_date?: string | null
+          id?: string
+          indicator_change_id?: string | null
+          jurisdiction_id?: string
+          source_url?: string | null
+          summary?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "alert_event_indicator_change_id_fkey"
+            columns: ["indicator_change_id"]
+            isOneToOne: false
+            referencedRelation: "jurisdiction_indicator_change"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "alert_event_jurisdiction_id_fkey"
+            columns: ["jurisdiction_id"]
+            isOneToOne: false
+            referencedRelation: "jurisdiction"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      alert_notification: {
+        Row: {
+          alert_event_id: string
+          created_at: string
+          id: string
+          is_read: boolean
+          org_id: string
+          read_at: string | null
+          user_id: string
+        }
+        Insert: {
+          alert_event_id: string
+          created_at?: string
+          id?: string
+          is_read?: boolean
+          org_id: string
+          read_at?: string | null
+          user_id: string
+        }
+        Update: {
+          alert_event_id?: string
+          created_at?: string
+          id?: string
+          is_read?: boolean
+          org_id?: string
+          read_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "alert_notification_alert_event_id_fkey"
+            columns: ["alert_event_id"]
+            isOneToOne: false
+            referencedRelation: "alert_event"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "alert_notification_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organisations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      alert_subscription: {
+        Row: {
+          alert_type: Database["public"]["Enums"]["client_alert_type"]
+          all_linked_jurisdictions: boolean
+          created_at: string
+          enabled: boolean
+          id: string
+          jurisdiction_id: string | null
+          org_id: string
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          alert_type: Database["public"]["Enums"]["client_alert_type"]
+          all_linked_jurisdictions?: boolean
+          created_at?: string
+          enabled?: boolean
+          id?: string
+          jurisdiction_id?: string | null
+          org_id: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          alert_type?: Database["public"]["Enums"]["client_alert_type"]
+          all_linked_jurisdictions?: boolean
+          created_at?: string
+          enabled?: boolean
+          id?: string
+          jurisdiction_id?: string | null
+          org_id?: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "alert_subscription_jurisdiction_id_fkey"
+            columns: ["jurisdiction_id"]
+            isOneToOne: false
+            referencedRelation: "jurisdiction"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "alert_subscription_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organisations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       all_stations_notices: {
         Row: {
           body: string
@@ -4428,6 +4578,10 @@ export type Database = {
         Returns: boolean
       }
       is_internal: { Args: { _user_id: string }; Returns: boolean }
+      map_indicator_to_alert_type: {
+        Args: { ind_type: string }
+        Returns: Database["public"]["Enums"]["client_alert_type"]
+      }
     }
     Enums: {
       app_role:
@@ -4441,6 +4595,13 @@ export type Database = {
         | "fvc_assurance_officer"
         | "fvc_assurance_lead"
         | "fvc_quality_reviewer"
+      client_alert_type:
+        | "FATF_CHANGE"
+        | "EU_HRTC_CHANGE"
+        | "UK_SANCTIONS_CHANGE"
+        | "EU_SANCTIONS_CHANGE"
+        | "OFAC_SANCTIONS_CHANGE"
+        | "CPI_CHANGE"
       indicator_type:
         | "FATF_STATUS"
         | "EU_AML_HRTC"
@@ -4590,6 +4751,14 @@ export const Constants = {
         "fvc_assurance_officer",
         "fvc_assurance_lead",
         "fvc_quality_reviewer",
+      ],
+      client_alert_type: [
+        "FATF_CHANGE",
+        "EU_HRTC_CHANGE",
+        "UK_SANCTIONS_CHANGE",
+        "EU_SANCTIONS_CHANGE",
+        "OFAC_SANCTIONS_CHANGE",
+        "CPI_CHANGE",
       ],
       indicator_type: [
         "FATF_STATUS",
