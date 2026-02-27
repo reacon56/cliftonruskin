@@ -54,6 +54,8 @@ import BillingHandoffPage from "@/pages/BillingHandoffPage";
 import WorkOrdersPage from "@/pages/WorkOrdersPage";
 import EntitlementSettingsPage from "@/pages/EntitlementSettingsPage";
 import ServiceRequestPage from "@/pages/ServiceRequestPage";
+import CommercialDashboardPage from "@/pages/CommercialDashboardPage";
+import ClientSpendSummaryPage from "@/pages/ClientSpendSummaryPage";
 
 // Website pages
 import WebsiteLayout from "@/components/website/WebsiteLayout";
@@ -142,6 +144,8 @@ function AppRoutes() {
         <Route path="/billing-handoff" element={<InternalRouteGuard managerOnly><BillingHandoffPage /></InternalRouteGuard>} />
         <Route path="/work-orders" element={<WorkOrdersPage />} />
         <Route path="/entitlement-settings" element={<InternalRouteGuard managerOnly><EntitlementSettingsPage /></InternalRouteGuard>} />
+        <Route path="/commercial-dashboard" element={<InternalRouteGuard managerOnly><CommercialDashboardPage /></InternalRouteGuard>} />
+        <Route path="/spend-summary" element={<ClientSpendSummaryPage />} />
 
         {/* ── Internal routes (officer + manager) ── */}
         <Route path="/qa-queue" element={<InternalRouteGuard><QaQueuePage /></InternalRouteGuard>} />
