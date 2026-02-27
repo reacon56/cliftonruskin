@@ -838,6 +838,33 @@ export type Database = {
           },
         ]
       }
+      data_source: {
+        Row: {
+          base_url: string | null
+          created_at: string
+          description: string | null
+          id: string
+          is_active: boolean
+          name: string
+        }
+        Insert: {
+          base_url?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          name: string
+        }
+        Update: {
+          base_url?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          name?: string
+        }
+        Relationships: []
+      }
       deliverables: {
         Row: {
           case_id: string
@@ -1388,6 +1415,103 @@ export type Database = {
           },
         ]
       }
+      ingestion_error: {
+        Row: {
+          created_at: string
+          error_detail: Json | null
+          error_message: string
+          id: string
+          ingestion_run_id: string
+        }
+        Insert: {
+          created_at?: string
+          error_detail?: Json | null
+          error_message: string
+          id?: string
+          ingestion_run_id: string
+        }
+        Update: {
+          created_at?: string
+          error_detail?: Json | null
+          error_message?: string
+          id?: string
+          ingestion_run_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ingestion_error_ingestion_run_id_fkey"
+            columns: ["ingestion_run_id"]
+            isOneToOne: false
+            referencedRelation: "ingestion_run"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ingestion_run: {
+        Row: {
+          data_source_id: string
+          finished_at: string | null
+          id: string
+          metadata: Json | null
+          records_changed: number
+          records_processed: number
+          started_at: string
+          status: string
+        }
+        Insert: {
+          data_source_id: string
+          finished_at?: string | null
+          id?: string
+          metadata?: Json | null
+          records_changed?: number
+          records_processed?: number
+          started_at?: string
+          status?: string
+        }
+        Update: {
+          data_source_id?: string
+          finished_at?: string | null
+          id?: string
+          metadata?: Json | null
+          records_changed?: number
+          records_processed?: number
+          started_at?: string
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ingestion_run_data_source_id_fkey"
+            columns: ["data_source_id"]
+            isOneToOne: false
+            referencedRelation: "data_source"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      jurisdiction: {
+        Row: {
+          country_code: string
+          country_name: string
+          created_at: string
+          id: string
+          updated_at: string
+        }
+        Insert: {
+          country_code: string
+          country_name: string
+          created_at?: string
+          id?: string
+          updated_at?: string
+        }
+        Update: {
+          country_code?: string
+          country_name?: string
+          created_at?: string
+          id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       jurisdiction_benchmark_inputs: {
         Row: {
           abnormal_patterns: string | null
@@ -1434,6 +1558,145 @@ export type Database = {
             columns: ["case_module_id"]
             isOneToOne: false
             referencedRelation: "case_modules"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      jurisdiction_indicator: {
+        Row: {
+          created_at: string
+          effective_date: string
+          id: string
+          indicator_type: Database["public"]["Enums"]["indicator_type"]
+          ingestion_run_id: string | null
+          jurisdiction_id: string
+          retrieved_at: string
+          source_name: string
+          source_snapshot_hash: string | null
+          source_url: string | null
+          updated_at: string
+          value_json: Json
+        }
+        Insert: {
+          created_at?: string
+          effective_date: string
+          id?: string
+          indicator_type: Database["public"]["Enums"]["indicator_type"]
+          ingestion_run_id?: string | null
+          jurisdiction_id: string
+          retrieved_at?: string
+          source_name: string
+          source_snapshot_hash?: string | null
+          source_url?: string | null
+          updated_at?: string
+          value_json?: Json
+        }
+        Update: {
+          created_at?: string
+          effective_date?: string
+          id?: string
+          indicator_type?: Database["public"]["Enums"]["indicator_type"]
+          ingestion_run_id?: string | null
+          jurisdiction_id?: string
+          retrieved_at?: string
+          source_name?: string
+          source_snapshot_hash?: string | null
+          source_url?: string | null
+          updated_at?: string
+          value_json?: Json
+        }
+        Relationships: [
+          {
+            foreignKeyName: "jurisdiction_indicator_ingestion_run_id_fkey"
+            columns: ["ingestion_run_id"]
+            isOneToOne: false
+            referencedRelation: "ingestion_run"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "jurisdiction_indicator_jurisdiction_id_fkey"
+            columns: ["jurisdiction_id"]
+            isOneToOne: false
+            referencedRelation: "jurisdiction"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      jurisdiction_indicator_change: {
+        Row: {
+          acknowledged: boolean
+          acknowledged_at: string | null
+          acknowledged_by: string | null
+          detected_at: string
+          id: string
+          indicator_type: Database["public"]["Enums"]["indicator_type"]
+          ingestion_run_id: string | null
+          jurisdiction_id: string
+          jurisdiction_indicator_id: string
+          new_effective_date: string
+          new_value_json: Json
+          old_effective_date: string | null
+          old_value_json: Json | null
+          source_name: string
+          source_snapshot_hash: string | null
+          source_url: string | null
+        }
+        Insert: {
+          acknowledged?: boolean
+          acknowledged_at?: string | null
+          acknowledged_by?: string | null
+          detected_at?: string
+          id?: string
+          indicator_type: Database["public"]["Enums"]["indicator_type"]
+          ingestion_run_id?: string | null
+          jurisdiction_id: string
+          jurisdiction_indicator_id: string
+          new_effective_date: string
+          new_value_json: Json
+          old_effective_date?: string | null
+          old_value_json?: Json | null
+          source_name: string
+          source_snapshot_hash?: string | null
+          source_url?: string | null
+        }
+        Update: {
+          acknowledged?: boolean
+          acknowledged_at?: string | null
+          acknowledged_by?: string | null
+          detected_at?: string
+          id?: string
+          indicator_type?: Database["public"]["Enums"]["indicator_type"]
+          ingestion_run_id?: string | null
+          jurisdiction_id?: string
+          jurisdiction_indicator_id?: string
+          new_effective_date?: string
+          new_value_json?: Json
+          old_effective_date?: string | null
+          old_value_json?: Json | null
+          source_name?: string
+          source_snapshot_hash?: string | null
+          source_url?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "jurisdiction_indicator_change_ingestion_run_id_fkey"
+            columns: ["ingestion_run_id"]
+            isOneToOne: false
+            referencedRelation: "ingestion_run"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "jurisdiction_indicator_change_jurisdiction_id_fkey"
+            columns: ["jurisdiction_id"]
+            isOneToOne: false
+            referencedRelation: "jurisdiction"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "jurisdiction_indicator_change_jurisdiction_indicator_id_fkey"
+            columns: ["jurisdiction_indicator_id"]
+            isOneToOne: false
+            referencedRelation: "jurisdiction_indicator"
             referencedColumns: ["id"]
           },
         ]
@@ -3917,6 +4180,16 @@ export type Database = {
         | "fvc_assurance_officer"
         | "fvc_assurance_lead"
         | "fvc_quality_reviewer"
+      indicator_type:
+        | "FATF_STATUS"
+        | "EU_AML_HRTC"
+        | "SANCTIONS_UK_PROGRAMME"
+        | "SANCTIONS_EU_PROGRAMME"
+        | "SANCTIONS_US_OFAC_PROGRAMME"
+        | "US_STATE_SPONSOR_TERRORISM"
+        | "US_FINCEN_311"
+        | "EU_TAX_NONCOOP"
+        | "CPI_SCORE"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -4055,6 +4328,17 @@ export const Constants = {
         "fvc_assurance_officer",
         "fvc_assurance_lead",
         "fvc_quality_reviewer",
+      ],
+      indicator_type: [
+        "FATF_STATUS",
+        "EU_AML_HRTC",
+        "SANCTIONS_UK_PROGRAMME",
+        "SANCTIONS_EU_PROGRAMME",
+        "SANCTIONS_US_OFAC_PROGRAMME",
+        "US_STATE_SPONSOR_TERRORISM",
+        "US_FINCEN_311",
+        "EU_TAX_NONCOOP",
+        "CPI_SCORE",
       ],
     },
   },
