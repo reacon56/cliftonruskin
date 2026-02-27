@@ -168,9 +168,9 @@ export default function IngestionSourcesPage() {
 
   const statusIcon = (status: string | null) => {
     switch (status) {
-      case "completed": return <CheckCircle2 className="h-3.5 w-3.5 text-green-500" />;
+      case "completed": return <CheckCircle2 className="h-3.5 w-3.5 text-primary" />;
       case "failed": return <AlertCircle className="h-3.5 w-3.5 text-destructive" />;
-      case "running": return <Clock className="h-3.5 w-3.5 text-primary animate-pulse" />;
+      case "running": return <Clock className="h-3.5 w-3.5 text-accent-foreground animate-pulse" />;
       default: return <Clock className="h-3.5 w-3.5 text-muted-foreground" />;
     }
   };
