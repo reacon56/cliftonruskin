@@ -72,6 +72,7 @@ const STATUS_CONFIG: Record<CompletionStatus, { label: string; color: string; ic
   ai_edited: { label: "AI Edited", color: "bg-primary/10 text-primary", icon: Pen },
   ai_rejected: { label: "AI Rejected", color: "bg-destructive/10 text-destructive", icon: AlertCircle },
   system_check: { label: "System Check", color: "bg-secondary/50 text-secondary-foreground", icon: ClipboardCheck },
+  external_partner: { label: "External Partner", color: "bg-accent/10 text-accent-foreground", icon: Globe },
   missing: { label: "Missing", color: "bg-destructive/10 text-destructive", icon: AlertCircle },
 };
 
