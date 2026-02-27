@@ -359,6 +359,7 @@ export default function ReportPdfRenderer({ draft, entityName, caseId, onPdfGene
   ${limitationsSection}
   ${followUpSection}
   ${versionSection}
+  ${provenanceAppendix}
 
   <div class="pdf-footer">
     <div class="pdf-footer-brand">
