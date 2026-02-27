@@ -105,18 +105,19 @@ function getDataSources(key: string, data: Record<string, any> | undefined): str
   return sources;
 }
 
-export default function AutomationCoverageMap({
-  structuredData, structuredDataLocked,
-  officerCommentary, officerCommentaryComplete,
-  aiDraft, aiDraftReviewed, aiDraftDismissed,
-  aiDecisions = [],
-  preQaChecks = [], preQaRanAt,
-}: Props) {
-
+export function computeCoverageRows(props: {
+  structuredData: StructuredData;
+  officerCommentary: OfficerCommentary;
+  aiDraft: AiDraft;
+  aiDraftDismissed: boolean;
+  aiDecisions: AiSectionDecision[];
+  preQaChecks: PreQaCheckResult[];
+  preQaRanAt?: string;
+}): { rows: CoverageRow[]; autoPct: number; manualPct: number; aiPct: number; coveragePct: number; missingCount: number } {
+  const { structuredData, officerCommentary, aiDraft, aiDraftDismissed, aiDecisions, preQaChecks, preQaRanAt } = props;
   const rows: CoverageRow[] = [];
   const now = new Date().toISOString();
 
-  // Structured data sections — auto-filled
   const sdKeys: { key: keyof StructuredData; label: string }[] = [
     { key: "entity_core_data", label: "Entity Core Data" },
     { key: "sanctions_summary", label: "Sanctions Summary" },
@@ -140,13 +141,12 @@ export default function AutomationCoverageMap({
     });
   }
 
-  // Officer commentary sections — manual
-  const commentaryKeys: { key: keyof OfficerCommentary; label: string; required: boolean }[] = [
-    { key: "contextual_analysis", label: "Contextual Analysis", required: true },
-    { key: "explanation_of_material_findings", label: "Material Findings", required: true },
-    { key: "mitigating_factors", label: "Mitigating Factors", required: true },
-    { key: "recommended_follow_up_actions", label: "Follow-up Actions", required: true },
-    { key: "client_safe_notes", label: "Client-safe Notes", required: false },
+  const commentaryKeys: { key: keyof OfficerCommentary; label: string }[] = [
+    { key: "contextual_analysis", label: "Contextual Analysis" },
+    { key: "explanation_of_material_findings", label: "Material Findings" },
+    { key: "mitigating_factors", label: "Mitigating Factors" },
+    { key: "recommended_follow_up_actions", label: "Follow-up Actions" },
+    { key: "client_safe_notes", label: "Client-safe Notes" },
   ];
 
   for (const { key, label } of commentaryKeys) {
@@ -161,7 +161,6 @@ export default function AutomationCoverageMap({
     });
   }
 
-  // AI Draft sections — map decision keys to draft keys
   const aiKeysWithDecisionMap: { key: keyof AiDraft; label: string; decisionKey: string }[] = [
     { key: "draft_executive_summary", label: "Executive Summary (AI)", decisionKey: "executive_summary" },
     { key: "draft_risk_driver_explanation", label: "Risk Drivers (AI)", decisionKey: "risk_driver" },
@@ -203,7 +202,6 @@ export default function AutomationCoverageMap({
     });
   }
 
-  // Pre-QA System Check rows
   if (preQaChecks.length > 0) {
     rows.push({
       section: "Pre-QA Completeness Check",
@@ -214,7 +212,6 @@ export default function AutomationCoverageMap({
     });
   }
 
-  // Coverage stats
   const total = rows.length;
   const autoCount = rows.filter((r) => r.status === "auto_filled").length;
   const manualCount = rows.filter((r) => r.status === "manual").length;
@@ -225,6 +222,24 @@ export default function AutomationCoverageMap({
   const manualPct = total > 0 ? Math.round((manualCount / total) * 100) : 0;
   const aiPct = total > 0 ? Math.round((aiCount / total) * 100) : 0;
   const coveragePct = total > 0 ? Math.round((filledCount / total) * 100) : 0;
+
+  return { rows, autoPct, manualPct, aiPct, coveragePct, missingCount };
+}
+
+export default function AutomationCoverageMap({
+  structuredData, structuredDataLocked,
+  officerCommentary, officerCommentaryComplete,
+  aiDraft, aiDraftReviewed, aiDraftDismissed,
+  aiDecisions = [],
+  preQaChecks = [], preQaRanAt,
+}: Props) {
+
+  const { rows, autoPct, manualPct, aiPct, coveragePct, missingCount } = computeCoverageRows({
+    structuredData, officerCommentary, aiDraft, aiDraftDismissed,
+    aiDecisions, preQaChecks, preQaRanAt,
+  });
+  const total = rows.length;
+  const filledCount = total - missingCount;
 
   return (
     <div className="rounded-lg border bg-card p-4 space-y-4">
