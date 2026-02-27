@@ -1,11 +1,18 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
+import { useToast } from "@/hooks/use-toast";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
 import {
   CheckCircle2, AlertTriangle, XCircle, Shield,
-  ChevronDown, ChevronUp,
+  ChevronDown, ChevronUp, Send, ShieldOff,
 } from "lucide-react";
+import {
+  Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription,
+} from "@/components/ui/dialog";
+import { requestDeviationOverride } from "./TierDeviationPanel";
 
 const SOURCE_LABELS: Record<string, string> = {
   sanctions: "Sanctions Check",
