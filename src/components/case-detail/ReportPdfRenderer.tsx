@@ -53,11 +53,22 @@ interface ReportDraft {
   pdf_generated_at?: string;
 }
 
+export interface CoverageRowForPdf {
+  section: string;
+  status: string;
+  dataSources: string[];
+  lastUpdatedBy: string;
+  timestamp: string | null;
+}
+
 interface Props {
   draft: ReportDraft;
   entityName: string;
   caseId: string;
   onPdfGenerated: () => void;
+  coverageRows?: CoverageRowForPdf[];
+  coverageAutoPct?: number;
+  coverageManualPct?: number;
 }
 
 /* ────── gate check helper ────── */
