@@ -7,7 +7,7 @@ import {
   ArrowLeftRight, CheckCircle2, Scale, ArrowUpCircle, Newspaper,
   Briefcase, Eye, BookOpen, GitMerge, BarChart3, Search,
   Send, Layers, Database, FlaskConical, Globe, Package, Wallet, Receipt,
-  DollarSign, TrendingUp, Server,
+  DollarSign, TrendingUp, Server, Bell,
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
