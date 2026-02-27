@@ -57,6 +57,8 @@ import ServiceRequestPage from "@/pages/ServiceRequestPage";
 import CommercialDashboardPage from "@/pages/CommercialDashboardPage";
 import ClientSpendSummaryPage from "@/pages/ClientSpendSummaryPage";
 import IngestionSourcesPage from "@/pages/IngestionSourcesPage";
+import JurisdictionsListPage from "@/pages/JurisdictionsListPage";
+import JurisdictionProfilePage from "@/pages/JurisdictionProfilePage";
 
 // Website pages
 import WebsiteLayout from "@/components/website/WebsiteLayout";
@@ -138,6 +140,8 @@ function AppRoutes() {
         <Route path="/reconciliation" element={<InternalRouteGuard managerOnly><ReconciliationPage /></InternalRouteGuard>} />
         <Route path="/risk-model" element={<InternalRouteGuard managerOnly><RiskModelPage /></InternalRouteGuard>} />
         <Route path="/jurisdiction-library" element={<InternalRouteGuard><JurisdictionLibraryPage /></InternalRouteGuard>} />
+        <Route path="/jurisdictions" element={<InternalRouteGuard><JurisdictionsListPage /></InternalRouteGuard>} />
+        <Route path="/jurisdictions/:id" element={<InternalRouteGuard><JurisdictionProfilePage /></InternalRouteGuard>} />
         <Route path="/unit-economics" element={<InternalRouteGuard managerOnly><UnitEconomicsPage /></InternalRouteGuard>} />
         <Route path="/tier-matrix" element={<InternalRouteGuard managerOnly><TierMatrixPage /></InternalRouteGuard>} />
         <Route path="/product-catalogue" element={<InternalRouteGuard><ProductCataloguePage /></InternalRouteGuard>} />
