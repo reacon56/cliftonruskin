@@ -423,6 +423,13 @@ export default function CaseDetailPage() {
               </div>
             )}
           </TabsContent>
+
+          {/* ── TIME TRACKING ── */}
+          {isInternal && (
+            <TabsContent value="time">
+              <CaseTimeTracker caseId={id!} isManager={isManager} />
+            </TabsContent>
+          )}
         </Tabs>
 
         {/* ── Right Sidebar: Actions ── */}
