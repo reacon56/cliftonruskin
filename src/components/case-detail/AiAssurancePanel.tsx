@@ -62,7 +62,7 @@ const SEVERITY_COLORS: Record<string, string> = {
   high: "bg-destructive/10 text-destructive",
 };
 
-export default function AiAssurancePanel({ caseId }: Props) {
+export default function AiAssurancePanel({ caseId, onDecision }: Props) {
   const { user, profile } = useAuth();
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
