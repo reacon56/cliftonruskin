@@ -162,6 +162,9 @@ export default function OverviewTab({ entity, cases, changeLogs, monitoringEvent
         </div>
       )}
 
+      {/* Client Policy Outcome */}
+      <ClientPolicyOutcomePanel entityId={entity.id} />
+
       {/* Assurance Enhancements */}
       <AssuranceEnhancementsPanel cases={cases} />
 

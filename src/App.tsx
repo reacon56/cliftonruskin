@@ -125,6 +125,7 @@ function AppRoutes() {
         <Route path="/policies" element={<PoliciesPage />} />
         <Route path="/audit-log" element={<AuditLogPage />} />
         <Route path="/client/alerts" element={<ClientAlertsPage />} />
+        <Route path="/client/policy" element={<ClientPolicyPage />} />
         <Route path="/lia-library" element={<LiaLibraryPage />} />
         <Route path="/approval-settings" element={<AutoApprovalSettingsPage />} />
         <Route path="/org-settings" element={<OrgSettingsPage />} />
