@@ -6,6 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
 import EntityLocationSection from "./EntityLocationSection";
 import AssuranceEnhancementsPanel from "./AssuranceEnhancementsPanel";
 import ClientPolicyOutcomePanel from "./ClientPolicyOutcomePanel";
+import CrRiskBandPanel from "./CrRiskBandPanel";
 import { OperatingCountriesPanel, type OperatingCountry } from "@/components/OperatingCountries";
 
 interface Props {
@@ -161,6 +162,9 @@ export default function OverviewTab({ entity, cases, changeLogs, monitoringEvent
           </div>
         </div>
       )}
+
+      {/* Clifton Ruskin Risk Band */}
+      <CrRiskBandPanel entityId={entity.id} />
 
       {/* Client Policy Outcome */}
       <ClientPolicyOutcomePanel entityId={entity.id} />
