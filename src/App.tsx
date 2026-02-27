@@ -48,6 +48,7 @@ import ResearchConsolePage from "@/pages/ResearchConsolePage";
 import JurisdictionLibraryPage from "@/pages/JurisdictionLibraryPage";
 import UnitEconomicsPage from "@/pages/UnitEconomicsPage";
 import TierMatrixPage from "@/pages/TierMatrixPage";
+import ProductCataloguePage from "@/pages/ProductCataloguePage";
 
 // Website pages
 import WebsiteLayout from "@/components/website/WebsiteLayout";
