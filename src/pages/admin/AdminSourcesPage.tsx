@@ -228,6 +228,17 @@ export default function AdminSourcesPage() {
                       >
                         <Play className="h-3.5 w-3.5" />
                       </Button>
+                      {isFatfSource(s.name) && (
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => testParse.mutate()}
+                          disabled={testParse.isPending}
+                          title="Test Parse"
+                        >
+                          <FlaskConical className="h-3.5 w-3.5" />
+                        </Button>
+                      )}
                     </div>
                   </TableCell>
                 )}
