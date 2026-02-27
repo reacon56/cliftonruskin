@@ -2545,6 +2545,79 @@ export type Database = {
           },
         ]
       }
+      report_amendments: {
+        Row: {
+          amended_by: string | null
+          amended_sections: string[]
+          amendment_reason: string
+          case_id: string
+          change_log: string | null
+          client_notified: boolean
+          client_notified_at: string | null
+          created_at: string
+          id: string
+          new_version: number
+          org_id: string
+          prior_snapshot: Json
+          prior_version: number
+          report_draft_id: string
+        }
+        Insert: {
+          amended_by?: string | null
+          amended_sections?: string[]
+          amendment_reason: string
+          case_id: string
+          change_log?: string | null
+          client_notified?: boolean
+          client_notified_at?: string | null
+          created_at?: string
+          id?: string
+          new_version: number
+          org_id: string
+          prior_snapshot?: Json
+          prior_version: number
+          report_draft_id: string
+        }
+        Update: {
+          amended_by?: string | null
+          amended_sections?: string[]
+          amendment_reason?: string
+          case_id?: string
+          change_log?: string | null
+          client_notified?: boolean
+          client_notified_at?: string | null
+          created_at?: string
+          id?: string
+          new_version?: number
+          org_id?: string
+          prior_snapshot?: Json
+          prior_version?: number
+          report_draft_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "report_amendments_case_id_fkey"
+            columns: ["case_id"]
+            isOneToOne: false
+            referencedRelation: "cases"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "report_amendments_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organisations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "report_amendments_report_draft_id_fkey"
+            columns: ["report_draft_id"]
+            isOneToOne: false
+            referencedRelation: "report_drafts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       report_drafts: {
         Row: {
           ai_draft: Json
