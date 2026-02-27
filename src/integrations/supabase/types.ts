@@ -2467,6 +2467,102 @@ export type Database = {
           },
         ]
       }
+      report_drafts: {
+        Row: {
+          ai_draft: Json
+          ai_draft_dismissed: boolean
+          ai_draft_reviewed: boolean
+          amendment_history: Json
+          case_id: string
+          created_at: string
+          created_by: string | null
+          id: string
+          officer_commentary: Json
+          officer_commentary_complete: boolean
+          org_id: string
+          pdf_deliverable_id: string | null
+          pdf_generated: boolean
+          pdf_generated_at: string | null
+          qa_approval_status: string
+          qa_approved_at: string | null
+          qa_approved_by: string | null
+          qa_comments: string | null
+          report_version: number
+          structured_data: Json
+          structured_data_locked: boolean
+          structured_data_locked_at: string | null
+          structured_data_locked_by: string | null
+          updated_at: string
+        }
+        Insert: {
+          ai_draft?: Json
+          ai_draft_dismissed?: boolean
+          ai_draft_reviewed?: boolean
+          amendment_history?: Json
+          case_id: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          officer_commentary?: Json
+          officer_commentary_complete?: boolean
+          org_id: string
+          pdf_deliverable_id?: string | null
+          pdf_generated?: boolean
+          pdf_generated_at?: string | null
+          qa_approval_status?: string
+          qa_approved_at?: string | null
+          qa_approved_by?: string | null
+          qa_comments?: string | null
+          report_version?: number
+          structured_data?: Json
+          structured_data_locked?: boolean
+          structured_data_locked_at?: string | null
+          structured_data_locked_by?: string | null
+          updated_at?: string
+        }
+        Update: {
+          ai_draft?: Json
+          ai_draft_dismissed?: boolean
+          ai_draft_reviewed?: boolean
+          amendment_history?: Json
+          case_id?: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          officer_commentary?: Json
+          officer_commentary_complete?: boolean
+          org_id?: string
+          pdf_deliverable_id?: string | null
+          pdf_generated?: boolean
+          pdf_generated_at?: string | null
+          qa_approval_status?: string
+          qa_approved_at?: string | null
+          qa_approved_by?: string | null
+          qa_comments?: string | null
+          report_version?: number
+          structured_data?: Json
+          structured_data_locked?: boolean
+          structured_data_locked_at?: string | null
+          structured_data_locked_by?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "report_drafts_case_id_fkey"
+            columns: ["case_id"]
+            isOneToOne: false
+            referencedRelation: "cases"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "report_drafts_pdf_deliverable_id_fkey"
+            columns: ["pdf_deliverable_id"]
+            isOneToOne: false
+            referencedRelation: "deliverables"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       research_sources: {
         Row: {
           access_type: string

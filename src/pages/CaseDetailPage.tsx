@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import AssuranceNoteReport from "@/components/AssuranceNoteReport";
+import ReportBuilderEngine from "@/components/case-detail/ReportBuilderEngine";
 import CaseActivityTimeline from "@/components/CaseActivityTimeline";
 import DataProtectionSummary from "@/components/case-detail/DataProtectionSummary";
 import CaseProcessingRecord from "@/components/case-detail/CaseProcessingRecord";
@@ -362,13 +363,17 @@ export default function CaseDetailPage() {
 
           {/* ── QA & RELEASE ── */}
           <TabsContent value="qa" className="space-y-4">
+            {/* Report Builder Engine */}
+            {isInternal && (
+              <ReportBuilderEngine caseId={id!} caseData={caseData} entity={entity} isManager={isManager} />
+            )}
+
             <div className="rounded-lg border bg-card p-4 space-y-3">
-              <h3 className="font-display text-sm font-semibold text-foreground flex items-center gap-2"><Eye className="h-4 w-4" /> QA & Release</h3>
+              <h3 className="font-display text-sm font-semibold text-foreground flex items-center gap-2"><Eye className="h-4 w-4" /> Deliverables</h3>
               {currentStatus === "qc" && (
                 <Badge variant="default" className="text-xs">Currently in QC Review</Badge>
               )}
               <div className="space-y-2">
-                <h4 className="text-xs font-medium text-foreground">Deliverables</h4>
                 {deliverables.length === 0 ? (
                   <p className="text-sm text-muted-foreground">No deliverables yet.</p>
                 ) : deliverables.map((d) => (
