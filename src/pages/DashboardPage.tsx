@@ -24,6 +24,7 @@ import LiaSummaryCard from "@/components/dashboard/LiaSummaryCard";
 import RiskDistributionChart from "@/components/dashboard/RiskDistributionChart";
 import ProgrammeHealthIndicator from "@/components/dashboard/ProgrammeHealthIndicator";
 import ManagerDashboardView from "@/components/dashboard/ManagerDashboardView";
+import MonitoringAlertsCard from "@/components/dashboard/MonitoringAlertsCard";
 import { useViewMode } from "@/contexts/ViewModeContext";
 interface DashboardStats {
   totalEntities: number;
@@ -453,36 +454,8 @@ export default function DashboardPage() {
         {/* Active Cases - Enhanced */}
         <ActiveCasesCard cases={recentCases} />
 
-        {/* Monitoring alerts */}
-        <div className="fvc-card lg:col-span-2 animate-fade-in" style={{ animationDelay: "350ms", animationFillMode: "both" }}>
-          <div className="flex items-center justify-between mb-5">
-            <h2 className="fvc-heading-3 text-foreground">Monitoring Alerts</h2>
-            <button onClick={() => navigate("/monitoring")} className="fvc-link text-xs">View all</button>
-          </div>
-          {alerts.length === 0 ? (
-            <p className="text-sm text-muted-foreground py-4">No new monitoring alerts.</p>
-          ) : (
-            <div className="space-y-0">
-              {alerts.map((a) => (
-                <div key={a.id} className="flex items-center justify-between py-3 border-b border-border/60 last:border-0 transition-colors hover:bg-muted/30 -mx-2 px-2 rounded">
-                  <div className="flex-1 min-w-0 mr-4">
-                    <div className="text-sm font-medium text-foreground">{a.headline}</div>
-                    <div className="text-[11px] text-muted-foreground capitalize mt-0.5">
-                      {a.event_type.replace(/_/g, " ")} · {new Date(a.detected_at).toLocaleDateString()}
-                    </div>
-                  </div>
-                  <Badge className={`fvc-status-badge shrink-0 ${
-                    a.severity === "high" ? "bg-destructive/10 text-destructive"
-                    : a.severity === "med" ? "bg-warning/10 text-warning"
-                    : "bg-muted text-muted-foreground"
-                  }`}>
-                    {a.severity}
-                  </Badge>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
+        {/* Monitoring alerts — jurisdiction change impact */}
+        <MonitoringAlertsCard />
 
         {/* Plan & Utilisation */}
         <PlanUtilisationCard entityCount={stats.totalEntities} />
