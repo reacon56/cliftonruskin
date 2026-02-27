@@ -211,7 +211,7 @@ export default function JurisdictionProfilePage() {
               {changes.map((c: any) => {
                 const changeClass = deriveChangeClass(c.old_value_json, c.new_value_json);
                 const icon = changeClass === "added"
-                  ? <ArrowUp className="h-3.5 w-3.5 text-green-500" />
+                  ? <ArrowUp className="h-3.5 w-3.5 text-primary" />
                   : changeClass === "removed"
                   ? <ArrowDown className="h-3.5 w-3.5 text-destructive" />
                   : <Minus className="h-3.5 w-3.5 text-primary" />;
