@@ -3121,6 +3121,89 @@ export type Database = {
           },
         ]
       }
+      tier_matrix_versions: {
+        Row: {
+          change_log: string | null
+          created_at: string
+          created_by: string | null
+          id: string
+          status: string
+          version_number: number
+        }
+        Insert: {
+          change_log?: string | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          status?: string
+          version_number?: number
+        }
+        Update: {
+          change_log?: string | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          status?: string
+          version_number?: number
+        }
+        Relationships: []
+      }
+      tier_requirements_matrix: {
+        Row: {
+          adverse_media_requires_contextual_analysis: boolean
+          adverse_media_threshold: number
+          ai_review_required: boolean
+          created_at: string
+          escalation_risk_band_threshold: string
+          id: string
+          matrix_version_id: string
+          min_retrieval_logs: Json
+          qa_checklist_items: Json
+          report_tier: string
+          required_commentary_sections: Json
+          required_source_categories: Json
+          sanctions_match_requires_manager_review: boolean
+        }
+        Insert: {
+          adverse_media_requires_contextual_analysis?: boolean
+          adverse_media_threshold?: number
+          ai_review_required?: boolean
+          created_at?: string
+          escalation_risk_band_threshold?: string
+          id?: string
+          matrix_version_id: string
+          min_retrieval_logs?: Json
+          qa_checklist_items?: Json
+          report_tier: string
+          required_commentary_sections?: Json
+          required_source_categories?: Json
+          sanctions_match_requires_manager_review?: boolean
+        }
+        Update: {
+          adverse_media_requires_contextual_analysis?: boolean
+          adverse_media_threshold?: number
+          ai_review_required?: boolean
+          created_at?: string
+          escalation_risk_band_threshold?: string
+          id?: string
+          matrix_version_id?: string
+          min_retrieval_logs?: Json
+          qa_checklist_items?: Json
+          report_tier?: string
+          required_commentary_sections?: Json
+          required_source_categories?: Json
+          sanctions_match_requires_manager_review?: boolean
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tier_requirements_matrix_matrix_version_id_fkey"
+            columns: ["matrix_version_id"]
+            isOneToOne: false
+            referencedRelation: "tier_matrix_versions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       upgrade_requests: {
         Row: {
           created_at: string

@@ -29,6 +29,7 @@ import CaseRetrievalLogs from "@/components/case-detail/CaseRetrievalLogs";
 import CaseChatPanel from "@/components/case-detail/CaseChatPanel";
 import PartnerEscalationPanel from "@/components/case-detail/PartnerEscalationPanel";
 import CaseTimeTracker from "@/components/case-detail/CaseTimeTracker";
+import TierRequirementsPanel from "@/components/case-detail/TierRequirementsPanel";
 import {
   CASE_STATUSES, STATUS_LABELS, STATUS_COLORS, STATUS_AUDIT_MAP,
   CASE_TYPE_LABELS, REPORT_TIER_LABELS,
@@ -380,6 +381,20 @@ export default function CaseDetailPage() {
 
           {/* ── QA & RELEASE ── */}
           <TabsContent value="qa" className="space-y-4">
+            {/* Tier Requirements Status – internal only */}
+            {isInternal && (
+              <TierRequirementsPanel
+                caseId={id!}
+                reportTier={(caseData as any).report_tier || "standard"}
+                retrievalLogs={[]}
+                officerCommentary={null}
+                riskModelExecuted={false}
+                preQaPassed={false}
+                aiReviewCompleted={false}
+                structuredDataLocked={false}
+              />
+            )}
+
             {/* Agentic Review Layer – runs before QA submission */}
             {isInternal && <AgenticReviewPanel caseId={id!} />}
 
