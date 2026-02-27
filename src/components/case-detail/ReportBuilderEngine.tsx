@@ -13,7 +13,7 @@ import {
 } from "lucide-react";
 import ReportPdfRenderer from "@/components/case-detail/ReportPdfRenderer";
 import ReportAmendmentPanel from "@/components/case-detail/ReportAmendmentPanel";
-import AutomationCoverageMap from "@/components/case-detail/AutomationCoverageMap";
+import AutomationCoverageMap, { computeCoverageRows } from "@/components/case-detail/AutomationCoverageMap";
 import AiAssurancePanel from "@/components/case-detail/AiAssurancePanel";
 import type { AiDecisionEvent } from "@/components/case-detail/AiAssurancePanel";
 import PreQaReviewPanel from "@/components/case-detail/PreQaReviewPanel";
@@ -617,12 +617,28 @@ export default function ReportBuilderEngine({ caseId, caseData, entity, isManage
             )}
 
             {/* PDF Renderer */}
-            <ReportPdfRenderer
-              draft={draft}
-              entityName={entity?.name ?? "Entity"}
-              caseId={caseId}
-              onPdfGenerated={loadDraft}
-            />
+            {(() => {
+              const coverage = computeCoverageRows({
+                structuredData: draft.structured_data,
+                officerCommentary: draft.officer_commentary,
+                aiDraft: draft.ai_draft,
+                aiDraftDismissed: draft.ai_draft_dismissed,
+                aiDecisions,
+                preQaChecks: preQaResult?.checks ?? [],
+                preQaRanAt: preQaResult?.ranAt,
+              });
+              return (
+                <ReportPdfRenderer
+                  draft={draft}
+                  entityName={entity?.name ?? "Entity"}
+                  caseId={caseId}
+                  onPdfGenerated={loadDraft}
+                  coverageRows={coverage.rows}
+                  coverageAutoPct={coverage.autoPct}
+                  coverageManualPct={coverage.manualPct}
+                />
+              );
+            })()}
 
             {/* Version Control & Amendment Panel */}
             <ReportAmendmentPanel

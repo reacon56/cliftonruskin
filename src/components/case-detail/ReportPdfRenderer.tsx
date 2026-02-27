@@ -53,11 +53,22 @@ interface ReportDraft {
   pdf_generated_at?: string;
 }
 
+export interface CoverageRowForPdf {
+  section: string;
+  status: string;
+  dataSources: string[];
+  lastUpdatedBy: string;
+  timestamp: string | null;
+}
+
 interface Props {
   draft: ReportDraft;
   entityName: string;
   caseId: string;
   onPdfGenerated: () => void;
+  coverageRows?: CoverageRowForPdf[];
+  coverageAutoPct?: number;
+  coverageManualPct?: number;
 }
 
 /* ────── gate check helper ────── */
@@ -71,7 +82,7 @@ function GateCheck({ label, pass }: { label: string; pass: boolean }) {
 }
 
 /* ────── main component ────── */
-export default function ReportPdfRenderer({ draft, entityName, caseId, onPdfGenerated }: Props) {
+export default function ReportPdfRenderer({ draft, entityName, caseId, onPdfGenerated, coverageRows = [], coverageAutoPct = 0, coverageManualPct = 0 }: Props) {
   const { user, profile } = useAuth();
   const { toast } = useToast();
   const [generating, setGenerating] = useState(false);
@@ -205,8 +216,10 @@ export default function ReportPdfRenderer({ draft, entityName, caseId, onPdfGene
       ? sectionHtml("9. Recommended Follow-up", `<p class="body-text">${oc.recommended_follow_up_actions || ai.suggested_follow_up_actions}</p>`)
       : "";
 
+    const sectionNum = followUpSection ? 10 : 9;
+
     // Version Control
-    const versionSection = sectionHtml(`${followUpSection ? "10" : "9"}. Version Control`, `
+    const versionSection = sectionHtml(`${sectionNum}. Version Control`, `
       ${kv("Report Version", `v${draft.report_version}`)}
       ${kv("Generated", generatedTs)}
       ${kv("QA Approved At", draft.qa_approved_at ? new Date(draft.qa_approved_at).toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" }) : "—")}
@@ -217,6 +230,55 @@ export default function ReportPdfRenderer({ draft, entityName, caseId, onPdfGene
           <table class="amendment-table">
             <tr><th>Version</th><th>Date</th><th>Action</th></tr>
             ${draft.amendment_history.map((a: any) => `<tr><td>v${a.version}</td><td>${new Date(a.rejected_at).toLocaleDateString("en-GB")}</td><td>Returned for revision</td></tr>`).join("")}
+          </table>
+        </div>` : ""}
+    `);
+
+    // Appendix: Provenance & Automation Summary
+    const clientSafeStatuses: Record<string, string> = {
+      auto_filled: "Automated",
+      manual: "Analyst Input",
+      ai_draft: "AI-Assisted",
+      ai_accepted: "AI-Assisted (Reviewed)",
+      ai_edited: "AI-Assisted (Edited)",
+      ai_rejected: "Analyst Input",
+      system_check: "System Verification",
+      missing: "Pending",
+    };
+
+    // Collect unique high-level sources (client-safe phrasing)
+    const allSources = new Set<string>();
+    coverageRows.forEach((r) => r.dataSources.forEach((s) => {
+      // Sanitise internal-only references
+      const safe = s
+        .replace(/Retrieval Logs? —/gi, "Database Check —")
+        .replace(/Officer Input/gi, "Analyst Review")
+        .replace(/System — Pre-QA Agent/gi, "Quality Verification");
+      allSources.add(safe);
+    }));
+
+    const provenanceAppendix = sectionHtml(`Appendix A: Provenance &amp; Automation Summary`, `
+      <p class="body-text" style="margin-bottom:12px;">This appendix summarises the data sources and methodology coverage for this report.</p>
+      ${kv("Automated Coverage", `${coverageAutoPct}%`)}
+      ${kv("Analyst Input Coverage", `${coverageManualPct}%`)}
+      <div style="margin-top:16px;">
+        <span class="kv-label" style="display:block;margin-bottom:6px;">Sources Consulted</span>
+        <ul class="reason-list">
+          ${Array.from(allSources).map((s) => `<li>${s}</li>`).join("")}
+        </ul>
+      </div>
+      ${coverageRows.length > 0 ? `
+        <div style="margin-top:16px;">
+          <span class="kv-label" style="display:block;margin-bottom:6px;">Section Completion Summary</span>
+          <table class="amendment-table">
+            <tr><th>Section</th><th>Method</th><th>Last Updated</th></tr>
+            ${coverageRows.filter((r) => r.status !== "missing").map((r) => `
+              <tr>
+                <td>${r.section}</td>
+                <td>${clientSafeStatuses[r.status] ?? r.status}</td>
+                <td>${r.timestamp ? new Date(r.timestamp).toLocaleDateString("en-GB") : "—"}</td>
+              </tr>
+            `).join("")}
           </table>
         </div>` : ""}
     `);
@@ -297,6 +359,7 @@ export default function ReportPdfRenderer({ draft, entityName, caseId, onPdfGene
   ${limitationsSection}
   ${followUpSection}
   ${versionSection}
+  ${provenanceAppendix}
 
   <div class="pdf-footer">
     <div class="pdf-footer-brand">
@@ -315,7 +378,7 @@ export default function ReportPdfRenderer({ draft, entityName, caseId, onPdfGene
   </div>
 </body>
 </html>`;
-  }, [draft, entityName, caseId]);
+  }, [draft, entityName, caseId, coverageRows, coverageAutoPct, coverageManualPct]);
 
   /* ── generate & open PDF ── */
   const handleGeneratePdf = useCallback(async () => {
@@ -344,11 +407,16 @@ export default function ReportPdfRenderer({ draft, entityName, caseId, onPdfGene
         pdf_generated_at: now,
       } as any).eq("id", draft.id);
 
-      // Log audit event
+      // Log audit event with full provenance
       await logAudit("REPORT_PDF_GENERATED", {
-        generated_at: now,
+        report_id: draft.id,
         report_version: draft.report_version,
+        generated_at: now,
+        generated_by: user?.id,
         qa_approver: draft.qa_approved_by,
+        qa_approved_at: draft.qa_approved_at,
+        automated_coverage_pct: coverageAutoPct,
+        manual_coverage_pct: coverageManualPct,
       });
 
       toast({ title: "PDF generated successfully" });
