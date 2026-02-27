@@ -63,15 +63,14 @@ export default function CaseDetailPage() {
   useEffect(() => { if (id) loadCase(); }, [id]);
 
   const loadCase = async () => {
-    const [caseRes, msgsRes, delsRes, auditRes, modulesRes] = await Promise.all([
+    const [caseRes, delsRes, auditRes, modulesRes] = await Promise.all([
       supabase.from("cases").select("*").eq("id", id!).single(),
-      supabase.from("case_messages").select("*").eq("case_id", id!).order("created_at"),
       supabase.from("deliverables").select("*").eq("case_id", id!).order("created_at", { ascending: false }),
       supabase.from("audit_events").select("*").eq("object_id", id!).eq("object_type", "case").order("created_at"),
       supabase.from("case_modules").select("*").eq("case_id", id!),
     ]);
     setCaseData(caseRes.data);
-    setMessages(msgsRes.data ?? []);
+    setDeliverables(delsRes.data ?? []);
     setDeliverables(delsRes.data ?? []);
     setAuditEvents(auditRes.data ?? []);
     setInternalNotes((caseRes.data as any)?.internal_notes ?? "");
