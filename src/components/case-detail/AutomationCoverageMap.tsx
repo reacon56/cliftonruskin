@@ -215,6 +215,17 @@ export function computeCoverageRows(props: {
     });
   }
 
+  // Partner escalation rows
+  if (partnerEscalationCount > 0) {
+    rows.push({
+      section: "External Partner Inputs",
+      status: "external_partner",
+      dataSources: ["Trusted Partner Network"],
+      lastUpdatedBy: "Partner / Officer",
+      timestamp: now,
+    });
+  }
+
   const total = rows.length;
   const autoCount = rows.filter((r) => r.status === "auto_filled").length;
   const manualCount = rows.filter((r) => r.status === "manual").length;
