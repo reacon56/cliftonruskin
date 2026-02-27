@@ -324,34 +324,7 @@ export default function CaseDetailPage() {
 
           {/* ── MESSAGES ── */}
           <TabsContent value="messages">
-            <div className="rounded-lg border bg-card p-4 space-y-4">
-              {isInternal && (
-                <div className="flex gap-1">
-                  <Button size="sm" variant={messageFilter === "internal" ? "default" : "outline"} className="text-xs h-7" onClick={() => setMessageFilter("internal")}>Internal Chat</Button>
-                  <Button size="sm" variant={messageFilter === "client" ? "default" : "outline"} className="text-xs h-7" onClick={() => setMessageFilter("client")}>Client Thread</Button>
-                </div>
-              )}
-              <div className="space-y-3 max-h-[400px] overflow-y-auto">
-                {messages.length === 0 ? (
-                  <p className="text-sm text-muted-foreground text-center py-4">No messages yet.</p>
-                ) : messages.map((m) => {
-                  const isMe = m.sender_user_id === user?.id;
-                  return (
-                    <div key={m.id} className={`border rounded-lg p-3 ${isMe ? "border-accent/20 bg-accent/5" : ""}`}>
-                      <div className="flex items-center justify-between mb-1">
-                        <span className="text-xs font-medium text-foreground">{isMe ? "You" : primaryRoleLabel}</span>
-                        <span className="text-[10px] text-muted-foreground">{new Date(m.created_at).toLocaleString()}</span>
-                      </div>
-                      <p className="text-sm text-foreground">{m.message}</p>
-                    </div>
-                  );
-                })}
-              </div>
-              <div className="flex gap-2">
-                <Textarea value={newMessage} onChange={(e) => setNewMessage(e.target.value)} placeholder="Type a message…" rows={2} className="flex-1" />
-                <Button onClick={sendMessage} disabled={!newMessage.trim()} size="sm" className="self-end"><Send size={14} className="mr-1" /> Send</Button>
-              </div>
-            </div>
+            <CaseChatPanel caseId={id!} orgId={caseData.org_id} />
           </TabsContent>
 
           {/* ── EVIDENCE LOCKER ── */}
