@@ -224,12 +224,18 @@ export default function ReportPdfRenderer({ draft, entityName, caseId, onPdfGene
       ${kv("Generated", generatedTs)}
       ${kv("QA Approved At", draft.qa_approved_at ? new Date(draft.qa_approved_at).toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" }) : "—")}
       ${kv("QA Approver", draft.qa_approved_by?.slice(0, 8).toUpperCase() ?? "—")}
+      <p class="body-text" style="margin-top:10px;">Clients receive the latest approved version only. Prior versions are retained internally for audit and compliance purposes.</p>
       ${draft.amendment_history.length > 0 ? `
         <div style="margin-top:12px;">
           <span class="kv-label">Amendment History</span>
           <table class="amendment-table">
-            <tr><th>Version</th><th>Date</th><th>Action</th></tr>
-            ${draft.amendment_history.map((a: any) => `<tr><td>v${a.version}</td><td>${new Date(a.rejected_at).toLocaleDateString("en-GB")}</td><td>Returned for revision</td></tr>`).join("")}
+            <tr><th>Version</th><th>Date</th><th>Sections Amended</th><th>Reason</th></tr>
+            ${draft.amendment_history.map((a: any) => `<tr>
+              <td>v${a.version}</td>
+              <td>${new Date(a.rejected_at).toLocaleDateString("en-GB")}</td>
+              <td>${(a.amended_sections ?? []).join(", ") || "—"}</td>
+              <td>${a.comments ?? "—"}</td>
+            </tr>`).join("")}
           </table>
         </div>` : ""}
     `);
@@ -243,6 +249,7 @@ export default function ReportPdfRenderer({ draft, entityName, caseId, onPdfGene
       ai_edited: "AI-Assisted (Edited)",
       ai_rejected: "Analyst Input",
       system_check: "System Verification",
+      external_partner: "External Specialist Input",
       missing: "Pending",
     };
 
