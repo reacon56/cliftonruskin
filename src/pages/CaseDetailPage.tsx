@@ -29,6 +29,7 @@ import CaseRetrievalLogs from "@/components/case-detail/CaseRetrievalLogs";
 import CaseChatPanel from "@/components/case-detail/CaseChatPanel";
 import PartnerEscalationPanel from "@/components/case-detail/PartnerEscalationPanel";
 import CaseTimeTracker from "@/components/case-detail/CaseTimeTracker";
+import ReportAnnexPreview from "@/components/case-detail/ReportAnnexPreview";
 import TierRequirementsPanel from "@/components/case-detail/TierRequirementsPanel";
 import TierDeviationPanel from "@/components/case-detail/TierDeviationPanel";
 import {
@@ -388,6 +389,9 @@ export default function CaseDetailPage() {
                 </div>
               </div>
             </div>
+
+            {/* Jurisdiction Indicators Annex */}
+            {isInternal && <ReportAnnexPreview entityId={caseData.entity_id} caseId={id!} />}
 
             {/* AI Assurance Assistant – internal only */}
             {isInternal && <AiAssurancePanel caseId={id!} />}
