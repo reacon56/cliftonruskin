@@ -103,12 +103,6 @@ export default function CaseDetailPage() {
     }
   };
 
-  const sendMessage = async () => {
-    if (!newMessage.trim() || !user) return;
-    await supabase.from("case_messages").insert({ case_id: id!, sender_user_id: user.id, message: newMessage });
-    setNewMessage("");
-    loadCase();
-  };
 
   const transitionTo = async (status: string, extraPayload?: Record<string, any>, comment?: string) => {
     if (!user || !profile) return;
