@@ -576,11 +576,3 @@ export default function ReportBuilderEngine({ caseId, caseData, entity, isManage
   );
 }
 
-function GateCheck({ label, pass }: { label: string; pass: boolean }) {
-  return (
-    <div className="flex items-center gap-2 text-xs">
-      {pass ? <CheckCircle2 size={12} className="text-success shrink-0" /> : <AlertTriangle size={12} className="text-warning shrink-0" />}
-      <span className={pass ? "text-foreground" : "text-muted-foreground"}>{label}</span>
-    </div>
-  );
-}
