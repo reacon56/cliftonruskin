@@ -70,6 +70,7 @@ const STATUS_CONFIG: Record<CompletionStatus, { label: string; color: string; ic
   ai_accepted: { label: "AI Accepted", color: "bg-success/10 text-success", icon: CheckCircle2 },
   ai_edited: { label: "AI Edited", color: "bg-primary/10 text-primary", icon: Pen },
   ai_rejected: { label: "AI Rejected", color: "bg-destructive/10 text-destructive", icon: AlertCircle },
+  system_check: { label: "System Check", color: "bg-secondary/50 text-secondary-foreground", icon: ClipboardCheck },
   missing: { label: "Missing", color: "bg-destructive/10 text-destructive", icon: AlertCircle },
 };
 
