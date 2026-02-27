@@ -388,7 +388,7 @@ export default function CaseDetailPage() {
             {/* Activity Timeline */}
             <div className="rounded-lg border bg-card p-4">
               <h3 className="font-display text-sm font-semibold text-foreground mb-3">Activity Timeline</h3>
-              <CaseActivityTimeline caseData={caseData} messages={messages} deliverables={deliverables} auditEvents={auditEvents} currentUserId={user?.id} />
+              <CaseActivityTimeline caseData={caseData} messages={[]} deliverables={deliverables} auditEvents={auditEvents} currentUserId={user?.id} />
             </div>
 
             {showReport && deliverables.length > 0 && (
