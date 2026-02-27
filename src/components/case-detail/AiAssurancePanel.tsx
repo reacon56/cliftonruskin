@@ -194,9 +194,45 @@ export default function AiAssurancePanel({ caseId }: Props) {
       </div>
 
       {generatedAt && (
-        <p className="text-[10px] text-muted-foreground">
-          Generated {new Date(generatedAt).toLocaleString()}
-        </p>
+        <div className="space-y-1.5">
+          <p className="text-[10px] text-muted-foreground">
+            Generated {new Date(generatedAt).toLocaleString()}
+            {violationCount > 0 && (
+              <span className="ml-2 text-warning">· {violationCount} guardrail correction{violationCount !== 1 ? "s" : ""} applied</span>
+            )}
+          </p>
+          {/* Internal-only AI disclaimer */}
+          {aiDisclaimer && (
+            <div className="flex items-center gap-2 p-1.5 rounded border border-border bg-muted/30">
+              <AlertTriangle size={10} className="text-muted-foreground shrink-0" />
+              <span className="text-[10px] text-muted-foreground italic flex-1">{aiDisclaimer}</span>
+              {!humanReviewed ? (
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="h-5 text-[9px] px-2 gap-1 shrink-0"
+                  onClick={async () => {
+                    setHumanReviewed(true);
+                    if (user && profile) {
+                      await supabase.from("audit_events").insert({
+                        user_id: user.id,
+                        org_id: profile.org_id,
+                        action_type: "AI_OUTPUT_HUMAN_REVIEWED",
+                        object_type: "case",
+                        object_id: caseId,
+                        metadata: { function_name: "ai-assurance-assistant", generated_at: generatedAt },
+                      });
+                    }
+                  }}
+                >
+                  <Check size={8} /> Confirm Review
+                </Button>
+              ) : (
+                <Badge className="bg-success/10 text-success text-[9px] shrink-0">Reviewed ✓</Badge>
+              )}
+            </div>
+          )}
+        </div>
       )}
 
       {analysis && (
