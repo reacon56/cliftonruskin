@@ -1021,6 +1021,62 @@ export type Database = {
           },
         ]
       }
+      entity_risk_scores: {
+        Row: {
+          association_score: number
+          calculated_at: string
+          calculated_by: string | null
+          confidence: string
+          entity_id: string
+          event_score: number
+          id: string
+          jurisdiction_score: number
+          model_version: string
+          overall_score: number
+          reason_codes: Json
+          risk_band: string
+          structural_score: number
+        }
+        Insert: {
+          association_score?: number
+          calculated_at?: string
+          calculated_by?: string | null
+          confidence?: string
+          entity_id: string
+          event_score?: number
+          id?: string
+          jurisdiction_score?: number
+          model_version?: string
+          overall_score?: number
+          reason_codes?: Json
+          risk_band?: string
+          structural_score?: number
+        }
+        Update: {
+          association_score?: number
+          calculated_at?: string
+          calculated_by?: string | null
+          confidence?: string
+          entity_id?: string
+          event_score?: number
+          id?: string
+          jurisdiction_score?: number
+          model_version?: string
+          overall_score?: number
+          reason_codes?: Json
+          risk_band?: string
+          structural_score?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "entity_risk_scores_entity_id_fkey"
+            columns: ["entity_id"]
+            isOneToOne: false
+            referencedRelation: "entities"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       expunge_log: {
         Row: {
           case_id: string
@@ -2564,6 +2620,92 @@ export type Database = {
             columns: ["org_id"]
             isOneToOne: false
             referencedRelation: "organisations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      risk_model_configs: {
+        Row: {
+          association_weight: number
+          band_high_max: number
+          band_low_max: number
+          band_medium_max: number
+          created_at: string
+          created_by: string | null
+          event_weight: number
+          id: string
+          is_active: boolean
+          jurisdiction_weight: number
+          notes: string | null
+          structural_weight: number
+          version: string
+        }
+        Insert: {
+          association_weight?: number
+          band_high_max?: number
+          band_low_max?: number
+          band_medium_max?: number
+          created_at?: string
+          created_by?: string | null
+          event_weight?: number
+          id?: string
+          is_active?: boolean
+          jurisdiction_weight?: number
+          notes?: string | null
+          structural_weight?: number
+          version?: string
+        }
+        Update: {
+          association_weight?: number
+          band_high_max?: number
+          band_low_max?: number
+          band_medium_max?: number
+          created_at?: string
+          created_by?: string | null
+          event_weight?: number
+          id?: string
+          is_active?: boolean
+          jurisdiction_weight?: number
+          notes?: string | null
+          structural_weight?: number
+          version?: string
+        }
+        Relationships: []
+      }
+      risk_overrides: {
+        Row: {
+          created_at: string
+          entity_id: string
+          id: string
+          justification: string
+          new_band: string
+          overridden_by: string
+          previous_band: string
+        }
+        Insert: {
+          created_at?: string
+          entity_id: string
+          id?: string
+          justification: string
+          new_band: string
+          overridden_by: string
+          previous_band: string
+        }
+        Update: {
+          created_at?: string
+          entity_id?: string
+          id?: string
+          justification?: string
+          new_band?: string
+          overridden_by?: string
+          previous_band?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "risk_overrides_entity_id_fkey"
+            columns: ["entity_id"]
+            isOneToOne: false
+            referencedRelation: "entities"
             referencedColumns: ["id"]
           },
         ]
