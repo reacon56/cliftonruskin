@@ -64,6 +64,7 @@ export default function AppSidebar() {
     clientNav.push({ label: "Users & Roles", path: "/users", icon: <Users size={18} /> });
     clientNav.push({ label: "Organisation Settings", path: "/org-settings", icon: <Building2 size={18} /> });
     clientNav.push({ label: "Approval Settings", path: "/approval-settings", icon: <Settings size={18} /> });
+    clientNav.push({ label: "Budget & Spend", path: "/budget-controls", icon: <Wallet size={18} /> });
   }
 
   clientNav.push(
