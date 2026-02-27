@@ -94,6 +94,7 @@ export default function AppSidebar() {
     { label: "Source Registry", path: "/source-registry", icon: <Database size={18} /> },
     { label: "Jurisdiction Library", path: "/jurisdiction-library", icon: <Globe size={18} /> },
     { label: "Unit Economics", path: "/unit-economics", icon: <BarChart3 size={18} /> },
+    { label: "Commercial Dashboard", path: "/commercial-dashboard", icon: <TrendingUp size={18} /> },
     { label: "Product Catalogue", path: "/product-catalogue", icon: <Package size={18} /> },
     { label: "Budget Controls", path: "/budget-controls", icon: <Wallet size={18} /> },
     { label: "Billing Handoff", path: "/billing-handoff", icon: <Receipt size={18} /> },
