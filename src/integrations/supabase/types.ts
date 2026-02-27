@@ -1467,7 +1467,7 @@ export type Database = {
       }
       ingestion_run: {
         Row: {
-          data_source_id: string
+          data_source_id: string | null
           finished_at: string | null
           id: string
           metadata: Json | null
@@ -1477,7 +1477,7 @@ export type Database = {
           status: string
         }
         Insert: {
-          data_source_id: string
+          data_source_id?: string | null
           finished_at?: string | null
           id?: string
           metadata?: Json | null
@@ -1487,7 +1487,7 @@ export type Database = {
           status?: string
         }
         Update: {
-          data_source_id?: string
+          data_source_id?: string | null
           finished_at?: string | null
           id?: string
           metadata?: Json | null
