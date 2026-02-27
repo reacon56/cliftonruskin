@@ -407,11 +407,16 @@ export default function ReportPdfRenderer({ draft, entityName, caseId, onPdfGene
         pdf_generated_at: now,
       } as any).eq("id", draft.id);
 
-      // Log audit event
+      // Log audit event with full provenance
       await logAudit("REPORT_PDF_GENERATED", {
-        generated_at: now,
+        report_id: draft.id,
         report_version: draft.report_version,
+        generated_at: now,
+        generated_by: user?.id,
         qa_approver: draft.qa_approved_by,
+        qa_approved_at: draft.qa_approved_at,
+        automated_coverage_pct: coverageAutoPct,
+        manual_coverage_pct: coverageManualPct,
       });
 
       toast({ title: "PDF generated successfully" });
