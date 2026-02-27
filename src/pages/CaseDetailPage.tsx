@@ -68,7 +68,7 @@ export default function CaseDetailPage() {
   const [activeTab, setActiveTab] = useState("scope");
   const [deviationOverrides, setDeviationOverrides] = useState<any[]>([]);
 
-  useEffect(() => { if (id) loadCase(); }, [id]);
+  useEffect(() => { if (id) { loadCase(); loadDeviations(); } }, [id]);
 
   const loadCase = async () => {
     const [caseRes, delsRes, auditRes, modulesRes] = await Promise.all([
