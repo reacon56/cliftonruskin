@@ -381,6 +381,20 @@ export default function CaseDetailPage() {
 
           {/* ── QA & RELEASE ── */}
           <TabsContent value="qa" className="space-y-4">
+            {/* Tier Requirements Status – internal only */}
+            {isInternal && (
+              <TierRequirementsPanel
+                caseId={id!}
+                reportTier={(caseData as any).report_tier || "standard"}
+                retrievalLogs={[]}
+                officerCommentary={null}
+                riskModelExecuted={false}
+                preQaPassed={false}
+                aiReviewCompleted={false}
+                structuredDataLocked={false}
+              />
+            )}
+
             {/* Agentic Review Layer – runs before QA submission */}
             {isInternal && <AgenticReviewPanel caseId={id!} />}
 
