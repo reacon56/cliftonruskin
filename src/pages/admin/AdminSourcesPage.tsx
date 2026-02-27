@@ -11,7 +11,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Plus, Pencil, Server, Clock, AlertCircle, CheckCircle2, Play } from "lucide-react";
+import { Plus, Pencil, Server, Clock, AlertCircle, CheckCircle2, Play, FlaskConical } from "lucide-react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "sonner";
 import { format } from "date-fns";
 
@@ -46,6 +47,8 @@ export default function AdminSourcesPage() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editId, setEditId] = useState<string | null>(null);
   const [form, setForm] = useState(emptyForm);
+  const [testParseDialog, setTestParseDialog] = useState(false);
+  const [testParseResult, setTestParseResult] = useState<any>(null);
 
   const { data: sources = [], isLoading } = useQuery({
     queryKey: ["admin-data-sources"],
@@ -109,6 +112,23 @@ export default function AdminSourcesPage() {
     },
     onError: (e: any) => toast.error(`Run failed: ${e.message}`),
   });
+
+  const testParse = useMutation({
+    mutationFn: async () => {
+      const { data, error } = await supabase.functions.invoke("fatf-ingest", {
+        body: { dry_run: true },
+      });
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: (data) => {
+      setTestParseResult(data);
+      setTestParseDialog(true);
+    },
+    onError: (e: any) => toast.error(e.message),
+  });
+
+  const isFatfSource = (name: string) => name.toLowerCase().includes("fatf");
 
   const openNew = () => { setEditId(null); setForm(emptyForm); setDialogOpen(true); };
   const openEdit = (s: DataSource) => {
@@ -208,6 +228,17 @@ export default function AdminSourcesPage() {
                       >
                         <Play className="h-3.5 w-3.5" />
                       </Button>
+                      {isFatfSource(s.name) && (
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => testParse.mutate()}
+                          disabled={testParse.isPending}
+                          title="Test Parse"
+                        >
+                          <FlaskConical className="h-3.5 w-3.5" />
+                        </Button>
+                      )}
                     </div>
                   </TableCell>
                 )}
@@ -271,6 +302,68 @@ export default function AdminSourcesPage() {
               {upsert.isPending ? "Saving…" : editId ? "Update Source" : "Add Source"}
             </Button>
           </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Test Parse Dialog */}
+      <Dialog open={testParseDialog} onOpenChange={setTestParseDialog}>
+        <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <FlaskConical className="h-4 w-4 text-primary" /> FATF Test Parse Preview
+            </DialogTitle>
+          </DialogHeader>
+          {testParseResult?.preview ? (
+            <div className="space-y-4 mt-2">
+              {Object.entries(testParseResult.preview).filter(([k]) => !k.endsWith("_date") && !k.endsWith("_total")).map(([listKey, countries]: [string, any]) => (
+                <Card key={listKey}>
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-sm flex items-center justify-between">
+                      <span>{listKey}</span>
+                      <div className="flex gap-2 text-xs text-muted-foreground font-normal">
+                        <span>Date: {(testParseResult.preview as any)[`${listKey}_date`] || "—"}</span>
+                        <span>Total: {(testParseResult.preview as any)[`${listKey}_total`] || 0}</span>
+                      </div>
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="p-0">
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead>Country Name</TableHead>
+                          <TableHead>Resolved Code</TableHead>
+                          <TableHead>Status</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {(countries as any[]).map((c: any, i: number) => (
+                          <TableRow key={i}>
+                            <TableCell className="text-sm">{c.name}</TableCell>
+                            <TableCell>
+                              {c.resolved_code ? (
+                                <Badge variant="default" className="text-[10px]">{c.resolved_code}</Badge>
+                              ) : (
+                                <Badge variant="destructive" className="text-[10px]">Unmapped</Badge>
+                              )}
+                            </TableCell>
+                            <TableCell>
+                              {c.jurisdiction_id ? (
+                                <CheckCircle2 className="h-3.5 w-3.5 text-primary" />
+                              ) : (
+                                <AlertCircle className="h-3.5 w-3.5 text-destructive" />
+                              )}
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          ) : (
+            <p className="text-sm text-muted-foreground text-center py-6">No results</p>
+          )}
         </DialogContent>
       </Dialog>
     </div>

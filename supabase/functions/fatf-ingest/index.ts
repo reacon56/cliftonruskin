@@ -12,7 +12,7 @@ const FATF_CALL_FOR_ACTION_URL =
 const FATF_INCREASED_MONITORING_URL =
   "https://www.fatf-gafi.org/en/countries/black-and-grey-lists/increased-monitoring.html";
 
-// ── Country name → ISO-2 mapping (comprehensive for FATF-relevant jurisdictions) ──
+// ── Built-in name→ISO2 fallback (used before alias lookup) ──
 const NAME_TO_ISO2: Record<string, string> = {
   "afghanistan": "AF", "albania": "AL", "algeria": "DZ", "angola": "AO",
   "antigua and barbuda": "AG", "argentina": "AR", "australia": "AU",
@@ -67,7 +67,6 @@ const NAME_TO_ISO2: Record<string, string> = {
   "uruguay": "UY", "uzbekistan": "UZ", "vanuatu": "VU",
   "venezuela": "VE", "vietnam": "VN", "viet nam": "VN",
   "yemen": "YE", "zambia": "ZM", "zimbabwe": "ZW",
-  // Special territories
   "hong kong, china": "HK", "macao": "MO", "macau": "MO",
   "chinese taipei": "TW", "taiwan": "TW",
   "british virgin islands": "VG", "jersey": "JE", "guernsey": "GG",
@@ -77,91 +76,102 @@ const NAME_TO_ISO2: Record<string, string> = {
   "st. vincent and the grenadines": "VC", "saint vincent and the grenadines": "VC",
 };
 
+// Jurisdiction + alias caches loaded from DB
+type JurisdictionRow = { id: string; country_code: string; country_name: string };
+type AliasRow = { jurisdiction_id: string; alias_name: string };
+
 /**
- * Resolve a country name to ISO-2 code.
+ * Three-tier country resolution:
+ * 1. Exact ISO2 code match
+ * 2. jurisdiction.country_name match (case-insensitive)
+ * 3. jurisdiction_alias match (case-insensitive)
+ * 4. Built-in NAME_TO_ISO2 static map
+ * Returns jurisdiction_id + country_code or null
  */
-function resolveCountryCode(name: string): string | null {
-  const cleaned = name.trim().toLowerCase()
-    .replace(/[*†‡]+/g, "")       // remove footnote markers
+function resolveCountry(
+  input: string,
+  jurisdictions: JurisdictionRow[],
+  aliases: AliasRow[]
+): { id: string; code: string } | null {
+  const cleaned = input.trim().toLowerCase()
+    .replace(/[*†‡]+/g, "")
     .replace(/\s+/g, " ")
     .trim();
-  return NAME_TO_ISO2[cleaned] || null;
+  if (!cleaned) return null;
+  const upper = cleaned.toUpperCase();
+
+  // 1. ISO2 code
+  const byCode = jurisdictions.find((j) => j.country_code.toUpperCase() === upper);
+  if (byCode) return { id: byCode.id, code: byCode.country_code };
+
+  // 2. Country name
+  const byName = jurisdictions.find((j) => j.country_name.toLowerCase() === cleaned);
+  if (byName) return { id: byName.id, code: byName.country_code };
+
+  // 3. Alias
+  const byAlias = aliases.find((a) => a.alias_name.toLowerCase() === cleaned);
+  if (byAlias) {
+    const j = jurisdictions.find((j) => j.id === byAlias.jurisdiction_id);
+    if (j) return { id: j.id, code: j.country_code };
+  }
+
+  // 4. Static fallback → try to find jurisdiction by resolved code
+  const staticCode = NAME_TO_ISO2[cleaned];
+  if (staticCode) {
+    const j = jurisdictions.find((j) => j.country_code.toUpperCase() === staticCode);
+    if (j) return { id: j.id, code: j.country_code };
+  }
+
+  return null;
 }
 
-/**
- * Compute SHA-256 hash of content for snapshot tracking.
- */
 async function computeHash(content: string): Promise<string> {
-  const encoder = new TextEncoder();
-  const data = encoder.encode(content);
+  const data = new TextEncoder().encode(content);
   const hashBuffer = await crypto.subtle.digest("SHA-256", data);
-  const hashArray = Array.from(new Uint8Array(hashBuffer));
-  return hashArray.map((b) => b.toString(16).padStart(2, "0")).join("");
+  return Array.from(new Uint8Array(hashBuffer)).map((b) => b.toString(16).padStart(2, "0")).join("");
 }
 
-/**
- * Parse FATF HTML page and extract country names from list items.
- * FATF pages typically list countries in <li> elements or specific content blocks.
- */
 function parseCountryNames(html: string): string[] {
   const countries: string[] = [];
-
-  // Strategy 1: Look for list items containing country names
+  // Strategy 1: <li> elements
   const liRegex = /<li[^>]*>([^<]+)<\/li>/gi;
   let match;
   while ((match = liRegex.exec(html)) !== null) {
-    const text = match[1].trim()
-      .replace(/&amp;/g, "&")
-      .replace(/&nbsp;/g, " ")
-      .replace(/&#\d+;/g, "")
-      .replace(/\s+/g, " ")
-      .trim();
-    if (text.length > 1 && text.length < 80 && resolveCountryCode(text)) {
-      countries.push(text);
-    }
+    const text = match[1].trim().replace(/&amp;/g, "&").replace(/&nbsp;/g, " ").replace(/&#\d+;/g, "").replace(/\s+/g, " ").trim();
+    if (text.length > 1 && text.length < 80) countries.push(text);
   }
-
-  // Strategy 2: Look for <p> or <strong> tags with country names (fallback)
+  // Strategy 2: <p>/<strong> fallback
   if (countries.length === 0) {
     const pRegex = /<(?:p|strong|b|h\d)[^>]*>([^<]{2,60})<\/(?:p|strong|b|h\d)>/gi;
     while ((match = pRegex.exec(html)) !== null) {
-      const text = match[1].trim()
-        .replace(/&amp;/g, "&")
-        .replace(/&nbsp;/g, " ")
-        .replace(/\s+/g, " ")
-        .trim();
-      if (text.length > 1 && text.length < 60 && resolveCountryCode(text)) {
-        countries.push(text);
-      }
+      const text = match[1].trim().replace(/&amp;/g, "&").replace(/&nbsp;/g, " ").replace(/\s+/g, " ").trim();
+      if (text.length > 1 && text.length < 60) countries.push(text);
     }
   }
-
-  // Deduplicate
   return [...new Set(countries)];
 }
 
-/**
- * Try to extract a publication/last-updated date from the HTML.
- */
 function extractPublicationDate(html: string): string {
-  // Look for common date patterns in FATF pages
-  const datePatterns = [
+  const patterns = [
     /(?:updated|published|date)[:\s]*(\d{1,2}\s+\w+\s+\d{4})/i,
     /(\d{1,2}\s+(?:January|February|March|April|May|June|July|August|September|October|November|December)\s+\d{4})/i,
     /(\d{4}-\d{2}-\d{2})/,
   ];
-  for (const pattern of datePatterns) {
+  for (const pattern of patterns) {
     const m = html.match(pattern);
     if (m) {
       const parsed = new Date(m[1]);
-      if (!isNaN(parsed.getTime())) {
-        return parsed.toISOString().split("T")[0];
-      }
+      if (!isNaN(parsed.getTime())) return parsed.toISOString().split("T")[0];
     }
   }
-  // Fallback to today
   return new Date().toISOString().split("T")[0];
 }
+
+// ── Status values per specification ──
+const STATUS_MAP: Record<string, string> = {
+  call_for_action: "CALL_FOR_ACTION",
+  increased_monitoring: "INCREASED_MONITORING",
+};
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
@@ -172,11 +182,60 @@ Deno.serve(async (req) => {
   const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
   const supabase = createClient(supabaseUrl, serviceRoleKey);
 
-  // Optionally accept a data_source_id to link the run
   const body = await req.json().catch(() => ({}));
   const dataSourceId: string | undefined = body.data_source_id;
+  const dryRun: boolean = body.dry_run === true;
 
-  // Create ingestion_run
+  // ── Pre-load canonicalisation tables ──
+  const [jurRes, aliasRes] = await Promise.all([
+    supabase.from("jurisdiction").select("id, country_code, country_name"),
+    supabase.from("jurisdiction_alias").select("jurisdiction_id, alias_name"),
+  ]);
+  let jurisdictions: JurisdictionRow[] = jurRes.data || [];
+  const aliases: AliasRow[] = aliasRes.data || [];
+
+  // ── Dry run: parse only, no DB writes ──
+  if (dryRun) {
+    const preview: Record<string, Array<{ name: string; resolved_code: string | null; jurisdiction_id: string | null }>> = {};
+
+    const lists = [
+      { key: "CALL_FOR_ACTION", url: FATF_CALL_FOR_ACTION_URL },
+      { key: "INCREASED_MONITORING", url: FATF_INCREASED_MONITORING_URL },
+    ];
+
+    for (const list of lists) {
+      try {
+        const resp = await fetch(list.url, { headers: { "User-Agent": "CliftonRuskin-JurisdictionIngest/1.0" } });
+        if (!resp.ok) {
+          preview[list.key] = [{ name: `HTTP ${resp.status}`, resolved_code: null, jurisdiction_id: null }];
+          continue;
+        }
+        const html = await resp.text();
+        const names = parseCountryNames(html);
+        const pubDate = extractPublicationDate(html);
+
+        preview[list.key] = names.map((name) => {
+          const match = resolveCountry(name, jurisdictions, aliases);
+          return {
+            name,
+            resolved_code: match?.code || null,
+            jurisdiction_id: match?.id || null,
+          };
+        });
+        (preview as any)[`${list.key}_date`] = pubDate;
+        (preview as any)[`${list.key}_total`] = names.length;
+      } catch (e) {
+        preview[list.key] = [{ name: `Error: ${e instanceof Error ? e.message : String(e)}`, resolved_code: null, jurisdiction_id: null }];
+      }
+    }
+
+    return new Response(
+      JSON.stringify({ success: true, dry_run: true, preview }),
+      { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+    );
+  }
+
+  // ── Full ingestion run ──
   const { data: run, error: runErr } = await supabase
     .from("ingestion_run")
     .insert({
@@ -190,7 +249,6 @@ Deno.serve(async (req) => {
     .single();
 
   if (runErr) {
-    console.error("Failed to create ingestion run:", runErr);
     return new Response(
       JSON.stringify({ success: false, error: runErr.message }),
       { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
@@ -200,29 +258,21 @@ Deno.serve(async (req) => {
   const runId = run.id;
   let totalProcessed = 0;
   let totalChanged = 0;
+  const affectedJurisdictionIds = new Set<string>();
 
   try {
-    const lists: Array<{
-      url: string;
-      fatfStatus: string; // "call_for_action" or "increased_monitoring"
-      indicatorType: string;
-    }> = [
-      {
-        url: FATF_CALL_FOR_ACTION_URL,
-        fatfStatus: "call_for_action",
-        indicatorType: "FATF_STATUS",
-      },
-      {
-        url: FATF_INCREASED_MONITORING_URL,
-        fatfStatus: "increased_monitoring",
-        indicatorType: "FATF_STATUS",
-      },
+    const lists = [
+      { url: FATF_CALL_FOR_ACTION_URL, listKey: "call_for_action" },
+      { url: FATF_INCREASED_MONITORING_URL, listKey: "increased_monitoring" },
     ];
+
+    // Collect all resolved countries across both lists
+    const allResolvedByList: Record<string, Map<string, { id: string; code: string; name: string }>> = {};
 
     for (const listDef of lists) {
       console.log(`[FATF] Fetching: ${listDef.url}`);
+      const statusValue = STATUS_MAP[listDef.listKey];
 
-      // Fetch the page
       const response = await fetch(listDef.url, {
         headers: { "User-Agent": "CliftonRuskin-JurisdictionIngest/1.0" },
       });
@@ -243,108 +293,77 @@ Deno.serve(async (req) => {
       const publicationDate = extractPublicationDate(html);
       const countryNames = parseCountryNames(html);
 
-      console.log(`[FATF] ${listDef.fatfStatus}: found ${countryNames.length} countries, date=${publicationDate}`);
+      console.log(`[FATF] ${listDef.listKey}: found ${countryNames.length} countries, date=${publicationDate}`);
 
-      // Resolve to ISO-2 codes
-      const parsedCountries: Array<{ name: string; code: string }> = [];
+      const resolved = new Map<string, { id: string; code: string; name: string }>();
+
       for (const name of countryNames) {
-        const code = resolveCountryCode(name);
-        if (code) {
-          parsedCountries.push({ name, code });
+        const match = resolveCountry(name, jurisdictions, aliases);
+        if (match) {
+          resolved.set(match.code, { ...match, name });
         } else {
-          console.warn(`[FATF] Could not resolve country: "${name}"`);
+          console.warn(`[FATF] Unmapped country name: "${name}"`);
           await supabase.from("ingestion_error").insert({
             ingestion_run_id: runId,
-            error_message: `Unresolved country name: "${name}"`,
-            error_detail: { list: listDef.fatfStatus, name },
+            error_message: `Unmapped country name: "${name}"`,
+            error_detail: { list: listDef.listKey, name, resolution: "Add to jurisdiction_alias or jurisdiction table" },
           });
         }
       }
 
-      // Ensure jurisdiction records exist
-      for (const c of parsedCountries) {
-        await supabase
-          .from("jurisdiction")
-          .upsert(
-            { country_code: c.code, country_name: c.name },
-            { onConflict: "country_code" }
-          );
-      }
+      allResolvedByList[listDef.listKey] = resolved;
 
-      // Get current indicators for this type
+      // ── Get existing FATF_STATUS indicators ──
       const { data: existingIndicators } = await supabase
         .from("jurisdiction_indicator")
-        .select("*, jurisdiction:jurisdiction_id(country_code)")
-        .eq("indicator_type", listDef.indicatorType);
+        .select("id, jurisdiction_id, value_json, effective_date, source_snapshot_hash")
+        .eq("indicator_type", "FATF_STATUS");
 
-      const existingByCode: Record<string, any> = {};
+      // Build lookup: jurisdiction_id → existing indicator
+      const existingById: Record<string, any> = {};
       for (const ind of existingIndicators || []) {
-        const code = (ind as any).jurisdiction?.country_code;
-        if (code) {
-          // Filter to same fatf_status
-          const val = ind.value_json as any;
-          if (val?.fatf_status === listDef.fatfStatus) {
-            existingByCode[code] = ind;
-          }
+        const val = ind.value_json as any;
+        // Match indicators with same status type
+        if (val?.status === statusValue) {
+          existingById[ind.jurisdiction_id] = ind;
         }
       }
 
-      const newCodes = new Set(parsedCountries.map((c) => c.code));
-      const existingCodes = new Set(Object.keys(existingByCode));
+      const newIds = new Set([...resolved.values()].map((r) => r.id));
+      const existingIds = new Set(Object.keys(existingById));
 
-      // ADDED: countries in new list but not in existing
-      const added = [...newCodes].filter((c) => !existingCodes.has(c));
-      // REMOVED: countries in existing but not in new list
-      const removed = [...existingCodes].filter((c) => !newCodes.has(c));
-      // STILL PRESENT: countries in both (check if value changed)
-      const retained = [...newCodes].filter((c) => existingCodes.has(c));
+      const added = [...newIds].filter((id) => !existingIds.has(id));
+      const removed = [...existingIds].filter((id) => !newIds.has(id));
+      const retained = [...newIds].filter((id) => existingIds.has(id));
 
-      console.log(`[FATF] ${listDef.fatfStatus}: +${added.length} added, -${removed.length} removed, ${retained.length} retained`);
+      console.log(`[FATF] ${listDef.listKey}: +${added.length} added, -${removed.length} removed, ${retained.length} retained`);
 
-      // Process ADDED
-      for (const code of added) {
-        // Get jurisdiction ID
-        const { data: jur } = await supabase
-          .from("jurisdiction")
-          .select("id")
-          .eq("country_code", code)
-          .single();
+      // ── ADDED ──
+      for (const jurId of added) {
+        const valueJson = { status: statusValue };
 
-        if (!jur) continue;
-
-        const valueJson = {
-          fatf_status: listDef.fatfStatus,
-          listed: true,
-          source_list: listDef.fatfStatus === "call_for_action" ? "High-Risk (Call for Action)" : "Increased Monitoring (Grey List)",
-        };
-
-        // Upsert indicator
         const { data: indicator } = await supabase
           .from("jurisdiction_indicator")
-          .upsert(
-            {
-              jurisdiction_id: jur.id,
-              indicator_type: listDef.indicatorType,
-              value_json: valueJson,
-              effective_date: publicationDate,
-              source_name: "FATF",
-              source_url: listDef.url,
-              source_snapshot_hash: snapshotHash,
-              retrieved_at: new Date().toISOString(),
-              ingestion_run_id: runId,
-              updated_at: new Date().toISOString(),
-            },
-            { onConflict: "jurisdiction_id,indicator_type" }
-          )
+          .upsert({
+            jurisdiction_id: jurId,
+            indicator_type: "FATF_STATUS",
+            value_json: valueJson,
+            effective_date: publicationDate,
+            source_name: "FATF",
+            source_url: listDef.url,
+            source_snapshot_hash: snapshotHash,
+            retrieved_at: new Date().toISOString(),
+            ingestion_run_id: runId,
+            updated_at: new Date().toISOString(),
+          }, { onConflict: "jurisdiction_id,indicator_type" })
           .select()
           .single();
 
         if (indicator) {
-          // Write change event
           await supabase.from("jurisdiction_indicator_change").insert({
             jurisdiction_indicator_id: indicator.id,
-            jurisdiction_id: jur.id,
-            indicator_type: listDef.indicatorType,
+            jurisdiction_id: jurId,
+            indicator_type: "FATF_STATUS",
             old_value_json: null,
             new_value_json: valueJson,
             old_effective_date: null,
@@ -356,25 +375,21 @@ Deno.serve(async (req) => {
           });
           totalChanged++;
         }
+        affectedJurisdictionIds.add(jurId);
         totalProcessed++;
       }
 
-      // Process REMOVED
-      for (const code of removed) {
-        const existing = existingByCode[code];
+      // ── REMOVED (previously on this list, now absent) ──
+      for (const jurId of removed) {
+        const existing = existingById[jurId];
         if (!existing) continue;
 
-        const removedValue = {
-          ...(existing.value_json as any),
-          listed: false,
-          delisted_date: publicationDate,
-        };
+        const newValue = { status: "NONE", note: `Removed from ${statusValue} list`, delisted_date: publicationDate };
 
-        // Update indicator to show delisted
         await supabase
           .from("jurisdiction_indicator")
           .update({
-            value_json: removedValue,
+            value_json: newValue,
             effective_date: publicationDate,
             source_url: listDef.url,
             source_snapshot_hash: snapshotHash,
@@ -384,13 +399,12 @@ Deno.serve(async (req) => {
           })
           .eq("id", existing.id);
 
-        // Write change event
         await supabase.from("jurisdiction_indicator_change").insert({
           jurisdiction_indicator_id: existing.id,
-          jurisdiction_id: existing.jurisdiction_id,
-          indicator_type: listDef.indicatorType,
+          jurisdiction_id: jurId,
+          indicator_type: "FATF_STATUS",
           old_value_json: existing.value_json,
-          new_value_json: removedValue,
+          new_value_json: newValue,
           old_effective_date: existing.effective_date,
           new_effective_date: publicationDate,
           source_name: "FATF",
@@ -399,24 +413,20 @@ Deno.serve(async (req) => {
           ingestion_run_id: runId,
         });
 
+        affectedJurisdictionIds.add(jurId);
         totalChanged++;
         totalProcessed++;
       }
 
-      // Process RETAINED (update retrieved_at, check for date changes)
-      for (const code of retained) {
-        const existing = existingByCode[code];
+      // ── RETAINED (refresh timestamp, detect date changes) ──
+      for (const jurId of retained) {
+        const existing = existingById[jurId];
         if (!existing) continue;
 
-        const valueJson = {
-          fatf_status: listDef.fatfStatus,
-          listed: true,
-          source_list: listDef.fatfStatus === "call_for_action" ? "High-Risk (Call for Action)" : "Increased Monitoring (Grey List)",
-        };
-
+        const valueJson = { status: statusValue };
         const dateChanged = existing.effective_date !== publicationDate;
+        const hashChanged = existing.source_snapshot_hash !== snapshotHash;
 
-        // Always update retrieved_at and snapshot
         await supabase
           .from("jurisdiction_indicator")
           .update({
@@ -430,12 +440,11 @@ Deno.serve(async (req) => {
           })
           .eq("id", existing.id);
 
-        // If the effective date changed, record as a change (list refreshed)
-        if (dateChanged) {
+        if (dateChanged || hashChanged) {
           await supabase.from("jurisdiction_indicator_change").insert({
             jurisdiction_indicator_id: existing.id,
-            jurisdiction_id: existing.jurisdiction_id,
-            indicator_type: listDef.indicatorType,
+            jurisdiction_id: jurId,
+            indicator_type: "FATF_STATUS",
             old_value_json: existing.value_json,
             new_value_json: valueJson,
             old_effective_date: existing.effective_date,
@@ -447,11 +456,24 @@ Deno.serve(async (req) => {
           });
           totalChanged++;
         }
+
+        affectedJurisdictionIds.add(jurId);
         totalProcessed++;
       }
     }
 
-    // Finalize run
+    // ── Update jurisdiction.last_refreshed_at for affected jurisdictions ──
+    if (affectedJurisdictionIds.size > 0) {
+      const now = new Date().toISOString();
+      for (const jurId of affectedJurisdictionIds) {
+        await supabase
+          .from("jurisdiction")
+          .update({ last_refreshed_at: now, updated_at: now })
+          .eq("id", jurId);
+      }
+    }
+
+    // ── Finalize run ──
     await supabase
       .from("ingestion_run")
       .update({
@@ -462,7 +484,6 @@ Deno.serve(async (req) => {
       })
       .eq("id", runId);
 
-    // Update data_source if linked
     if (dataSourceId) {
       await supabase
         .from("data_source")
@@ -484,14 +505,12 @@ Deno.serve(async (req) => {
   } catch (error) {
     console.error("[FATF] Fatal error:", error);
 
-    // Log error
     await supabase.from("ingestion_error").insert({
       ingestion_run_id: runId,
       error_message: error instanceof Error ? error.message : String(error),
       error_detail: { stack: error instanceof Error ? error.stack : null },
     });
 
-    // Mark run as failed
     await supabase
       .from("ingestion_run")
       .update({
