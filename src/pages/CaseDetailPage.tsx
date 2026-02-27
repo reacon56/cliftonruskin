@@ -272,8 +272,8 @@ export default function CaseDetailPage() {
             )}
 
             {/* Quote Panel */}
-            {(currentStatus === "scheduled" || currentStatus === "quoted" || currentStatus === "approved") && (
-              <QuotePanel caseId={id!} caseStatus={currentStatus} onStatusChange={loadCase} entityName={entity?.name} />
+            {(currentStatus === "new" || currentStatus === "scheduled" || currentStatus === "quoted" || currentStatus === "approved") && (
+              <QuotePanel caseId={id!} caseStatus={currentStatus} onStatusChange={loadCase} entityName={entity?.name} orgId={caseData?.org_id} />
             )}
 
             {/* EDD+ Modules */}
