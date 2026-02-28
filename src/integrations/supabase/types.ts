@@ -4140,6 +4140,48 @@ export type Database = {
           },
         ]
       }
+      report: {
+        Row: {
+          case_id: string
+          client_id: string | null
+          created_at: string
+          id: string
+          issued_at: string | null
+          status: Database["public"]["Enums"]["report_status"]
+        }
+        Insert: {
+          case_id: string
+          client_id?: string | null
+          created_at?: string
+          id?: string
+          issued_at?: string | null
+          status?: Database["public"]["Enums"]["report_status"]
+        }
+        Update: {
+          case_id?: string
+          client_id?: string | null
+          created_at?: string
+          id?: string
+          issued_at?: string | null
+          status?: Database["public"]["Enums"]["report_status"]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "report_case_id_fkey"
+            columns: ["case_id"]
+            isOneToOne: true
+            referencedRelation: "cases"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "report_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "organisations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       report_amendments: {
         Row: {
           amended_by: string | null
@@ -4312,7 +4354,8 @@ export type Database = {
       report_section: {
         Row: {
           case_id: string
-          content_text: string
+          content_hash: string | null
+          content_markdown: string
           created_at: string
           edited_at: string | null
           edited_by: string | null
@@ -4320,12 +4363,15 @@ export type Database = {
           generated_by: string | null
           id: string
           report_version: number
+          report_version_id: string | null
           section_key: string
+          source_json: Json | null
           updated_at: string
         }
         Insert: {
           case_id: string
-          content_text?: string
+          content_hash?: string | null
+          content_markdown?: string
           created_at?: string
           edited_at?: string | null
           edited_by?: string | null
@@ -4333,12 +4379,15 @@ export type Database = {
           generated_by?: string | null
           id?: string
           report_version?: number
+          report_version_id?: string | null
           section_key?: string
+          source_json?: Json | null
           updated_at?: string
         }
         Update: {
           case_id?: string
-          content_text?: string
+          content_hash?: string | null
+          content_markdown?: string
           created_at?: string
           edited_at?: string | null
           edited_by?: string | null
@@ -4346,7 +4395,9 @@ export type Database = {
           generated_by?: string | null
           id?: string
           report_version?: number
+          report_version_id?: string | null
           section_key?: string
+          source_json?: Json | null
           updated_at?: string
         }
         Relationships: [
@@ -4355,6 +4406,57 @@ export type Database = {
             columns: ["case_id"]
             isOneToOne: false
             referencedRelation: "cases"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "report_section_report_version_id_fkey"
+            columns: ["report_version_id"]
+            isOneToOne: false
+            referencedRelation: "report_version"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      report_version: {
+        Row: {
+          content_hash: string | null
+          generated_at: string
+          generated_by: string | null
+          id: string
+          locked: boolean
+          locked_at: string | null
+          locked_by: string | null
+          report_id: string
+          version_number: number
+        }
+        Insert: {
+          content_hash?: string | null
+          generated_at?: string
+          generated_by?: string | null
+          id?: string
+          locked?: boolean
+          locked_at?: string | null
+          locked_by?: string | null
+          report_id: string
+          version_number?: number
+        }
+        Update: {
+          content_hash?: string | null
+          generated_at?: string
+          generated_by?: string | null
+          id?: string
+          locked?: boolean
+          locked_at?: string | null
+          locked_by?: string | null
+          report_id?: string
+          version_number?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "report_version_report_id_fkey"
+            columns: ["report_id"]
+            isOneToOne: false
+            referencedRelation: "report"
             referencedColumns: ["id"]
           },
         ]
@@ -5164,6 +5266,11 @@ export type Database = {
         | "LT"
         | "EXISTS"
         | "NOT_EXISTS"
+      report_section_key:
+        | "EXEC_SUMMARY"
+        | "JURISDICTION_ANNEX"
+        | "METHODOLOGY_NOTE"
+      report_status: "DRAFT" | "ISSUED"
       sanctions_authority: "UK" | "EU" | "US"
       sanctions_regime_type: "TARGETED" | "COMPREHENSIVE"
       sanctions_source: "UKSL" | "OFAC" | "EU_FSF"
@@ -5349,6 +5456,12 @@ export const Constants = {
         "EXISTS",
         "NOT_EXISTS",
       ],
+      report_section_key: [
+        "EXEC_SUMMARY",
+        "JURISDICTION_ANNEX",
+        "METHODOLOGY_NOTE",
+      ],
+      report_status: ["DRAFT", "ISSUED"],
       sanctions_authority: ["UK", "EU", "US"],
       sanctions_regime_type: ["TARGETED", "COMPREHENSIVE"],
       sanctions_source: ["UKSL", "OFAC", "EU_FSF"],

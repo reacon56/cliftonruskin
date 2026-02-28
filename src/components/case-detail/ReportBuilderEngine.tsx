@@ -18,6 +18,7 @@ import AiAssurancePanel from "@/components/case-detail/AiAssurancePanel";
 import type { AiDecisionEvent } from "@/components/case-detail/AiAssurancePanel";
 import PreQaReviewPanel from "@/components/case-detail/PreQaReviewPanel";
 import ExecNarrativePanel from "@/components/case-detail/ExecNarrativePanel";
+import { useReportVersion } from "@/hooks/use-report-version";
 import type { PreQaReviewResult } from "@/components/case-detail/PreQaReviewPanel";
 
 /* ────── types ────── */
@@ -108,6 +109,7 @@ export default function ReportBuilderEngine({ caseId, caseData, entity, isManage
   const [aiDecisions, setAiDecisions] = useState<{ key: string; status: "accepted" | "edited" | "rejected"; reviewer: string; decidedAt: string }[]>([]);
   const [preQaResult, setPreQaResult] = useState<PreQaReviewResult | null>(null);
   const [partnerEscalationCount, setPartnerEscalationCount] = useState(0);
+  const { versionId, versionNumber, locked: versionLocked } = useReportVersion(caseId, caseData?.org_id);
 
   /* ── load or create draft ── */
   const loadDraft = useCallback(async () => {
@@ -508,7 +510,9 @@ export default function ReportBuilderEngine({ caseId, caseData, entity, isManage
           {/* Executive Summary Narrative Generator */}
           <ExecNarrativePanel
             caseId={caseId}
-            reportVersion={draft.report_version}
+            reportVersionId={versionId}
+            reportVersionNumber={versionNumber}
+            versionLocked={versionLocked}
             entityName={entity?.name ?? "Unknown"}
             entityType={entity?.entity_type ?? "Corporate"}
             riskResult={
