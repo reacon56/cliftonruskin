@@ -25,6 +25,7 @@ import RiskDistributionChart from "@/components/dashboard/RiskDistributionChart"
 import ProgrammeHealthIndicator from "@/components/dashboard/ProgrammeHealthIndicator";
 import ManagerDashboardView from "@/components/dashboard/ManagerDashboardView";
 import MonitoringAlertsCard from "@/components/dashboard/MonitoringAlertsCard";
+import JurisdictionImpactCard from "@/components/dashboard/JurisdictionImpactCard";
 import { useViewMode } from "@/contexts/ViewModeContext";
 interface DashboardStats {
   totalEntities: number;
