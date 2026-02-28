@@ -67,6 +67,7 @@ import ClientPolicyPage from "@/pages/ClientPolicyPage";
 import SanctionsRegimesPage from "@/pages/admin/SanctionsRegimesPage";
 import MethodologyPage from "@/pages/MethodologyPage";
 import MethodologyAdminPage from "@/pages/admin/MethodologyAdminPage";
+import ClientOnboardingPage from "@/pages/ClientOnboardingPage";
 
 // Website pages
 import WebsiteLayout from "@/components/website/WebsiteLayout";
@@ -129,6 +130,7 @@ function AppRoutes() {
         <Route path="/audit-log" element={<AuditLogPage />} />
         <Route path="/client/alerts" element={<ClientAlertsPage />} />
         <Route path="/client/policy" element={<ClientPolicyPage />} />
+        <Route path="/client/onboarding" element={<ClientOnboardingPage />} />
         <Route path="/lia-library" element={<LiaLibraryPage />} />
         <Route path="/methodology" element={<MethodologyPage />} />
         <Route path="/approval-settings" element={<AutoApprovalSettingsPage />} />

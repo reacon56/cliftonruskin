@@ -7,7 +7,7 @@ import {
   ArrowLeftRight, CheckCircle2, Scale, ArrowUpCircle, Newspaper,
   Briefcase, Eye, BookOpen, GitMerge, BarChart3, Search,
   Send, Layers, Database, FlaskConical, Globe, Package, Wallet, Receipt,
-  DollarSign, TrendingUp, Server, Bell,
+  DollarSign, TrendingUp, Server, Bell, Sparkles,
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
@@ -65,6 +65,7 @@ export default function AppSidebar() {
   }
 
   if (hasRole("client_admin")) {
+    clientNav.push({ label: "Onboarding Wizard", path: "/client/onboarding", icon: <Sparkles size={18} /> });
     clientNav.push({ label: "Users & Roles", path: "/users", icon: <Users size={18} /> });
     clientNav.push({ label: "Organisation Settings", path: "/org-settings", icon: <Building2 size={18} /> });
     clientNav.push({ label: "Approval Settings", path: "/approval-settings", icon: <Settings size={18} /> });
