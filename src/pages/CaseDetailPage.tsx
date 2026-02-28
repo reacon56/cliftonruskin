@@ -20,6 +20,7 @@ import ReportBuilderEngine from "@/components/case-detail/ReportBuilderEngine";
 import AiAssurancePanel from "@/components/case-detail/AiAssurancePanel";
 import AgenticReviewPanel from "@/components/case-detail/AgenticReviewPanel";
 import CaseActivityTimeline from "@/components/CaseActivityTimeline";
+import UniversalAuditTimeline from "@/components/UniversalAuditTimeline";
 import DataProtectionSummary from "@/components/case-detail/DataProtectionSummary";
 import CaseProcessingRecord from "@/components/case-detail/CaseProcessingRecord";
 import QuotePanel from "@/components/case-detail/QuotePanel";
@@ -459,6 +460,12 @@ export default function CaseDetailPage() {
             <div className="rounded-lg border bg-card p-4">
               <h3 className="font-display text-sm font-semibold text-foreground mb-3">Activity Timeline</h3>
               <CaseActivityTimeline caseData={caseData} messages={[]} deliverables={deliverables} auditEvents={auditEvents} currentUserId={user?.id} />
+            </div>
+
+            {/* Universal Audit Trail */}
+            <div className="rounded-lg border bg-card p-4">
+              <h3 className="font-display text-sm font-semibold text-foreground mb-3">Full Audit Trail</h3>
+              <UniversalAuditTimeline caseId={id!} limit={200} />
             </div>
 
             {showReport && deliverables.length > 0 && (
