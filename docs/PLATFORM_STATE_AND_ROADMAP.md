@@ -1,7 +1,8 @@
 # Clifton Ruskin — Platform State & Roadmap
 
-> **Single source of truth.** Last updated: 2026-02-26.
+> **Single source of truth.** Last updated: 2026-02-28.
 > Update this document whenever a module ships, a stub is replaced, or a roadmap item moves.
+> See also: `docs/USER_JOURNEY_MAP.md` (step-by-step user journeys per persona).
 
 ---
 
