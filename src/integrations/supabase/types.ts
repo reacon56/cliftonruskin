@@ -4420,6 +4420,66 @@ export type Database = {
           },
         ]
       }
+      report_approval: {
+        Row: {
+          case_id: string
+          content_hash: string | null
+          created_at: string
+          decided_at: string | null
+          id: string
+          org_id: string
+          report_draft_id: string
+          report_version: number
+          requested_by: string
+          reviewer_notes: string | null
+          reviewer_user_id: string | null
+          status: Database["public"]["Enums"]["report_approval_status"]
+        }
+        Insert: {
+          case_id: string
+          content_hash?: string | null
+          created_at?: string
+          decided_at?: string | null
+          id?: string
+          org_id: string
+          report_draft_id: string
+          report_version?: number
+          requested_by: string
+          reviewer_notes?: string | null
+          reviewer_user_id?: string | null
+          status?: Database["public"]["Enums"]["report_approval_status"]
+        }
+        Update: {
+          case_id?: string
+          content_hash?: string | null
+          created_at?: string
+          decided_at?: string | null
+          id?: string
+          org_id?: string
+          report_draft_id?: string
+          report_version?: number
+          requested_by?: string
+          reviewer_notes?: string | null
+          reviewer_user_id?: string | null
+          status?: Database["public"]["Enums"]["report_approval_status"]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "report_approval_case_id_fkey"
+            columns: ["case_id"]
+            isOneToOne: false
+            referencedRelation: "cases"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "report_approval_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organisations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       report_drafts: {
         Row: {
           ai_draft: Json
@@ -4427,9 +4487,11 @@ export type Database = {
           ai_draft_reviewed: boolean
           amendment_history: Json
           case_id: string
+          content_hash: string | null
           created_at: string
           created_by: string | null
           id: string
+          issued_at: string | null
           officer_commentary: Json
           officer_commentary_complete: boolean
           org_id: string
@@ -4440,7 +4502,9 @@ export type Database = {
           qa_approved_at: string | null
           qa_approved_by: string | null
           qa_comments: string | null
+          report_status: string
           report_version: number
+          reviewer_user_id: string | null
           structured_data: Json
           structured_data_locked: boolean
           structured_data_locked_at: string | null
@@ -4453,9 +4517,11 @@ export type Database = {
           ai_draft_reviewed?: boolean
           amendment_history?: Json
           case_id: string
+          content_hash?: string | null
           created_at?: string
           created_by?: string | null
           id?: string
+          issued_at?: string | null
           officer_commentary?: Json
           officer_commentary_complete?: boolean
           org_id: string
@@ -4466,7 +4532,9 @@ export type Database = {
           qa_approved_at?: string | null
           qa_approved_by?: string | null
           qa_comments?: string | null
+          report_status?: string
           report_version?: number
+          reviewer_user_id?: string | null
           structured_data?: Json
           structured_data_locked?: boolean
           structured_data_locked_at?: string | null
@@ -4479,9 +4547,11 @@ export type Database = {
           ai_draft_reviewed?: boolean
           amendment_history?: Json
           case_id?: string
+          content_hash?: string | null
           created_at?: string
           created_by?: string | null
           id?: string
+          issued_at?: string | null
           officer_commentary?: Json
           officer_commentary_complete?: boolean
           org_id?: string
@@ -4492,7 +4562,9 @@ export type Database = {
           qa_approved_at?: string | null
           qa_approved_by?: string | null
           qa_comments?: string | null
+          report_status?: string
           report_version?: number
+          reviewer_user_id?: string | null
           structured_data?: Json
           structured_data_locked?: boolean
           structured_data_locked_at?: string | null
@@ -5432,11 +5504,13 @@ export type Database = {
         | "LT"
         | "EXISTS"
         | "NOT_EXISTS"
+      report_approval_status: "pending" | "approved" | "rejected"
       report_section_key:
         | "EXEC_SUMMARY"
         | "JURISDICTION_ANNEX"
         | "METHODOLOGY_NOTE"
       report_status: "DRAFT" | "ISSUED"
+      report_workflow_status: "draft" | "in_review" | "approved" | "issued"
       sanctions_authority: "UK" | "EU" | "US"
       sanctions_regime_type: "TARGETED" | "COMPREHENSIVE"
       sanctions_source: "UKSL" | "OFAC" | "EU_FSF"
@@ -5623,12 +5697,14 @@ export const Constants = {
         "EXISTS",
         "NOT_EXISTS",
       ],
+      report_approval_status: ["pending", "approved", "rejected"],
       report_section_key: [
         "EXEC_SUMMARY",
         "JURISDICTION_ANNEX",
         "METHODOLOGY_NOTE",
       ],
       report_status: ["DRAFT", "ISSUED"],
+      report_workflow_status: ["draft", "in_review", "approved", "issued"],
       sanctions_authority: ["UK", "EU", "US"],
       sanctions_regime_type: ["TARGETED", "COMPREHENSIVE"],
       sanctions_source: ["UKSL", "OFAC", "EU_FSF"],

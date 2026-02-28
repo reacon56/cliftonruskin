@@ -18,6 +18,7 @@ import AiAssurancePanel from "@/components/case-detail/AiAssurancePanel";
 import type { AiDecisionEvent } from "@/components/case-detail/AiAssurancePanel";
 import PreQaReviewPanel from "@/components/case-detail/PreQaReviewPanel";
 import ExecNarrativePanel from "@/components/case-detail/ExecNarrativePanel";
+import ReportAssuranceWorkflow from "@/components/case-detail/ReportAssuranceWorkflow";
 import { useReportVersion } from "@/hooks/use-report-version";
 import type { PreQaReviewResult } from "@/components/case-detail/PreQaReviewPanel";
 
@@ -659,6 +660,18 @@ export default function ReportBuilderEngine({ caseId, caseData, entity, isManage
             {!canQc && draft.qa_approval_status !== "approved" && (
               <p className="text-xs text-muted-foreground italic">Awaiting QA reviewer approval.</p>
             )}
+
+            {/* Assurance Workflow */}
+            <ReportAssuranceWorkflow
+              caseId={caseId}
+              draftId={draft.id}
+              orgId={caseData.org_id}
+              reportVersion={draft.report_version}
+              reportStatus={(draft as any).report_status ?? "draft"}
+              qaApprovalStatus={draft.qa_approval_status}
+              structuredDataLocked={draft.structured_data_locked}
+              onStatusChange={loadDraft}
+            />
 
             {/* PDF Renderer */}
             {(() => {
