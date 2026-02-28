@@ -141,6 +141,7 @@ function AppRoutes() {
         <Route path="/admin/ingestion-runs" element={<InternalRouteGuard managerOnly><AdminIngestionRunsPage /></InternalRouteGuard>} />
         <Route path="/admin/ingestion-runs/:id" element={<InternalRouteGuard managerOnly><AdminIngestionRunDetailPage /></InternalRouteGuard>} />
         <Route path="/admin/sanctions-regimes" element={<InternalRouteGuard managerOnly><SanctionsRegimesPage /></InternalRouteGuard>} />
+        <Route path="/admin/methodology" element={<InternalRouteGuard managerOnly><MethodologyAdminPage /></InternalRouteGuard>} />
         <Route path="/cases/:id" element={<CaseDetailPage />} />
         <Route path="/cases/:caseId/modules/:moduleId" element={<ModuleWorkbenchPage />} />
         <Route path="/partner/tasks/:taskId" element={<PartnerTaskDetailPage />} />
