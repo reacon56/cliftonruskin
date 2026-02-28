@@ -2963,6 +2963,33 @@ export type Database = {
           },
         ]
       }
+      narrative_template: {
+        Row: {
+          audience: string
+          content_markdown: string
+          created_at: string
+          id: string
+          template_key: string
+          updated_at: string
+        }
+        Insert: {
+          audience?: string
+          content_markdown?: string
+          created_at?: string
+          id?: string
+          template_key: string
+          updated_at?: string
+        }
+        Update: {
+          audience?: string
+          content_markdown?: string
+          created_at?: string
+          id?: string
+          template_key?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       org_feature_flags: {
         Row: {
           billing_model: string | null
@@ -4278,6 +4305,56 @@ export type Database = {
             columns: ["pdf_deliverable_id"]
             isOneToOne: false
             referencedRelation: "deliverables"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      report_section: {
+        Row: {
+          case_id: string
+          content_text: string
+          created_at: string
+          edited_at: string | null
+          edited_by: string | null
+          finalized: boolean
+          generated_by: string | null
+          id: string
+          report_version: number
+          section_key: string
+          updated_at: string
+        }
+        Insert: {
+          case_id: string
+          content_text?: string
+          created_at?: string
+          edited_at?: string | null
+          edited_by?: string | null
+          finalized?: boolean
+          generated_by?: string | null
+          id?: string
+          report_version?: number
+          section_key?: string
+          updated_at?: string
+        }
+        Update: {
+          case_id?: string
+          content_text?: string
+          created_at?: string
+          edited_at?: string | null
+          edited_by?: string | null
+          finalized?: boolean
+          generated_by?: string | null
+          id?: string
+          report_version?: number
+          section_key?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "report_section_case_id_fkey"
+            columns: ["case_id"]
+            isOneToOne: false
+            referencedRelation: "cases"
             referencedColumns: ["id"]
           },
         ]

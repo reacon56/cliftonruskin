@@ -17,6 +17,7 @@ import AutomationCoverageMap, { computeCoverageRows } from "@/components/case-de
 import AiAssurancePanel from "@/components/case-detail/AiAssurancePanel";
 import type { AiDecisionEvent } from "@/components/case-detail/AiAssurancePanel";
 import PreQaReviewPanel from "@/components/case-detail/PreQaReviewPanel";
+import ExecNarrativePanel from "@/components/case-detail/ExecNarrativePanel";
 import type { PreQaReviewResult } from "@/components/case-detail/PreQaReviewPanel";
 
 /* ────── types ────── */
@@ -504,6 +505,32 @@ export default function ReportBuilderEngine({ caseId, caseData, entity, isManage
 
         {/* ── 3. AI DRAFT ── */}
         <TabsContent value="ai" className="space-y-3">
+          {/* Executive Summary Narrative Generator */}
+          <ExecNarrativePanel
+            caseId={caseId}
+            reportVersion={draft.report_version}
+            entityName={entity?.name ?? "Unknown"}
+            entityType={entity?.entity_type ?? "Corporate"}
+            riskResult={
+              (draft.structured_data as StructuredData)?.risk_model_output
+                ? {
+                    risk_band: (draft.structured_data as StructuredData).risk_model_output?.band ?? "PENDING",
+                    risk_score: (draft.structured_data as StructuredData).risk_model_output?.score ?? 0,
+                    contributing_factors_json: (draft.structured_data as StructuredData).risk_model_output?.contributing_factors ?? [],
+                    recommended_controls_json: (draft.structured_data as StructuredData).risk_model_output?.recommended_controls ?? [],
+                  }
+                : null
+            }
+            jurisdictions={[
+              entity?.incorporation_country_code
+                ? { country_name: entity.incorporation_country_name ?? entity.incorporation_country_code, country_code: entity.incorporation_country_code }
+                : null,
+              entity?.hq_country_code
+                ? { country_name: entity.hq_country_name ?? entity.hq_country_code, country_code: entity.hq_country_code }
+                : null,
+            ].filter(Boolean) as any[]}
+          />
+
           {/* AI Assurance Assistant — controlled copilot */}
           <AiAssurancePanel caseId={caseId} onDecision={handleAiDecision} />
 
