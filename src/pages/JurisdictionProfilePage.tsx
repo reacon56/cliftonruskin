@@ -218,7 +218,8 @@ export default function JurisdictionProfilePage() {
                         )}
                       </TableCell>
                     </TableRow>
-                  ))
+                    );
+                  })
                 )}
               </TableBody>
             </Table>
