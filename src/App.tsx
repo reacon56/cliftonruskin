@@ -65,6 +65,8 @@ import AdminIngestionRunDetailPage from "@/pages/admin/AdminIngestionRunDetailPa
 import ClientAlertsPage from "@/pages/ClientAlertsPage";
 import ClientPolicyPage from "@/pages/ClientPolicyPage";
 import SanctionsRegimesPage from "@/pages/admin/SanctionsRegimesPage";
+import MethodologyPage from "@/pages/MethodologyPage";
+import MethodologyAdminPage from "@/pages/admin/MethodologyAdminPage";
 
 // Website pages
 import WebsiteLayout from "@/components/website/WebsiteLayout";
@@ -128,6 +130,7 @@ function AppRoutes() {
         <Route path="/client/alerts" element={<ClientAlertsPage />} />
         <Route path="/client/policy" element={<ClientPolicyPage />} />
         <Route path="/lia-library" element={<LiaLibraryPage />} />
+        <Route path="/methodology" element={<MethodologyPage />} />
         <Route path="/approval-settings" element={<AutoApprovalSettingsPage />} />
         <Route path="/org-settings" element={<OrgSettingsPage />} />
         <Route path="/feature-controls" element={<InternalRouteGuard managerOnly><FeatureControlsPage /></InternalRouteGuard>} />
@@ -138,6 +141,7 @@ function AppRoutes() {
         <Route path="/admin/ingestion-runs" element={<InternalRouteGuard managerOnly><AdminIngestionRunsPage /></InternalRouteGuard>} />
         <Route path="/admin/ingestion-runs/:id" element={<InternalRouteGuard managerOnly><AdminIngestionRunDetailPage /></InternalRouteGuard>} />
         <Route path="/admin/sanctions-regimes" element={<InternalRouteGuard managerOnly><SanctionsRegimesPage /></InternalRouteGuard>} />
+        <Route path="/admin/methodology" element={<InternalRouteGuard managerOnly><MethodologyAdminPage /></InternalRouteGuard>} />
         <Route path="/cases/:id" element={<CaseDetailPage />} />
         <Route path="/cases/:caseId/modules/:moduleId" element={<ModuleWorkbenchPage />} />
         <Route path="/partner/tasks/:taskId" element={<PartnerTaskDetailPage />} />

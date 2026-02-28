@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
+import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -27,6 +28,7 @@ const BAND_LABELS: Record<string, string> = {
 };
 
 export default function CrRiskBandPanel({ entityId }: Props) {
+  const navigate = useNavigate();
   const [factorsOpen, setFactorsOpen] = useState(false);
   const [controlsOpen, setControlsOpen] = useState(false);
 
@@ -58,8 +60,13 @@ export default function CrRiskBandPanel({ entityId }: Props) {
         <CardTitle className="text-sm flex items-center gap-2">
           <Shield className={`h-4 w-4 ${style.text}`} />
           Clifton Ruskin Risk Assessment
-          <Badge variant="outline" className="text-[9px] ml-auto font-normal">
-            {result.engine_version}
+          <Badge
+            variant="outline"
+            className="text-[9px] ml-auto font-normal cursor-pointer hover:bg-muted"
+            onClick={() => navigate("/methodology")}
+            title="View risk methodology"
+          >
+            {result.engine_version} ↗
           </Badge>
         </CardTitle>
       </CardHeader>

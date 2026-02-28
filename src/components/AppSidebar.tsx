@@ -74,6 +74,7 @@ export default function AppSidebar() {
   }
 
   clientNav.push(
+    { label: "Risk Methodology", path: "/methodology", icon: <BookOpen size={18} /> },
     { label: "Jurisdiction Alerts", path: "/client/alerts", icon: <Bell size={18} /> },
     { label: "Policy Mapping", path: "/client/policy", icon: <Shield size={18} /> },
     { label: "Audit Log", path: "/audit-log", icon: <ClipboardList size={18} /> },
@@ -102,6 +103,7 @@ export default function AppSidebar() {
     { label: "Admin: Sources", path: "/admin/sources", icon: <Server size={18} /> },
     { label: "Admin: Runs", path: "/admin/ingestion-runs", icon: <Server size={18} /> },
     { label: "Sanctions Regimes", path: "/admin/sanctions-regimes", icon: <Shield size={18} /> },
+    { label: "Methodology Editor", path: "/admin/methodology", icon: <BookOpen size={18} /> },
     { label: "Jurisdiction Library", path: "/jurisdiction-library", icon: <Globe size={18} /> },
     { label: "Jurisdictions", path: "/jurisdictions", icon: <Globe size={18} /> },
     { label: "Unit Economics", path: "/unit-economics", icon: <BarChart3 size={18} /> },

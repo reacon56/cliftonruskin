@@ -2743,6 +2743,79 @@ export type Database = {
           },
         ]
       }
+      methodology_document: {
+        Row: {
+          audience: Database["public"]["Enums"]["methodology_audience"]
+          created_at: string
+          current_version_id: string | null
+          id: string
+          name: string
+        }
+        Insert: {
+          audience?: Database["public"]["Enums"]["methodology_audience"]
+          created_at?: string
+          current_version_id?: string | null
+          id?: string
+          name: string
+        }
+        Update: {
+          audience?: Database["public"]["Enums"]["methodology_audience"]
+          created_at?: string
+          current_version_id?: string | null
+          id?: string
+          name?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "methodology_document_current_version_fkey"
+            columns: ["current_version_id"]
+            isOneToOne: false
+            referencedRelation: "methodology_version"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      methodology_version: {
+        Row: {
+          change_summary: string | null
+          content_hash: string | null
+          content_markdown: string
+          id: string
+          methodology_document_id: string
+          published_at: string
+          published_by: string | null
+          version: number
+        }
+        Insert: {
+          change_summary?: string | null
+          content_hash?: string | null
+          content_markdown?: string
+          id?: string
+          methodology_document_id: string
+          published_at?: string
+          published_by?: string | null
+          version?: number
+        }
+        Update: {
+          change_summary?: string | null
+          content_hash?: string | null
+          content_markdown?: string
+          id?: string
+          methodology_document_id?: string
+          published_at?: string
+          published_by?: string | null
+          version?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "methodology_version_methodology_document_id_fkey"
+            columns: ["methodology_document_id"]
+            isOneToOne: false
+            referencedRelation: "methodology_document"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       module_outputs: {
         Row: {
           case_module_id: string
@@ -4978,6 +5051,7 @@ export type Database = {
         | "SHIPPING_ROUTE"
         | "OTHER"
       link_confidence: "CONFIRMED" | "LIKELY" | "UNCONFIRMED"
+      methodology_audience: "CLIENT" | "INTERNAL"
       policy_operator:
         | "EQUALS"
         | "NOT_EQUALS"
@@ -5161,6 +5235,7 @@ export const Constants = {
         "OTHER",
       ],
       link_confidence: ["CONFIRMED", "LIKELY", "UNCONFIRMED"],
+      methodology_audience: ["CLIENT", "INTERNAL"],
       policy_operator: [
         "EQUALS",
         "NOT_EQUALS",
