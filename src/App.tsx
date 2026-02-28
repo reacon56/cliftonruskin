@@ -65,6 +65,8 @@ import AdminIngestionRunDetailPage from "@/pages/admin/AdminIngestionRunDetailPa
 import ClientAlertsPage from "@/pages/ClientAlertsPage";
 import ClientPolicyPage from "@/pages/ClientPolicyPage";
 import SanctionsRegimesPage from "@/pages/admin/SanctionsRegimesPage";
+import MethodologyPage from "@/pages/MethodologyPage";
+import MethodologyAdminPage from "@/pages/admin/MethodologyAdminPage";
 
 // Website pages
 import WebsiteLayout from "@/components/website/WebsiteLayout";
