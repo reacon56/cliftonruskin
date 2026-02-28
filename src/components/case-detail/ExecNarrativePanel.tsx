@@ -6,11 +6,16 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Sparkles, Pen, Save, CheckCircle2, Loader2, AlertCircle } from "lucide-react";
+import { Sparkles, Pen, Save, CheckCircle2, Loader2, AlertCircle, Lock } from "lucide-react";
 
 interface NarrativePanelProps {
   caseId: string;
-  reportVersion: number;
+  /** New: report_version UUID from useReportVersion hook */
+  reportVersionId: string | null;
+  /** Fallback: integer version for display */
+  reportVersionNumber: number;
+  /** Whether the version is locked (issued) */
+  versionLocked: boolean;
   entityName: string;
   entityType: string;
   riskResult: {
@@ -25,7 +30,9 @@ interface NarrativePanelProps {
 
 export default function ExecNarrativePanel({
   caseId,
-  reportVersion,
+  reportVersionId,
+  reportVersionNumber,
+  versionLocked,
   entityName,
   entityType,
   riskResult,
@@ -42,29 +49,32 @@ export default function ExecNarrativePanel({
   const [sectionId, setSectionId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  // Load existing report_section
+  // Load existing report_section for this version
   useEffect(() => {
+    if (!reportVersionId) return;
     (async () => {
       const { data } = await supabase
         .from("report_section" as any)
         .select("*")
-        .eq("case_id", caseId)
-        .eq("report_version", reportVersion)
+        .eq("report_version_id", reportVersionId)
         .eq("section_key", "exec_summary")
         .maybeSingle();
       if (data) {
-        setNarrative((data as any).content_text ?? "");
+        setNarrative((data as any).content_markdown ?? "");
         setFinalized((data as any).finalized ?? false);
         setSectionId((data as any).id);
+      } else {
+        setNarrative("");
+        setFinalized(false);
+        setSectionId(null);
       }
     })();
-  }, [caseId, reportVersion]);
+  }, [reportVersionId]);
 
   const generateNarrative = async () => {
     setGenerating(true);
     setError(null);
     try {
-      // Get top 3 contributing factors with dates
       const factors = Array.isArray(riskResult?.contributing_factors_json)
         ? riskResult.contributing_factors_json.slice(0, 3)
         : [];
@@ -90,7 +100,6 @@ export default function ExecNarrativePanel({
 
       const text = data?.narrative ?? "";
       setNarrative(text);
-      // Upsert into report_section
       await upsertSection(text, "ai");
       toast({ title: "Executive summary generated" });
     } catch (e: any) {
@@ -103,12 +112,26 @@ export default function ExecNarrativePanel({
   };
 
   const upsertSection = async (text: string, generatedBy: string) => {
+    if (!reportVersionId) return;
+
+    // Compute content hash
+    const encoder = new TextEncoder();
+    const hashBuffer = await crypto.subtle.digest("SHA-256", encoder.encode(text));
+    const hashArray = Array.from(new Uint8Array(hashBuffer));
+    const contentHash = hashArray.map(b => b.toString(16).padStart(2, "0")).join("");
+
     const payload: any = {
       case_id: caseId,
-      report_version: reportVersion,
+      report_version_id: reportVersionId,
       section_key: "exec_summary",
-      content_text: text,
+      content_markdown: text,
       generated_by: generatedBy,
+      content_hash: contentHash,
+      source_json: {
+        risk_band: riskResult?.risk_band,
+        factors_count: riskResult?.contributing_factors_json?.length ?? 0,
+        jurisdictions: jurisdictions.map(j => j.country_code),
+      },
       updated_at: new Date().toISOString(),
     };
 
@@ -147,6 +170,8 @@ export default function ExecNarrativePanel({
     toast({ title: "Executive summary finalized" });
   };
 
+  const isReadOnly = versionLocked || finalized;
+
   return (
     <Card className="border-primary/20">
       <CardHeader className="pb-3">
@@ -156,19 +181,24 @@ export default function ExecNarrativePanel({
             Executive Summary Narrative
           </CardTitle>
           <div className="flex items-center gap-2">
-            {finalized && (
+            <Badge variant="outline" className="text-[10px]">v{reportVersionNumber}</Badge>
+            {versionLocked && (
+              <Badge variant="secondary" className="text-[10px]">
+                <Lock className="h-3 w-3 mr-0.5" /> Locked
+              </Badge>
+            )}
+            {finalized && !versionLocked && (
               <Badge className="bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-[10px]">
                 <CheckCircle2 className="h-3 w-3 mr-0.5" /> Finalized
               </Badge>
             )}
-            {narrative && !finalized && (
+            {narrative && !finalized && !versionLocked && (
               <Badge variant="outline" className="text-[10px]">Draft</Badge>
             )}
           </div>
         </div>
       </CardHeader>
       <CardContent className="space-y-3">
-        {/* Error banner */}
         {error && (
           <div className="flex items-center gap-2 rounded-md bg-destructive/10 p-2.5 text-xs text-destructive">
             <AlertCircle className="h-3.5 w-3.5 shrink-0" />
@@ -176,8 +206,13 @@ export default function ExecNarrativePanel({
           </div>
         )}
 
-        {/* Empty state */}
-        {!narrative && !generating && (
+        {!reportVersionId && (
+          <p className="text-sm text-muted-foreground text-center py-4">
+            Initialising report version…
+          </p>
+        )}
+
+        {reportVersionId && !narrative && !generating && (
           <div className="text-center py-6 space-y-3">
             <p className="text-sm text-muted-foreground">
               No executive summary generated yet. Click below to create one from the risk assessment data.
@@ -186,7 +221,7 @@ export default function ExecNarrativePanel({
               size="sm"
               className="gap-1.5"
               onClick={generateNarrative}
-              disabled={!riskResult}
+              disabled={!riskResult || isReadOnly}
             >
               <Sparkles className="h-3.5 w-3.5" />
               Generate Narrative
@@ -199,7 +234,6 @@ export default function ExecNarrativePanel({
           </div>
         )}
 
-        {/* Generating spinner */}
         {generating && (
           <div className="flex items-center justify-center py-8 gap-2 text-sm text-muted-foreground">
             <Loader2 className="h-4 w-4 animate-spin" />
@@ -207,10 +241,9 @@ export default function ExecNarrativePanel({
           </div>
         )}
 
-        {/* Narrative display / edit */}
         {narrative && !generating && (
           <>
-            {editing ? (
+            {editing && !isReadOnly ? (
               <Textarea
                 value={narrative}
                 onChange={(e) => setNarrative(e.target.value)}
@@ -225,8 +258,7 @@ export default function ExecNarrativePanel({
               </div>
             )}
 
-            {/* Actions */}
-            {!finalized && (
+            {!isReadOnly && (
               <div className="flex items-center gap-2 flex-wrap">
                 {editing ? (
                   <>
@@ -253,7 +285,6 @@ export default function ExecNarrativePanel({
               </div>
             )}
 
-            {/* Disclaimer */}
             <p className="text-[10px] text-muted-foreground italic">
               AI-assisted drafting used. Human review required before finalisation.
             </p>
