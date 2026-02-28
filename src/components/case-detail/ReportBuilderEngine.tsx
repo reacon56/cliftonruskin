@@ -17,6 +17,7 @@ import AutomationCoverageMap, { computeCoverageRows } from "@/components/case-de
 import AiAssurancePanel from "@/components/case-detail/AiAssurancePanel";
 import type { AiDecisionEvent } from "@/components/case-detail/AiAssurancePanel";
 import PreQaReviewPanel from "@/components/case-detail/PreQaReviewPanel";
+import ExecNarrativePanel from "@/components/case-detail/ExecNarrativePanel";
 import type { PreQaReviewResult } from "@/components/case-detail/PreQaReviewPanel";
 
 /* ────── types ────── */
