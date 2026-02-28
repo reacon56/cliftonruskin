@@ -145,7 +145,10 @@ export default function JurisdictionProfilePage() {
       <div className="flex items-center gap-4">
         <span className="text-4xl">{countryCodeToFlag(jurisdiction.country_code) || "🌐"}</span>
         <div>
-          <h1 className="font-display text-2xl font-bold text-foreground">{jurisdiction.country_name}</h1>
+          <div className="flex items-center gap-3">
+            <h1 className="font-display text-2xl font-bold text-foreground">{jurisdiction.country_name}</h1>
+            <FreshnessBadge status={overallFreshness} showLabel className="text-xs" />
+          </div>
           <div className="flex items-center gap-3 text-sm text-muted-foreground mt-0.5">
             <span>ISO: {jurisdiction.country_code}</span>
             <span className="text-border">|</span>
