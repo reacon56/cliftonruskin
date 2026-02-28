@@ -130,6 +130,7 @@ function AppRoutes() {
         <Route path="/client/alerts" element={<ClientAlertsPage />} />
         <Route path="/client/policy" element={<ClientPolicyPage />} />
         <Route path="/lia-library" element={<LiaLibraryPage />} />
+        <Route path="/methodology" element={<MethodologyPage />} />
         <Route path="/approval-settings" element={<AutoApprovalSettingsPage />} />
         <Route path="/org-settings" element={<OrgSettingsPage />} />
         <Route path="/feature-controls" element={<InternalRouteGuard managerOnly><FeatureControlsPage /></InternalRouteGuard>} />
