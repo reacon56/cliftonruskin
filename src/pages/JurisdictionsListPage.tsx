@@ -1,14 +1,11 @@
 import { useState, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
-import { Card, CardContent } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Slider } from "@/components/ui/slider";
-import { Globe, Search, ChevronRight, AlertTriangle, ShieldCheck } from "lucide-react";
-import { countryCodeToFlag } from "@/lib/country-flag";
+import { Globe, Search } from "lucide-react";
+import CountryCard from "@/components/CountryCard";
 
 type Jurisdiction = {
   id: string;
@@ -28,7 +25,6 @@ const EU_HRTC_OPTIONS = ["Any", "Yes", "No"];
 const SANCTIONS_OPTIONS = ["Any", "UK", "EU", "US OFAC"];
 
 export default function JurisdictionsListPage() {
-  const navigate = useNavigate();
   const [search, setSearch] = useState("");
   const [fatfFilter, setFatfFilter] = useState("Any");
   const [euHrtcFilter, setEuHrtcFilter] = useState("Any");
@@ -103,27 +99,6 @@ export default function JurisdictionsListPage() {
     });
   }, [jurisdictions, search, fatfFilter, euHrtcFilter, sanctionsFilter, cpiRange, indicatorMap]);
 
-  const getQuickBadges = (jId: string) => {
-    const jInd = indicatorMap.get(jId);
-    if (!jInd) return null;
-    const badges: React.ReactNode[] = [];
-    const fatf = jInd.get("FATF_STATUS");
-    if (fatf) {
-      const variant = fatf.status === "MONITORING" || fatf.status === "BLACKLISTED" || fatf.status === "SUSPENDED" ? "destructive" as const : "secondary" as const;
-      badges.push(<Badge key="fatf" variant={variant} className="text-[10px]">FATF: {fatf.status}</Badge>);
-    }
-    const cpi = jInd.get("CPI_SCORE");
-    if (cpi?.score != null) {
-      badges.push(<Badge key="cpi" variant="outline" className="text-[10px]">CPI: {cpi.score}</Badge>);
-    }
-    const sanctions = ["SANCTIONS_UK_PROGRAMME", "SANCTIONS_EU_PROGRAMME", "SANCTIONS_US_OFAC_PROGRAMME"]
-      .filter((k) => jInd.get(k)?.status === "active");
-    if (sanctions.length > 0) {
-      badges.push(<Badge key="sanc" variant="destructive" className="text-[10px]"><AlertTriangle className="h-3 w-3 mr-0.5" />{sanctions.length} sanctions</Badge>);
-    }
-    return badges.length > 0 ? badges : null;
-  };
-
   return (
     <div className="space-y-6 animate-fade-in">
       <div>
@@ -173,30 +148,17 @@ export default function JurisdictionsListPage() {
         <p className="text-sm text-muted-foreground text-center py-12">No jurisdictions match filters</p>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-          {filtered.map((j) => {
-            const badges = getQuickBadges(j.id);
-            return (
-              <Card
-                key={j.id}
-                className="cursor-pointer hover:border-primary/40 transition-colors group"
-                onClick={() => navigate(`/jurisdictions/${j.id}`)}
-              >
-                <CardContent className="pt-4 pb-3 px-4">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2.5 min-w-0">
-                      <span className="text-2xl">{countryCodeToFlag(j.country_code) || "🌐"}</span>
-                      <div className="min-w-0">
-                        <div className="text-sm font-medium truncate">{j.country_name}</div>
-                        <div className="text-[10px] text-muted-foreground uppercase tracking-wider">{j.country_code}</div>
-                      </div>
-                    </div>
-                    <ChevronRight className="h-4 w-4 text-muted-foreground/40 group-hover:text-primary transition-colors" />
-                  </div>
-                  {badges && <div className="flex flex-wrap gap-1 mt-2.5">{badges}</div>}
-                </CardContent>
-              </Card>
-            );
-          })}
+          {filtered.map((j) => (
+            <CountryCard
+              key={j.id}
+              jurisdictionId={j.id}
+              preloaded={{
+                countryCode: j.country_code,
+                countryName: j.country_name,
+                indicators: indicatorMap.get(j.id),
+              }}
+            />
+          ))}
         </div>
       )}
     </div>
