@@ -458,6 +458,9 @@ export default function DashboardPage() {
         {/* Monitoring alerts — jurisdiction change impact */}
         <MonitoringAlertsCard />
 
+        {/* Jurisdiction change impact analysis */}
+        <JurisdictionImpactCard />
+
         {/* Plan & Utilisation */}
         <PlanUtilisationCard entityCount={stats.totalEntities} />
 
