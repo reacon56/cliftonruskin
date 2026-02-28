@@ -28,6 +28,7 @@ const BAND_LABELS: Record<string, string> = {
 };
 
 export default function CrRiskBandPanel({ entityId }: Props) {
+  const navigate = useNavigate();
   const [factorsOpen, setFactorsOpen] = useState(false);
   const [controlsOpen, setControlsOpen] = useState(false);
 
