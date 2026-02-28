@@ -12,7 +12,8 @@ import { Separator } from "@/components/ui/separator";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
-import { Plus, Trash2, GripVertical, Shield, BookOpen, Play, Settings2 } from "lucide-react";
+import { Plus, Trash2, GripVertical, Shield, BookOpen, Play, Settings2, FlaskConical } from "lucide-react";
+import { Link } from "react-router-dom";
 import { toast } from "sonner";
 import PolicyRuleEditor from "@/components/policy/PolicyRuleEditor";
 
@@ -110,9 +111,16 @@ export default function ClientPolicyPage() {
             Map jurisdiction indicators to your organisation's internal outcomes and controls.
           </p>
         </div>
-        <Button size="sm" onClick={() => setCreateOpen(true)} className="gap-1">
-          <Plus className="h-4 w-4" /> New Ruleset
-        </Button>
+        <div className="flex items-center gap-2">
+          <Link to="/client/policy/simulate">
+            <Button variant="outline" size="sm" className="gap-1">
+              <FlaskConical className="h-4 w-4" /> Simulate
+            </Button>
+          </Link>
+          <Button size="sm" onClick={() => setCreateOpen(true)} className="gap-1">
+            <Plus className="h-4 w-4" /> New Ruleset
+          </Button>
+        </div>
       </div>
 
       {/* Rulesets List */}

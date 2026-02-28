@@ -65,6 +65,7 @@ import AdminIngestionRunsPage from "@/pages/admin/AdminIngestionRunsPage";
 import AdminIngestionRunDetailPage from "@/pages/admin/AdminIngestionRunDetailPage";
 import ClientAlertsPage from "@/pages/ClientAlertsPage";
 import ClientPolicyPage from "@/pages/ClientPolicyPage";
+import PolicySimulatePage from "@/pages/PolicySimulatePage";
 import SanctionsRegimesPage from "@/pages/admin/SanctionsRegimesPage";
 import MethodologyPage from "@/pages/MethodologyPage";
 import MethodologyAdminPage from "@/pages/admin/MethodologyAdminPage";
@@ -131,6 +132,7 @@ function AppRoutes() {
         <Route path="/audit-log" element={<AuditLogPage />} />
         <Route path="/client/alerts" element={<ClientAlertsPage />} />
         <Route path="/client/policy" element={<ClientPolicyPage />} />
+        <Route path="/client/policy/simulate" element={<PolicySimulatePage />} />
         <Route path="/client/onboarding" element={<ClientOnboardingPage />} />
         <Route path="/lia-library" element={<LiaLibraryPage />} />
         <Route path="/methodology" element={<MethodologyPage />} />
