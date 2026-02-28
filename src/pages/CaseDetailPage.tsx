@@ -20,6 +20,7 @@ import ReportBuilderEngine from "@/components/case-detail/ReportBuilderEngine";
 import AiAssurancePanel from "@/components/case-detail/AiAssurancePanel";
 import AgenticReviewPanel from "@/components/case-detail/AgenticReviewPanel";
 import CaseActivityTimeline from "@/components/CaseActivityTimeline";
+import UniversalAuditTimeline from "@/components/UniversalAuditTimeline";
 import DataProtectionSummary from "@/components/case-detail/DataProtectionSummary";
 import CaseProcessingRecord from "@/components/case-detail/CaseProcessingRecord";
 import QuotePanel from "@/components/case-detail/QuotePanel";
