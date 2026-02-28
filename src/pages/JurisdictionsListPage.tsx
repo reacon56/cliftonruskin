@@ -25,7 +25,6 @@ const EU_HRTC_OPTIONS = ["Any", "Yes", "No"];
 const SANCTIONS_OPTIONS = ["Any", "UK", "EU", "US OFAC"];
 
 export default function JurisdictionsListPage() {
-  const navigate = useNavigate();
   const [search, setSearch] = useState("");
   const [fatfFilter, setFatfFilter] = useState("Any");
   const [euHrtcFilter, setEuHrtcFilter] = useState("Any");
