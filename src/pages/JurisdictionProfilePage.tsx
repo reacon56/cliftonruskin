@@ -114,6 +114,17 @@ export default function JurisdictionProfilePage() {
     return acc;
   }, {});
 
+  // Overall freshness
+  const overallFreshness = useMemo((): FreshnessStatus => {
+    if (!cadenceRules || indicators.length === 0) return "UNKNOWN";
+    const statuses: FreshnessStatus[] = [];
+    for (const ind of indicators as any[]) {
+      const rule = cadenceRules.get(ind.indicator_type);
+      statuses.push(computeFreshness(ind.retrieved_at, rule).status);
+    }
+    return computeOverallFreshness(statuses);
+  }, [indicators, cadenceRules]);
+
   if (isLoading) {
     return <div className="flex items-center justify-center h-64 text-muted-foreground text-sm">Loading…</div>;
   }
