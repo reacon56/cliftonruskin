@@ -661,6 +661,18 @@ export default function ReportBuilderEngine({ caseId, caseData, entity, isManage
               <p className="text-xs text-muted-foreground italic">Awaiting QA reviewer approval.</p>
             )}
 
+            {/* Assurance Workflow */}
+            <ReportAssuranceWorkflow
+              caseId={caseId}
+              draftId={draft.id}
+              orgId={caseData.org_id}
+              reportVersion={draft.report_version}
+              reportStatus={(draft as any).report_status ?? "draft"}
+              qaApprovalStatus={draft.qa_approval_status}
+              structuredDataLocked={draft.structured_data_locked}
+              onStatusChange={loadDraft}
+            />
+
             {/* PDF Renderer */}
             {(() => {
               const coverage = computeCoverageRows({
