@@ -18,6 +18,7 @@ import AiAssurancePanel from "@/components/case-detail/AiAssurancePanel";
 import type { AiDecisionEvent } from "@/components/case-detail/AiAssurancePanel";
 import PreQaReviewPanel from "@/components/case-detail/PreQaReviewPanel";
 import ExecNarrativePanel from "@/components/case-detail/ExecNarrativePanel";
+import ReportAssuranceWorkflow from "@/components/case-detail/ReportAssuranceWorkflow";
 import { useReportVersion } from "@/hooks/use-report-version";
 import type { PreQaReviewResult } from "@/components/case-detail/PreQaReviewPanel";
 
