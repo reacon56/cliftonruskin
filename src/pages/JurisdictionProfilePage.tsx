@@ -1,3 +1,4 @@
+import { useMemo } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -9,6 +10,9 @@ import { ArrowLeft, Globe, ExternalLink, Info, ArrowUp, ArrowDown, Minus, Clock,
 import { countryCodeToFlag } from "@/lib/country-flag";
 import { format } from "date-fns";
 import JurisdictionSubscribeToggle from "@/components/JurisdictionSubscribeToggle";
+import FreshnessBadge from "@/components/FreshnessBadge";
+import { useCadenceRules } from "@/components/CountryCard";
+import { computeFreshness, computeOverallFreshness, type FreshnessStatus } from "@/lib/freshness-utils";
 
 const INDICATOR_LABELS: Record<string, string> = {
   FATF_STATUS: "FATF Status",
