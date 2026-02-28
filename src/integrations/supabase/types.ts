@@ -1895,6 +1895,30 @@ export type Database = {
           },
         ]
       }
+      indicator_cadence_rule: {
+        Row: {
+          created_at: string
+          expected_max_age_days: number
+          id: string
+          indicator_type: string
+          notes: string | null
+        }
+        Insert: {
+          created_at?: string
+          expected_max_age_days: number
+          id?: string
+          indicator_type: string
+          notes?: string | null
+        }
+        Update: {
+          created_at?: string
+          expected_max_age_days?: number
+          id?: string
+          indicator_type?: string
+          notes?: string | null
+        }
+        Relationships: []
+      }
       ingestion_error: {
         Row: {
           created_at: string
