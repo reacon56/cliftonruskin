@@ -27,12 +27,24 @@ export default function MethodologyAdminPage() {
   const { data: docs = [], isLoading } = useQuery({
     queryKey: ["methodology-docs-admin"],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data: docRows, error: dErr } = await supabase
         .from("methodology_document")
-        .select("*, methodology_version(*)")
+        .select("*")
         .order("created_at", { ascending: false });
-      if (error) throw error;
-      return data;
+      if (dErr) throw dErr;
+
+      const { data: verRows, error: vErr } = await supabase
+        .from("methodology_version")
+        .select("*")
+        .order("version", { ascending: false });
+      if (vErr) throw vErr;
+
+      return (docRows || []).map((d: any) => ({
+        ...d,
+        methodology_version: (verRows || []).filter((v: any) => v.methodology_document_id === d.id),
+      }));
+    },
+  });
     },
   });
 

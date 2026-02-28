@@ -7,26 +7,32 @@ import { Shield, AlertTriangle, BookOpen, Scale, Globe, Bell, Info } from "lucid
 import { format } from "date-fns";
 
 export default function MethodologyPage() {
-  // Fetch CLIENT methodology document with its current version
-  const { data: doc } = useQuery({
+  const { data } = useQuery({
     queryKey: ["methodology-client"],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data: docRow, error: dErr } = await supabase
         .from("methodology_document")
-        .select("*, methodology_version(*)")
+        .select("*")
         .eq("audience", "CLIENT")
         .order("created_at", { ascending: false })
         .limit(1)
         .maybeSingle();
-      if (error) throw error;
-      return data;
+      if (dErr) throw dErr;
+      if (!docRow || !docRow.current_version_id) return null;
+
+      const { data: ver, error: vErr } = await supabase
+        .from("methodology_version")
+        .select("*")
+        .eq("id", docRow.current_version_id)
+        .maybeSingle();
+      if (vErr) throw vErr;
+
+      return { doc: docRow, currentVersion: ver };
     },
   });
 
-  // Get current version content
-  const currentVersion = doc?.current_version_id
-    ? (doc as any).methodology_version?.find((v: any) => v.id === doc.current_version_id)
-    : null;
+  const doc = data?.doc;
+  const currentVersion = data?.currentVersion;
 
   return (
     <div className="space-y-8 animate-fade-in max-w-4xl">
