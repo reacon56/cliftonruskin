@@ -162,8 +162,15 @@ export default function JurisdictionProfilePage() {
         </div>
       </div>
 
-      {/* Subscribe Toggle */}
-      {id && <JurisdictionSubscribeToggle jurisdictionId={id} />}
+      {/* Actions row */}
+      <div className="flex items-center gap-3 flex-wrap">
+        {id && <JurisdictionSubscribeToggle jurisdictionId={id} />}
+        <Link to={`/jurisdictions/${id}/brief`}>
+          <Button variant="outline" size="sm">
+            <FileText className="h-4 w-4 mr-1" /> Client Jurisdiction Brief
+          </Button>
+        </Link>
+      </div>
 
       {/* Current Indicators */}
       <Card>

@@ -161,6 +161,7 @@ function AppRoutes() {
         <Route path="/jurisdiction-library" element={<InternalRouteGuard><JurisdictionLibraryPage /></InternalRouteGuard>} />
         <Route path="/jurisdictions" element={<InternalRouteGuard><JurisdictionsListPage /></InternalRouteGuard>} />
         <Route path="/jurisdictions/:id" element={<InternalRouteGuard><JurisdictionProfilePage /></InternalRouteGuard>} />
+        <Route path="/jurisdictions/:id/brief" element={<JurisdictionBriefPage />} />
         <Route path="/unit-economics" element={<InternalRouteGuard managerOnly><UnitEconomicsPage /></InternalRouteGuard>} />
         <Route path="/tier-matrix" element={<InternalRouteGuard managerOnly><TierMatrixPage /></InternalRouteGuard>} />
         <Route path="/product-catalogue" element={<InternalRouteGuard><ProductCataloguePage /></InternalRouteGuard>} />
