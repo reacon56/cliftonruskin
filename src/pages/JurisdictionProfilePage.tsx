@@ -1,3 +1,4 @@
+import { useMemo } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -9,6 +10,9 @@ import { ArrowLeft, Globe, ExternalLink, Info, ArrowUp, ArrowDown, Minus, Clock,
 import { countryCodeToFlag } from "@/lib/country-flag";
 import { format } from "date-fns";
 import JurisdictionSubscribeToggle from "@/components/JurisdictionSubscribeToggle";
+import FreshnessBadge from "@/components/FreshnessBadge";
+import { useCadenceRules } from "@/components/CountryCard";
+import { computeFreshness, computeOverallFreshness, type FreshnessStatus } from "@/lib/freshness-utils";
 
 const INDICATOR_LABELS: Record<string, string> = {
   FATF_STATUS: "FATF Status",
@@ -43,6 +47,7 @@ function deriveChangeClass(oldVal: any, newVal: any): "added" | "removed" | "cha
 
 export default function JurisdictionProfilePage() {
   const { id } = useParams<{ id: string }>();
+  const { data: cadenceRules } = useCadenceRules();
   const navigate = useNavigate();
 
   const { data: jurisdiction, isLoading } = useQuery({
@@ -109,6 +114,17 @@ export default function JurisdictionProfilePage() {
     return acc;
   }, {});
 
+  // Overall freshness
+  const overallFreshness = useMemo((): FreshnessStatus => {
+    if (!cadenceRules || indicators.length === 0) return "UNKNOWN";
+    const statuses: FreshnessStatus[] = [];
+    for (const ind of indicators as any[]) {
+      const rule = cadenceRules.get(ind.indicator_type);
+      statuses.push(computeFreshness(ind.retrieved_at, rule).status);
+    }
+    return computeOverallFreshness(statuses);
+  }, [indicators, cadenceRules]);
+
   if (isLoading) {
     return <div className="flex items-center justify-center h-64 text-muted-foreground text-sm">Loading…</div>;
   }
@@ -129,7 +145,10 @@ export default function JurisdictionProfilePage() {
       <div className="flex items-center gap-4">
         <span className="text-4xl">{countryCodeToFlag(jurisdiction.country_code) || "🌐"}</span>
         <div>
-          <h1 className="font-display text-2xl font-bold text-foreground">{jurisdiction.country_name}</h1>
+          <div className="flex items-center gap-3">
+            <h1 className="font-display text-2xl font-bold text-foreground">{jurisdiction.country_name}</h1>
+            <FreshnessBadge status={overallFreshness} showLabel className="text-xs" />
+          </div>
           <div className="flex items-center gap-3 text-sm text-muted-foreground mt-0.5">
             <span>ISO: {jurisdiction.country_code}</span>
             <span className="text-border">|</span>
@@ -162,21 +181,33 @@ export default function JurisdictionProfilePage() {
                   <TableHead>Value</TableHead>
                   <TableHead>Effective Date</TableHead>
                   <TableHead>Retrieved</TableHead>
+                  <TableHead>Freshness</TableHead>
                   <TableHead>Source</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {Object.entries(grouped).map(([type, inds]) =>
-                  inds.map((ind: any, idx: number) => (
-                    <TableRow key={ind.id}>
-                      {idx === 0 && (
-                        <TableCell rowSpan={inds.length} className="font-medium text-sm align-top">
-                          <Badge variant="outline" className="text-[10px]">{INDICATOR_LABELS[type] || type}</Badge>
+                  inds.map((ind: any, idx: number) => {
+                    const rule = cadenceRules?.get(type);
+                    const fresh = computeFreshness(ind.retrieved_at, rule);
+                    return (
+                      <TableRow key={ind.id}>
+                        {idx === 0 && (
+                          <TableCell rowSpan={inds.length} className="font-medium text-sm align-top">
+                            <Badge variant="outline" className="text-[10px]">{INDICATOR_LABELS[type] || type}</Badge>
+                          </TableCell>
+                        )}
+                        <TableCell className="text-sm">{formatValue(ind.value_json)}</TableCell>
+                        <TableCell className="text-xs text-muted-foreground">{format(new Date(ind.effective_date), "dd MMM yyyy")}</TableCell>
+                        <TableCell className="text-xs text-muted-foreground">{format(new Date(ind.retrieved_at), "dd MMM yyyy")}</TableCell>
+                        <TableCell>
+                          <FreshnessBadge
+                            status={fresh.status}
+                            retrievedAt={ind.retrieved_at}
+                            maxDays={fresh.maxDays}
+                            showLabel
+                          />
                         </TableCell>
-                      )}
-                      <TableCell className="text-sm">{formatValue(ind.value_json)}</TableCell>
-                      <TableCell className="text-xs text-muted-foreground">{format(new Date(ind.effective_date), "dd MMM yyyy")}</TableCell>
-                      <TableCell className="text-xs text-muted-foreground">{format(new Date(ind.retrieved_at), "dd MMM yyyy")}</TableCell>
                       <TableCell className="text-xs">
                         {ind.source_url ? (
                           <a href={ind.source_url} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline flex items-center gap-1">
@@ -187,7 +218,8 @@ export default function JurisdictionProfilePage() {
                         )}
                       </TableCell>
                     </TableRow>
-                  ))
+                    );
+                  })
                 )}
               </TableBody>
             </Table>

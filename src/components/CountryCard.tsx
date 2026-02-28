@@ -5,9 +5,11 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { ChevronRight, AlertTriangle, ShieldCheck, HelpCircle, Clock } from "lucide-react";
+import { ChevronRight, AlertTriangle, HelpCircle, Clock } from "lucide-react";
 import { countryCodeToFlag } from "@/lib/country-flag";
 import { formatDistanceToNow } from "date-fns";
+import FreshnessBadge from "@/components/FreshnessBadge";
+import { computeFreshness, computeOverallFreshness, type CadenceRule, type FreshnessStatus } from "@/lib/freshness-utils";
 
 /* ------------------------------------------------------------------ */
 /*  Types                                                              */
@@ -15,15 +17,12 @@ import { formatDistanceToNow } from "date-fns";
 
 interface CountryCardProps {
   jurisdictionId: string;
-  /** Pre-loaded data – avoids extra queries when parent already fetched */
   preloaded?: {
     countryCode: string;
     countryName: string;
     indicators?: Map<string, any>;
   };
-  /** Hide the "View profile →" affordance */
   hideLink?: boolean;
-  /** Compact mode for inline usage */
   compact?: boolean;
 }
 
@@ -73,6 +72,28 @@ function NotAvailable({ label }: { label: string }) {
 }
 
 /* ------------------------------------------------------------------ */
+/*  Hook: shared cadence rules                                        */
+/* ------------------------------------------------------------------ */
+
+export function useCadenceRules() {
+  return useQuery({
+    queryKey: ["indicator-cadence-rules"],
+    staleTime: 1000 * 60 * 30, // cache 30 min
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("indicator_cadence_rule")
+        .select("indicator_type, expected_max_age_days, notes");
+      if (error) throw error;
+      const map = new Map<string, CadenceRule>();
+      for (const r of data ?? []) {
+        map.set(r.indicator_type, r as CadenceRule);
+      }
+      return map;
+    },
+  });
+}
+
+/* ------------------------------------------------------------------ */
 /*  Component                                                          */
 /* ------------------------------------------------------------------ */
 
@@ -84,7 +105,6 @@ export default function CountryCard({
 }: CountryCardProps) {
   const navigate = useNavigate();
 
-  /* ---- Jurisdiction metadata (skip if preloaded) ---- */
   const { data: jurisdiction } = useQuery({
     queryKey: ["country-card-jurisdiction", jurisdictionId],
     enabled: !preloaded,
@@ -99,7 +119,6 @@ export default function CountryCard({
     },
   });
 
-  /* ---- Indicators (skip if preloaded) ---- */
   const { data: rawIndicators } = useQuery({
     queryKey: ["country-card-indicators", jurisdictionId],
     enabled: !preloaded?.indicators,
@@ -112,6 +131,8 @@ export default function CountryCard({
       return data as Indicator[];
     },
   });
+
+  const { data: cadenceRules } = useCadenceRules();
 
   const countryCode = preloaded?.countryCode ?? jurisdiction?.country_code ?? "";
   const countryName = preloaded?.countryName ?? jurisdiction?.country_name ?? "";
@@ -130,14 +151,11 @@ export default function CountryCard({
   /* ---- Derived values ---- */
   const fatf = indicators.get("FATF_STATUS");
   const fatfInfo = fatfLabel(fatf?.status);
-
   const euHrtc = indicators.get("EU_AML_HRTC");
   const hasEuHrtc = !!euHrtc;
-
   const activeSanctions = SANCTIONS_KEYS.filter(
     (s) => indicators.get(s.key)?.status === "active"
   );
-
   const cpi = indicators.get("CPI_SCORE");
 
   // Freshness: max retrieved_at across all indicators
@@ -153,12 +171,24 @@ export default function CountryCard({
     return maxDate;
   }, [indicators]);
 
+  // Overall freshness status
+  const overallFreshness = useMemo((): FreshnessStatus => {
+    if (!cadenceRules) return "UNKNOWN";
+    const statuses: FreshnessStatus[] = [];
+    const KEY_TYPES = ["FATF_STATUS", "SANCTIONS_UK_PROGRAMME", "SANCTIONS_EU_PROGRAMME", "SANCTIONS_US_OFAC_PROGRAMME", "CPI_SCORE"];
+    for (const t of KEY_TYPES) {
+      const ind = indicators.get(t);
+      const rule = cadenceRules.get(t);
+      statuses.push(computeFreshness(ind?._retrieved_at, rule).status);
+    }
+    return computeOverallFreshness(statuses);
+  }, [indicators, cadenceRules]);
+
   const flag = countryCodeToFlag(countryCode);
 
-  /* ---- Render ---- */
   return (
     <Card
-      className={`cursor-pointer hover:border-primary/40 transition-colors group ${compact ? "" : ""}`}
+      className={`cursor-pointer hover:border-primary/40 transition-colors group`}
       onClick={() => !hideLink && navigate(`/jurisdictions/${jurisdictionId}`)}
     >
       <CardContent className={compact ? "p-3" : "pt-4 pb-3 px-4"}>
@@ -173,41 +203,32 @@ export default function CountryCard({
               </div>
             </div>
           </div>
-          {!hideLink && (
-            <ChevronRight className="h-4 w-4 text-muted-foreground/40 group-hover:text-primary transition-colors shrink-0" />
-          )}
+          <div className="flex items-center gap-1.5 shrink-0">
+            <FreshnessBadge status={overallFreshness} showLabel />
+            {!hideLink && (
+              <ChevronRight className="h-4 w-4 text-muted-foreground/40 group-hover:text-primary transition-colors" />
+            )}
+          </div>
         </div>
 
         {/* Badges row */}
         <div className="flex flex-wrap gap-1 mt-2.5">
-          {/* FATF */}
           {fatf ? (
-            <Badge
-              variant={fatfInfo.destructive ? "destructive" : "secondary"}
-              className="text-[10px]"
-            >
+            <Badge variant={fatfInfo.destructive ? "destructive" : "secondary"} className="text-[10px]">
               FATF: {fatfInfo.text}
             </Badge>
           ) : (
             <NotAvailable label="FATF" />
           )}
-
-          {/* EU HRTC */}
           {hasEuHrtc && (
-            <Badge variant="destructive" className="text-[10px]">
-              EU HRTC
-            </Badge>
+            <Badge variant="destructive" className="text-[10px]">EU HRTC</Badge>
           )}
-
-          {/* Sanctions */}
-          {activeSanctions.length > 0 ? (
+          {activeSanctions.length > 0 && (
             <Badge variant="destructive" className="text-[10px]">
               <AlertTriangle className="h-3 w-3 mr-0.5" />
               {activeSanctions.map((s) => s.label).join(" · ")}
             </Badge>
-          ) : null}
-
-          {/* CPI */}
+          )}
           {cpi?.score != null ? (
             <Badge variant="outline" className="text-[10px]">
               CPI: {cpi.score}
@@ -218,7 +239,7 @@ export default function CountryCard({
           )}
         </div>
 
-        {/* Freshness */}
+        {/* Freshness timestamp */}
         {!compact && (
           <div className="flex items-center gap-1 mt-2 text-[10px] text-muted-foreground/60">
             <Clock className="h-3 w-3" />
