@@ -510,7 +510,9 @@ export default function ReportBuilderEngine({ caseId, caseData, entity, isManage
           {/* Executive Summary Narrative Generator */}
           <ExecNarrativePanel
             caseId={caseId}
-            reportVersion={draft.report_version}
+            reportVersionId={versionId}
+            reportVersionNumber={versionNumber}
+            versionLocked={versionLocked}
             entityName={entity?.name ?? "Unknown"}
             entityType={entity?.entity_type ?? "Corporate"}
             riskResult={
