@@ -11,6 +11,7 @@ import { countryCodeToFlag } from "@/lib/country-flag";
 import { format } from "date-fns";
 import JurisdictionSubscribeToggle from "@/components/JurisdictionSubscribeToggle";
 import FreshnessBadge from "@/components/FreshnessBadge";
+import SourceViewer from "@/components/SourceViewer";
 import { useCadenceRules } from "@/components/CountryCard";
 import { computeFreshness, computeOverallFreshness, type FreshnessStatus } from "@/lib/freshness-utils";
 
@@ -209,13 +210,24 @@ export default function JurisdictionProfilePage() {
                           />
                         </TableCell>
                       <TableCell className="text-xs">
-                        {ind.source_url ? (
-                          <a href={ind.source_url} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline flex items-center gap-1">
-                            {ind.source_name} <ExternalLink className="h-3 w-3" />
-                          </a>
-                        ) : (
-                          <span className="text-muted-foreground">{ind.source_name}</span>
-                        )}
+                        <div className="flex items-center gap-1.5">
+                          {ind.source_url ? (
+                            <a href={ind.source_url} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline flex items-center gap-1">
+                              {ind.source_name} <ExternalLink className="h-3 w-3" />
+                            </a>
+                          ) : (
+                            <span className="text-muted-foreground">{ind.source_name}</span>
+                          )}
+                          <SourceViewer
+                            sourceName={ind.source_name}
+                            sourceUrl={ind.source_url}
+                            retrievedAt={ind.retrieved_at}
+                            effectiveDate={ind.effective_date}
+                            snapshotHash={ind.snapshot_hash ?? null}
+                            valueJson={ind.value_json}
+                            indicatorLabel={INDICATOR_LABELS[type] || type}
+                          />
+                        </div>
                       </TableCell>
                     </TableRow>
                     );
