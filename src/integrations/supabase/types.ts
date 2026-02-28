@@ -2193,6 +2193,78 @@ export type Database = {
           },
         ]
       }
+      jurisdiction_change_impact: {
+        Row: {
+          alert_event_id: string
+          case_id: string | null
+          created_at: string
+          entity_id: string
+          id: string
+          impact_summary: string
+          impact_type: Database["public"]["Enums"]["impact_type"]
+          jurisdiction_id: string
+          org_id: string
+        }
+        Insert: {
+          alert_event_id: string
+          case_id?: string | null
+          created_at?: string
+          entity_id: string
+          id?: string
+          impact_summary: string
+          impact_type: Database["public"]["Enums"]["impact_type"]
+          jurisdiction_id: string
+          org_id: string
+        }
+        Update: {
+          alert_event_id?: string
+          case_id?: string | null
+          created_at?: string
+          entity_id?: string
+          id?: string
+          impact_summary?: string
+          impact_type?: Database["public"]["Enums"]["impact_type"]
+          jurisdiction_id?: string
+          org_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "jurisdiction_change_impact_alert_event_id_fkey"
+            columns: ["alert_event_id"]
+            isOneToOne: false
+            referencedRelation: "alert_event"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "jurisdiction_change_impact_case_id_fkey"
+            columns: ["case_id"]
+            isOneToOne: false
+            referencedRelation: "cases"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "jurisdiction_change_impact_entity_id_fkey"
+            columns: ["entity_id"]
+            isOneToOne: false
+            referencedRelation: "entities"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "jurisdiction_change_impact_jurisdiction_id_fkey"
+            columns: ["jurisdiction_id"]
+            isOneToOne: false
+            referencedRelation: "jurisdiction"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "jurisdiction_change_impact_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organisations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       jurisdiction_indicator: {
         Row: {
           created_at: string
@@ -5235,6 +5307,7 @@ export type Database = {
         | "OFAC_SANCTIONS_CHANGE"
         | "CPI_CHANGE"
       cr_risk_band: "LOW" | "MEDIUM" | "HIGH" | "SEVERE"
+      impact_type: "POLICY_TRIGGER" | "CR_SCORE_CHANGE" | "MONITORING_ALERT"
       indicator_type:
         | "FATF_STATUS"
         | "EU_AML_HRTC"
@@ -5422,6 +5495,7 @@ export const Constants = {
         "CPI_CHANGE",
       ],
       cr_risk_band: ["LOW", "MEDIUM", "HIGH", "SEVERE"],
+      impact_type: ["POLICY_TRIGGER", "CR_SCORE_CHANGE", "MONITORING_ALERT"],
       indicator_type: [
         "FATF_STATUS",
         "EU_AML_HRTC",
