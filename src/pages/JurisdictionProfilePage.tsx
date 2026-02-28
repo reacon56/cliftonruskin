@@ -47,6 +47,7 @@ function deriveChangeClass(oldVal: any, newVal: any): "added" | "removed" | "cha
 
 export default function JurisdictionProfilePage() {
   const { id } = useParams<{ id: string }>();
+  const { data: cadenceRules } = useCadenceRules();
   const navigate = useNavigate();
 
   const { data: jurisdiction, isLoading } = useQuery({
