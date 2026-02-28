@@ -67,6 +67,7 @@ import ClientPolicyPage from "@/pages/ClientPolicyPage";
 import SanctionsRegimesPage from "@/pages/admin/SanctionsRegimesPage";
 import MethodologyPage from "@/pages/MethodologyPage";
 import MethodologyAdminPage from "@/pages/admin/MethodologyAdminPage";
+import ClientOnboardingPage from "@/pages/ClientOnboardingPage";
 
 // Website pages
 import WebsiteLayout from "@/components/website/WebsiteLayout";
