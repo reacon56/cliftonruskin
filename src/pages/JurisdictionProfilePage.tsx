@@ -87,6 +87,20 @@ export default function JurisdictionProfilePage() {
     enabled: !!id,
   });
 
+  const { data: regimeClassifications = [] } = useQuery({
+    queryKey: ["jurisdiction-regimes", id],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("sanctions_regime_map")
+        .select("*")
+        .eq("jurisdiction_id", id!)
+        .order("authority");
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!id,
+  });
+
   // Group indicators by type
   const grouped = indicators.reduce<Record<string, typeof indicators>>((acc, ind) => {
     const type = (ind as any).indicator_type;
