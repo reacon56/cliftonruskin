@@ -3709,6 +3709,99 @@ export type Database = {
           },
         ]
       }
+      policy_simulation: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          id: string
+          name: string
+          org_id: string
+          proposed_rules_json: Json
+          ruleset_id: string | null
+          status: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          name?: string
+          org_id: string
+          proposed_rules_json?: Json
+          ruleset_id?: string | null
+          status?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          name?: string
+          org_id?: string
+          proposed_rules_json?: Json
+          ruleset_id?: string | null
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "policy_simulation_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organisations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "policy_simulation_ruleset_id_fkey"
+            columns: ["ruleset_id"]
+            isOneToOne: false
+            referencedRelation: "client_policy_ruleset"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      policy_simulation_result: {
+        Row: {
+          computed_at: string
+          current_outcome_json: Json | null
+          entity_id: string
+          has_change: boolean
+          id: string
+          proposed_outcome_json: Json
+          simulation_id: string
+        }
+        Insert: {
+          computed_at?: string
+          current_outcome_json?: Json | null
+          entity_id: string
+          has_change?: boolean
+          id?: string
+          proposed_outcome_json?: Json
+          simulation_id: string
+        }
+        Update: {
+          computed_at?: string
+          current_outcome_json?: Json | null
+          entity_id?: string
+          has_change?: boolean
+          id?: string
+          proposed_outcome_json?: Json
+          simulation_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "policy_simulation_result_entity_id_fkey"
+            columns: ["entity_id"]
+            isOneToOne: false
+            referencedRelation: "entities"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "policy_simulation_result_simulation_id_fkey"
+            columns: ["simulation_id"]
+            isOneToOne: false
+            referencedRelation: "policy_simulation"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       products: {
         Row: {
           base_price: number
