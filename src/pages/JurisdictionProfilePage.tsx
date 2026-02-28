@@ -11,6 +11,7 @@ import { countryCodeToFlag } from "@/lib/country-flag";
 import { format } from "date-fns";
 import JurisdictionSubscribeToggle from "@/components/JurisdictionSubscribeToggle";
 import FreshnessBadge from "@/components/FreshnessBadge";
+import SourceViewer from "@/components/SourceViewer";
 import { useCadenceRules } from "@/components/CountryCard";
 import { computeFreshness, computeOverallFreshness, type FreshnessStatus } from "@/lib/freshness-utils";
 
