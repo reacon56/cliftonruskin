@@ -462,6 +462,12 @@ export default function CaseDetailPage() {
               <CaseActivityTimeline caseData={caseData} messages={[]} deliverables={deliverables} auditEvents={auditEvents} currentUserId={user?.id} />
             </div>
 
+            {/* Universal Audit Trail */}
+            <div className="rounded-lg border bg-card p-4">
+              <h3 className="font-display text-sm font-semibold text-foreground mb-3">Full Audit Trail</h3>
+              <UniversalAuditTimeline caseId={id!} limit={200} />
+            </div>
+
             {showReport && deliverables.length > 0 && (
               <div className="rounded-lg border bg-card p-4">
                 <AssuranceNoteReport entityName={entity?.name ?? "Entity"} caseDate={caseData.created_at} riskTier={entity?.risk_tier}
