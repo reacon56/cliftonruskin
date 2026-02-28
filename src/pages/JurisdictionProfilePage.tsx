@@ -181,21 +181,33 @@ export default function JurisdictionProfilePage() {
                   <TableHead>Value</TableHead>
                   <TableHead>Effective Date</TableHead>
                   <TableHead>Retrieved</TableHead>
+                  <TableHead>Freshness</TableHead>
                   <TableHead>Source</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {Object.entries(grouped).map(([type, inds]) =>
-                  inds.map((ind: any, idx: number) => (
-                    <TableRow key={ind.id}>
-                      {idx === 0 && (
-                        <TableCell rowSpan={inds.length} className="font-medium text-sm align-top">
-                          <Badge variant="outline" className="text-[10px]">{INDICATOR_LABELS[type] || type}</Badge>
+                  inds.map((ind: any, idx: number) => {
+                    const rule = cadenceRules?.get(type);
+                    const fresh = computeFreshness(ind.retrieved_at, rule);
+                    return (
+                      <TableRow key={ind.id}>
+                        {idx === 0 && (
+                          <TableCell rowSpan={inds.length} className="font-medium text-sm align-top">
+                            <Badge variant="outline" className="text-[10px]">{INDICATOR_LABELS[type] || type}</Badge>
+                          </TableCell>
+                        )}
+                        <TableCell className="text-sm">{formatValue(ind.value_json)}</TableCell>
+                        <TableCell className="text-xs text-muted-foreground">{format(new Date(ind.effective_date), "dd MMM yyyy")}</TableCell>
+                        <TableCell className="text-xs text-muted-foreground">{format(new Date(ind.retrieved_at), "dd MMM yyyy")}</TableCell>
+                        <TableCell>
+                          <FreshnessBadge
+                            status={fresh.status}
+                            retrievedAt={ind.retrieved_at}
+                            maxDays={fresh.maxDays}
+                            showLabel
+                          />
                         </TableCell>
-                      )}
-                      <TableCell className="text-sm">{formatValue(ind.value_json)}</TableCell>
-                      <TableCell className="text-xs text-muted-foreground">{format(new Date(ind.effective_date), "dd MMM yyyy")}</TableCell>
-                      <TableCell className="text-xs text-muted-foreground">{format(new Date(ind.retrieved_at), "dd MMM yyyy")}</TableCell>
                       <TableCell className="text-xs">
                         {ind.source_url ? (
                           <a href={ind.source_url} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline flex items-center gap-1">
