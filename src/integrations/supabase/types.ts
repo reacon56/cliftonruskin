@@ -331,35 +331,64 @@ export type Database = {
       audit_events: {
         Row: {
           action_type: string
+          case_id: string | null
           created_at: string
+          entity_id: string | null
+          event_summary: string | null
           id: string
+          is_internal: boolean
           metadata: Json | null
           object_id: string | null
           object_type: string
           org_id: string | null
+          report_id: string | null
           user_id: string | null
         }
         Insert: {
           action_type: string
+          case_id?: string | null
           created_at?: string
+          entity_id?: string | null
+          event_summary?: string | null
           id?: string
+          is_internal?: boolean
           metadata?: Json | null
           object_id?: string | null
           object_type: string
           org_id?: string | null
+          report_id?: string | null
           user_id?: string | null
         }
         Update: {
           action_type?: string
+          case_id?: string | null
           created_at?: string
+          entity_id?: string | null
+          event_summary?: string | null
           id?: string
+          is_internal?: boolean
           metadata?: Json | null
           object_id?: string | null
           object_type?: string
           org_id?: string | null
+          report_id?: string | null
           user_id?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "audit_events_case_id_fkey"
+            columns: ["case_id"]
+            isOneToOne: false
+            referencedRelation: "cases"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "audit_events_entity_id_fkey"
+            columns: ["entity_id"]
+            isOneToOne: false
+            referencedRelation: "entities"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "audit_events_org_id_fkey"
             columns: ["org_id"]
