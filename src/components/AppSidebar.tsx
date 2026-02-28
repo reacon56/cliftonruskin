@@ -74,6 +74,7 @@ export default function AppSidebar() {
   }
 
   clientNav.push(
+    { label: "Risk Methodology", path: "/methodology", icon: <BookOpen size={18} /> },
     { label: "Jurisdiction Alerts", path: "/client/alerts", icon: <Bell size={18} /> },
     { label: "Policy Mapping", path: "/client/policy", icon: <Shield size={18} /> },
     { label: "Audit Log", path: "/audit-log", icon: <ClipboardList size={18} /> },
