@@ -60,8 +60,13 @@ export default function CrRiskBandPanel({ entityId }: Props) {
         <CardTitle className="text-sm flex items-center gap-2">
           <Shield className={`h-4 w-4 ${style.text}`} />
           Clifton Ruskin Risk Assessment
-          <Badge variant="outline" className="text-[9px] ml-auto font-normal">
-            {result.engine_version}
+          <Badge
+            variant="outline"
+            className="text-[9px] ml-auto font-normal cursor-pointer hover:bg-muted"
+            onClick={() => navigate("/methodology")}
+            title="View risk methodology"
+          >
+            {result.engine_version} ↗
           </Badge>
         </CardTitle>
       </CardHeader>
