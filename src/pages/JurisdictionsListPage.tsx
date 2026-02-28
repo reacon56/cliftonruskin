@@ -1,14 +1,11 @@
 import { useState, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
-import { Card, CardContent } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Slider } from "@/components/ui/slider";
-import { Globe, Search, ChevronRight, AlertTriangle, ShieldCheck } from "lucide-react";
-import { countryCodeToFlag } from "@/lib/country-flag";
+import { Globe, Search } from "lucide-react";
+import CountryCard from "@/components/CountryCard";
 
 type Jurisdiction = {
   id: string;
