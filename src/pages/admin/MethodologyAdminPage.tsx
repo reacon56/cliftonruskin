@@ -45,8 +45,6 @@ export default function MethodologyAdminPage() {
       }));
     },
   });
-    },
-  });
 
   const createDocMutation = useMutation({
     mutationFn: async () => {
