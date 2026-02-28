@@ -59,6 +59,7 @@ import ClientSpendSummaryPage from "@/pages/ClientSpendSummaryPage";
 import IngestionSourcesPage from "@/pages/IngestionSourcesPage";
 import JurisdictionsListPage from "@/pages/JurisdictionsListPage";
 import JurisdictionProfilePage from "@/pages/JurisdictionProfilePage";
+import JurisdictionBriefPage from "@/pages/JurisdictionBriefPage";
 import AdminSourcesPage from "@/pages/admin/AdminSourcesPage";
 import AdminIngestionRunsPage from "@/pages/admin/AdminIngestionRunsPage";
 import AdminIngestionRunDetailPage from "@/pages/admin/AdminIngestionRunDetailPage";
