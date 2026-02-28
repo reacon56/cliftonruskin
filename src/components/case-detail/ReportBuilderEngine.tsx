@@ -109,6 +109,7 @@ export default function ReportBuilderEngine({ caseId, caseData, entity, isManage
   const [aiDecisions, setAiDecisions] = useState<{ key: string; status: "accepted" | "edited" | "rejected"; reviewer: string; decidedAt: string }[]>([]);
   const [preQaResult, setPreQaResult] = useState<PreQaReviewResult | null>(null);
   const [partnerEscalationCount, setPartnerEscalationCount] = useState(0);
+  const { versionId, versionNumber, locked: versionLocked } = useReportVersion(caseId, caseData?.org_id);
 
   /* ── load or create draft ── */
   const loadDraft = useCallback(async () => {
