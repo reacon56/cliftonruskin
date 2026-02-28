@@ -64,6 +64,7 @@ import AdminIngestionRunsPage from "@/pages/admin/AdminIngestionRunsPage";
 import AdminIngestionRunDetailPage from "@/pages/admin/AdminIngestionRunDetailPage";
 import ClientAlertsPage from "@/pages/ClientAlertsPage";
 import ClientPolicyPage from "@/pages/ClientPolicyPage";
+import SanctionsRegimesPage from "@/pages/admin/SanctionsRegimesPage";
 
 // Website pages
 import WebsiteLayout from "@/components/website/WebsiteLayout";
@@ -136,6 +137,7 @@ function AppRoutes() {
         <Route path="/admin/sources" element={<InternalRouteGuard managerOnly><AdminSourcesPage /></InternalRouteGuard>} />
         <Route path="/admin/ingestion-runs" element={<InternalRouteGuard managerOnly><AdminIngestionRunsPage /></InternalRouteGuard>} />
         <Route path="/admin/ingestion-runs/:id" element={<InternalRouteGuard managerOnly><AdminIngestionRunDetailPage /></InternalRouteGuard>} />
+        <Route path="/admin/sanctions-regimes" element={<InternalRouteGuard managerOnly><SanctionsRegimesPage /></InternalRouteGuard>} />
         <Route path="/cases/:id" element={<CaseDetailPage />} />
         <Route path="/cases/:caseId/modules/:moduleId" element={<ModuleWorkbenchPage />} />
         <Route path="/partner/tasks/:taskId" element={<PartnerTaskDetailPage />} />

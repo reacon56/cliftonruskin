@@ -5,7 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Globe, ExternalLink, Info, ArrowUp, ArrowDown, Minus, Clock } from "lucide-react";
+import { ArrowLeft, Globe, ExternalLink, Info, ArrowUp, ArrowDown, Minus, Clock, Shield } from "lucide-react";
 import { countryCodeToFlag } from "@/lib/country-flag";
 import { format } from "date-fns";
 import JurisdictionSubscribeToggle from "@/components/JurisdictionSubscribeToggle";
@@ -81,6 +81,20 @@ export default function JurisdictionProfilePage() {
         .select("*")
         .eq("jurisdiction_id", id!)
         .order("detected_at", { ascending: false });
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!id,
+  });
+
+  const { data: regimeClassifications = [] } = useQuery({
+    queryKey: ["jurisdiction-regimes", id],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("sanctions_regime_map")
+        .select("*")
+        .eq("jurisdiction_id", id!)
+        .order("authority");
       if (error) throw error;
       return data;
     },
@@ -180,6 +194,46 @@ export default function JurisdictionProfilePage() {
           )}
         </CardContent>
       </Card>
+
+      {/* Sanctions Regime Classifications */}
+      {regimeClassifications.length > 0 && (
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-base flex items-center gap-2">
+              <Shield className="h-4 w-4 text-primary" /> Sanctions Regime Classification
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            {regimeClassifications.map((rc: any) => (
+              <div key={rc.id} className="rounded-lg border p-3 space-y-1.5">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <Badge variant="outline" className="text-[10px]">{rc.authority}</Badge>
+                  <Badge
+                    variant={rc.regime_type === "COMPREHENSIVE" ? "destructive" : "secondary"}
+                    className="text-[10px]"
+                  >
+                    {rc.regime_type}
+                  </Badge>
+                  <span className="text-[10px] text-muted-foreground">
+                    Effective: {format(new Date(rc.effective_date), "dd MMM yyyy")}
+                  </span>
+                </div>
+                {rc.rationale_text && (
+                  <p className="text-xs text-muted-foreground leading-relaxed">{rc.rationale_text}</p>
+                )}
+                <div className="flex items-center gap-2 text-[10px] text-muted-foreground">
+                  <span className="italic">Classified by Clifton Ruskin using curated mapping</span>
+                  {rc.source_url && (
+                    <a href={rc.source_url} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline flex items-center gap-0.5">
+                      Source <ExternalLink className="h-2.5 w-2.5" />
+                    </a>
+                  )}
+                </div>
+              </div>
+            ))}
+          </CardContent>
+        </Card>
+      )}
 
       {/* What This Means */}
       <Card className="border-primary/20 bg-primary/5">

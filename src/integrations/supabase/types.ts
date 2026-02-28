@@ -4544,6 +4544,50 @@ export type Database = {
           },
         ]
       }
+      sanctions_regime_map: {
+        Row: {
+          authority: Database["public"]["Enums"]["sanctions_authority"]
+          created_at: string
+          effective_date: string
+          id: string
+          jurisdiction_id: string
+          last_reviewed_at: string
+          rationale_text: string | null
+          regime_type: Database["public"]["Enums"]["sanctions_regime_type"]
+          source_url: string | null
+        }
+        Insert: {
+          authority: Database["public"]["Enums"]["sanctions_authority"]
+          created_at?: string
+          effective_date?: string
+          id?: string
+          jurisdiction_id: string
+          last_reviewed_at?: string
+          rationale_text?: string | null
+          regime_type?: Database["public"]["Enums"]["sanctions_regime_type"]
+          source_url?: string | null
+        }
+        Update: {
+          authority?: Database["public"]["Enums"]["sanctions_authority"]
+          created_at?: string
+          effective_date?: string
+          id?: string
+          jurisdiction_id?: string
+          last_reviewed_at?: string
+          rationale_text?: string | null
+          regime_type?: Database["public"]["Enums"]["sanctions_regime_type"]
+          source_url?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sanctions_regime_map_jurisdiction_id_fkey"
+            columns: ["jurisdiction_id"]
+            isOneToOne: false
+            referencedRelation: "jurisdiction"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       saved_views: {
         Row: {
           created_at: string
@@ -4945,6 +4989,8 @@ export type Database = {
         | "LT"
         | "EXISTS"
         | "NOT_EXISTS"
+      sanctions_authority: "UK" | "EU" | "US"
+      sanctions_regime_type: "TARGETED" | "COMPREHENSIVE"
       sanctions_source: "UKSL" | "OFAC" | "EU_FSF"
     }
     CompositeTypes: {
@@ -5127,6 +5173,8 @@ export const Constants = {
         "EXISTS",
         "NOT_EXISTS",
       ],
+      sanctions_authority: ["UK", "EU", "US"],
+      sanctions_regime_type: ["TARGETED", "COMPREHENSIVE"],
       sanctions_source: ["UKSL", "OFAC", "EU_FSF"],
     },
   },
