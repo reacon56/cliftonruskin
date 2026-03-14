@@ -70,6 +70,7 @@ import SanctionsRegimesPage from "@/pages/admin/SanctionsRegimesPage";
 import MethodologyPage from "@/pages/MethodologyPage";
 import MethodologyAdminPage from "@/pages/admin/MethodologyAdminPage";
 import ClientOnboardingPage from "@/pages/ClientOnboardingPage";
+import ResetPasswordPage from "@/pages/ResetPasswordPage";
 
 // Website pages
 import WebsiteLayout from "@/components/website/WebsiteLayout";
@@ -111,6 +112,7 @@ function AppRoutes() {
       </Route>
 
       <Route path="/auth" element={user ? <Navigate to={defaultRoute} replace /> : <AuthPage />} />
+      <Route path="/reset-password" element={<ResetPasswordPage />} />
       
       {/* Partner portal — isolated layout */}
       <Route element={<ProtectedRoute><PartnerLayout /></ProtectedRoute>}>
