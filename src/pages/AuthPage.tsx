@@ -169,6 +169,33 @@ export default function AuthPage() {
             <Button type="submit" className="w-full h-11 text-[13px] font-medium tracking-wide" disabled={loading}>
               {loading ? "Please wait…" : isLogin ? "Sign in" : "Create account"}
             </Button>
+
+            {isLogin && (
+              <div className="text-center">
+                <button
+                  type="button"
+                  onClick={async () => {
+                    if (!email) {
+                      toast({ title: "Enter your email first", description: "We'll send a reset link to that address.", variant: "destructive" });
+                      return;
+                    }
+                    setLoading(true);
+                    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+                      redirectTo: `${window.location.origin}/reset-password`,
+                    });
+                    setLoading(false);
+                    if (error) {
+                      toast({ title: "Error", description: error.message, variant: "destructive" });
+                    } else {
+                      toast({ title: "Reset link sent", description: "Check your inbox for a password reset email." });
+                    }
+                  }}
+                  className="text-sm text-muted-foreground hover:text-accent transition-colors"
+                >
+                  Forgot your password?
+                </button>
+              </div>
+            )}
           </form>
 
           <p className="mt-8 text-center text-sm text-muted-foreground">

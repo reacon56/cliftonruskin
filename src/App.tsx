@@ -111,6 +111,7 @@ function AppRoutes() {
       </Route>
 
       <Route path="/auth" element={user ? <Navigate to={defaultRoute} replace /> : <AuthPage />} />
+      <Route path="/reset-password" element={<ResetPasswordPage />} />
       
       {/* Partner portal — isolated layout */}
       <Route element={<ProtectedRoute><PartnerLayout /></ProtectedRoute>}>
