@@ -141,13 +141,11 @@ const ISO3_TO_ISO2: Record<string, string> = {
 const REL_STYLES: Record<string, { color: string; opacity: number; weight: number; dashArray?: string }> = {
   ownership: { color: "#2E6DA4", opacity: 0.7, weight: 2 },
   director:  { color: "#7B3FA0", opacity: 0.6, weight: 1.5, dashArray: "4 4" },
-  operational: { color: "#1A6B3C", opacity: 0.5, weight: 1, dashArray: "2 4" },
 };
 
 const REL_LEGEND = [
   { label: "Ownership", color: "#2E6DA4", dash: "" },
   { label: "Director", color: "#7B3FA0", dash: "4 4" },
-  { label: "Operational", color: "#1A6B3C", dash: "2 4" },
 ];
 
 /** Build a curved arc between two points (great-circle approximation for Leaflet) */
