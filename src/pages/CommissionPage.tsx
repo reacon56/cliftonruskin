@@ -13,6 +13,7 @@ import { useToast } from "@/hooks/use-toast";
 import { ChevronRight, Check, AlertTriangle, Sparkles, Briefcase, Zap, Settings2, Clock, FileText } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
+import { requiresApproval } from "@/lib/approval-utils";
 import EnhancementSuggestionPanel from "@/components/EnhancementSuggestionPanel";
 import { useEntitlements } from "@/hooks/use-entitlements";
 import DpDeclarationStep, {
