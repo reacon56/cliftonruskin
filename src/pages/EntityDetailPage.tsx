@@ -172,6 +172,7 @@ export default function EntityDetailPage() {
           <TabsTrigger value="posture" className="gap-1">Commercial Posture</TabsTrigger>
           <TabsTrigger value="benchmark" className="gap-1">Jurisdiction Benchmark</TabsTrigger>
           <TabsTrigger value="deliverables">Deliverables ({deliverables.length + changeLogs.length})</TabsTrigger>
+          <TabsTrigger value="data-protection">Data Protection</TabsTrigger>
           <TabsTrigger value="activity">Activity</TabsTrigger>
         </TabsList>
 
