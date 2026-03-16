@@ -507,7 +507,10 @@ export default function ProgrammeSettingsPage() {
           )}
         </TabsContent>
 
-        <TabsContent value="audit" className="mt-4">
+        <TabsContent value="profile" className="mt-4">
+          <ProgrammeProfilePanel orgId={selectedOrgId} canEdit={canEdit} />
+        </TabsContent>
+
           <Card>
             <CardHeader>
               <CardTitle className="text-lg">Programme Audit Log</CardTitle>
