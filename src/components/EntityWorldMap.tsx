@@ -180,15 +180,27 @@ export default function EntityWorldMap({ entities, expanded }: Props) {
     tileLayerRef.current = L.tileLayer(tileUrl, { maxZoom: 18 }).addTo(map);
   }, [tileUrl]);
 
+  // Invalidate size when expanded changes (Leaflet needs to recalculate)
+  useEffect(() => {
+    if (!expanded || !leafletMap.current) return;
+    const timer = setTimeout(() => {
+      leafletMap.current?.invalidateSize();
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [expanded]);
+
   return (
-    <div className="relative">
+    <div className="relative" style={expanded ? { height: "calc(85vh - 120px)", width: "100%" } : undefined}>
       <div className="absolute top-2 right-2 z-[500]">
         <BasemapCycleToggle basemap={basemap} onCycle={cycleBasemap} />
       </div>
       <div
         ref={mapRef}
-        className="w-full h-[360px] rounded-lg overflow-hidden border border-border"
-        style={{ background: basemap === "classic" ? "hsl(0 0% 96%)" : "hsl(220 30% 8%)" }}
+        className={cn("w-full rounded-lg overflow-hidden border border-border", expanded ? "" : "h-[360px]")}
+        style={{
+          background: basemap === "classic" ? "hsl(0 0% 96%)" : "hsl(220 30% 8%)",
+          ...(expanded ? { height: "100%" } : {}),
+        }}
       />
     </div>
   );
