@@ -182,6 +182,17 @@ export default function SanctionsRegimesPage() {
         </Button>
       </div>
 
+      <RegChangeAlertBanner
+        alertId="russia-sanctions-2019"
+        text="Russia Sanctions — 2019 Regulations Amended: The Russia (Sanctions) (EU Exit) Regulations 2019 have been amended multiple times since Brexit. The current UK regime diverges materially from OFAC designations. Entities delisted by OFAC may remain designated under UK sanctions and vice versa."
+        dateText="Verify current designations"
+      />
+
+      <KnowledgePanelWidget
+        pageId="sanctions-regimes-ukvsofac"
+        title="UK Sanctions vs OFAC — Why You Need Both"
+        sections={SANCTIONS_KNOWLEDGE}
+      />
       <Card>
         <CardHeader className="pb-3">
           <CardTitle className="text-base">All Classifications</CardTitle>
