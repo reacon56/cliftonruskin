@@ -106,7 +106,7 @@ function AppRoutes() {
         <Route path="/about" element={<AboutPage />} />
         <Route path="/services" element={<ServicesPage />} />
         <Route path="/sectors" element={<SectorsPage />} />
-        <Route path="/insights" element={<InsightsPage />} />
+        <Route path="/insights" element={<Navigate to="/observations" replace />} />
         <Route path="/observations" element={<ObservationsPage />} />
         <Route path="/contact" element={<ContactPage />} />
       </Route>
