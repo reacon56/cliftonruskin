@@ -192,10 +192,16 @@ export default function EntityMapView({ entities, highlightId }: Props) {
   const navigate = useNavigate();
   const [pinType, setPinType] = useState<"registered" | "hq">("registered");
   const [selected, setSelected] = useState<Entity | null>(null);
-  const { basemap, cycleBasemap, tileUrl } = useMapTheme();
+  const { basemap, setBasemap, cycleBasemap, tileUrl } = useMapTheme();
   const [riskOverlay, setRiskOverlay] = useState(false);
   const [ownershipOverlay, setOwnershipOverlay] = useState(false);
   const [ownershipFilterEntity, setOwnershipFilterEntity] = useState<string>("all");
+  const isMobile = useIsMobile();
+
+  // Premises fly-to state
+  const [premisesView, setPremisesView] = useState(false);
+  const premisesLabelRef = useRef<L.Marker | null>(null);
+  const preFlyStateRef = useRef<{ center: L.LatLng; zoom: number; basemap: MapBasemap } | null>(null);
 
   // In-map filters
   const [tierFilter, setTierFilter] = useState<string>("All Tiers");
