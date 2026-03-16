@@ -4,13 +4,14 @@ import "leaflet/dist/leaflet.css";
 import "leaflet.markercluster";
 import "leaflet.markercluster/dist/MarkerCluster.css";
 import "leaflet.markercluster/dist/MarkerCluster.Default.css";
-import { useMapTheme, BasemapCycleToggle } from "@/hooks/use-map-theme";
+import { useMapTheme, BasemapCycleToggle, type MapBasemap } from "@/hooks/use-map-theme";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { X, Layers, Share2 } from "lucide-react";
+import { X, Layers, Share2, ArrowLeft, Building2 } from "lucide-react";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 interface Entity {
   id: string;
