@@ -159,7 +159,7 @@ export default function EntityWorldMap({ entities, expanded, onEntityClick }: Pr
       if (lat === undefined || lng === undefined) return;
 
       const icon = createEntityIcon(entity.risk_tier);
-      L.marker([lat, lng], { icon })
+      const marker = L.marker([lat, lng], { icon })
         .bindTooltip(
           buildEntityTooltipHtml({
             ...entity,
@@ -172,7 +172,11 @@ export default function EntityWorldMap({ entities, expanded, onEntityClick }: Pr
           { direction: "top", offset: [0, -14], className: "leaflet-tooltip-entity" }
         )
         .addTo(map);
-    });
+
+      if (onEntityClick) {
+        marker.on("click", () => onEntityClick(entity.id));
+        marker.getElement()?.style.setProperty("cursor", "pointer");
+      }
   }, [entities]);
 
   // Swap tile layer on theme change
