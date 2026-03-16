@@ -227,6 +227,77 @@ export default function CommissionPage() {
     }
   };
 
+  const getDefaultProduct = (riskTier: string) => {
+    if (riskTier === "a") return "Assurance Dossier";
+    return "Assurance Note";
+  };
+
+  const getDefaultProductLabel = (riskTier: string) => {
+    if (riskTier === "a") return "Assurance Dossier (Enhanced)";
+    if (riskTier === "b") return "Assurance Note (Standard)";
+    return "Assurance Note (Basic)";
+  };
+
+  const handleQuickCommission = async () => {
+    if (!profile?.org_id || !user || !form.entity_id) return;
+    setQuickCommissioning(true);
+
+    const selectedEntity = entities.find((e: any) => e.id === form.entity_id);
+    if (!selectedEntity) { setQuickCommissioning(false); return; }
+
+    const product = getDefaultProduct(selectedEntity.risk_tier);
+    const price = PRICING[product]?.standard ?? 1500;
+
+    const { data: insertedCase, error } = await supabase.from("cases").insert({
+      org_id: profile.org_id,
+      entity_id: form.entity_id,
+      requested_by: user.id,
+      product_type: product,
+      priority: "standard",
+      scope_notes: "Quick commission — standard policy defaults applied.",
+      status: "scheduled",
+      price_estimate: price,
+      sla_days: 10,
+      requires_personal_data: true,
+      processing_purpose: "Due diligence screening under organisational policy",
+      minimisation_confirmed: true,
+      dp_risk_level: "low",
+      dp_review_required: false,
+    } as any).select("id").single();
+
+    if (error) {
+      toast({ title: "Error", description: error.message, variant: "destructive" });
+      setQuickCommissioning(false);
+      return;
+    }
+
+    await supabase.from("audit_events").insert({
+      user_id: user.id,
+      org_id: profile.org_id,
+      action_type: "CASE_SCHEDULED",
+      object_type: "case",
+      object_id: insertedCase?.id,
+      metadata: {
+        product_type: product,
+        priority: "standard",
+        entity_name: selectedEntity.name,
+        price_estimate: price,
+        quick_commission: true,
+      },
+    });
+
+    toast({
+      title: "✓ Case commissioned successfully",
+      description: "Your CR team will be in touch within 24 hours.",
+    });
+
+    if (insertedCase?.id) {
+      navigate(`/cases/${insertedCase.id}`);
+    } else {
+      navigate("/dashboard");
+    }
+  };
+
   const canNext = () => {
     if (step === 0) return !!form.entity_id;
     if (step === 1) return !!form.product_type;
