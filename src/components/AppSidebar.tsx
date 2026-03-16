@@ -267,23 +267,37 @@ export default function AppSidebar() {
             )}
           </Button>
         )}
-        <Button
-          size="sm"
-          onClick={toggleTheme}
-          className="w-full justify-start gap-2 text-sidebar-foreground/40 hover:text-sidebar-foreground hover:bg-sidebar-accent/40 transition-colors duration-200"
-        >
-          {theme === "dark" ? <Sun size={15} /> : <Moon size={15} />}
-          {!collapsed && <span className="text-[13px]">{theme === "dark" ? "Light mode" : "Dark mode"}</span>}
-        </Button>
         {!collapsed && profile && (
-          <div className="px-1">
-            <div className="text-xs font-medium text-sidebar-foreground truncate">
-              {profile.full_name || profile.email}
+          <div className="px-1 flex items-center gap-2">
+            <div className="flex-1 min-w-0">
+              <div className="text-xs font-medium text-sidebar-foreground truncate">
+                {profile.full_name || profile.email}
+              </div>
+              <div className="text-[10px] text-sidebar-foreground/40 truncate mt-0.5">
+                {profile.email}
+              </div>
             </div>
-            <div className="text-[10px] text-sidebar-foreground/40 truncate mt-0.5">
-              {profile.email}
-            </div>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={toggleTheme}
+              className="h-7 w-7 p-0 shrink-0 text-sidebar-foreground/40 hover:text-sidebar-foreground hover:bg-sidebar-accent/40 transition-colors duration-200"
+              title={theme === "dark" ? "Light mode" : "Dark mode"}
+            >
+              {theme === "dark" ? <Sun size={14} /> : <Moon size={14} />}
+            </Button>
           </div>
+        )}
+        {collapsed && (
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={toggleTheme}
+            className="w-full justify-center p-0 h-8 text-sidebar-foreground/40 hover:text-sidebar-foreground hover:bg-sidebar-accent/40 transition-colors duration-200"
+            title={theme === "dark" ? "Light mode" : "Dark mode"}
+          >
+            {theme === "dark" ? <Sun size={14} /> : <Moon size={14} />}
+          </Button>
         )}
         <Button
           variant="ghost"
