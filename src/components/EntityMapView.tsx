@@ -54,8 +54,8 @@ const RISK_SCALE = [
 
 function riskColor(score: number | null): { color: string; opacity: number; stroke: string; strokeWidth: number } {
   if (score === null || score === undefined) return { color: "transparent", opacity: 0, stroke: "transparent", strokeWidth: 0 };
-  const stroke = "rgba(255,255,255,0.6)";
-  const strokeWidth = 1.5;
+  const stroke = "rgba(255,255,255,0.5)";
+  const strokeWidth = 1;
   if (score >= 85) return { color: "#991B1B", opacity: 0.7, stroke, strokeWidth };
   if (score >= 70) return { color: "#DC2626", opacity: 0.7, stroke, strokeWidth };
   if (score >= 50) return { color: "#D97706", opacity: 0.7, stroke, strokeWidth };
@@ -63,30 +63,50 @@ function riskColor(score: number | null): { color: string; opacity: number; stro
   return { color: "#15803D", opacity: 0.7, stroke, strokeWidth };
 }
 
-function computeJurisdictionScore(indicators: Array<{ indicator_type: string; value_json: any }>): number {
-  let score = 0;
-  for (const ind of indicators) {
-    const vj = ind.value_json;
-    const type = ind.indicator_type;
-    if (type === "FATF_STATUS") {
-      const status = (vj?.status || "").toUpperCase();
-      if (status === "CALL_FOR_ACTION" || status === "BLACKLISTED") score += 50;
-      else if (status === "MONITORING" || status === "INCREASED_MONITORING") score += 25;
-    } else if (type === "EU_AML_HRTC") {
-      if (vj?.status === "listed" || vj?.listed === true) score += 25;
-    } else if (type.startsWith("SANCTIONS_")) {
-      const status = (vj?.status || "").toLowerCase();
-      if (status === "active" || status === "comprehensive") score += 40;
-      else if (status === "targeted") score += 20;
-    } else if (type === "CPI_SCORE") {
-      const cpi = vj?.score;
-      if (typeof cpi === "number") {
-        const riskContrib = Math.max(0, 100 - cpi);
-        if (riskContrib > 70) score += 10;
-      }
-    }
+/** Hardcoded jurisdiction risk scores — used as canonical source */
+const JURISDICTION_RISK_SCORES: Record<string, number> = {
+  RU: 92, CN: 78, NG: 72, KY: 68, SA: 71, PA: 62, VG: 66,
+  HK: 55, BR: 58, IN: 52, ZA: 63, AE: 65, SG: 38,
+  CH: 22, DE: 18, LU: 15, SE: 12, GB: 20, US: 25,
+};
+
+/** Country name → ISO2 mapping for GeoJSON name-based matching */
+const NAME_TO_ISO2: Record<string, string> = {
+  "russia": "RU", "russian federation": "RU",
+  "china": "CN", "people's republic of china": "CN",
+  "nigeria": "NG", "cayman islands": "KY", "cayman is.": "KY",
+  "saudi arabia": "SA", "panama": "PA",
+  "british virgin islands": "VG", "virgin islands, british": "VG", "b.v.i.": "VG", "bvi": "VG",
+  "hong kong": "HK", "hong kong sar": "HK", "hong kong s.a.r.": "HK",
+  "brazil": "BR", "india": "IN", "south africa": "ZA",
+  "united arab emirates": "AE", "singapore": "SG",
+  "switzerland": "CH", "germany": "DE", "luxembourg": "LU",
+  "sweden": "SE", "united kingdom": "GB", "united states": "US",
+  "united states of america": "US",
+};
+
+/** Extract ISO2 code from a GeoJSON feature using multiple property keys */
+function featureToIso2(props: any): string | null {
+  if (!props) return null;
+  // Try direct ISO2 keys
+  const directIso2 = props.ISO_A2 || props.iso_a2;
+  if (directIso2 && directIso2 !== "-99") return directIso2.toUpperCase();
+  // Try ISO3 → ISO2 conversion
+  const iso3 = props.ISO_A3 || props.iso_a3 || props.ADM0_A3;
+  if (iso3 && ISO3_TO_ISO2[iso3]) return ISO3_TO_ISO2[iso3];
+  if (iso3 && iso3.length === 3) {
+    // Try first 2 chars as fallback (rare)
+    const guess = iso3.substring(0, 2).toUpperCase();
+    if (JURISDICTION_RISK_SCORES[guess] !== undefined) return guess;
   }
-  return Math.min(100, score);
+  // Try name-based matching
+  const nameFields = [props.name, props.NAME, props.ADMIN, props.admin, props.NAME_LONG, props.name_long, props.SOVEREIGNT];
+  for (const n of nameFields) {
+    if (!n) continue;
+    const lower = n.toLowerCase().trim();
+    if (NAME_TO_ISO2[lower]) return NAME_TO_ISO2[lower];
+  }
+  return null;
 }
 
 const GEOJSON_URL = "https://raw.githubusercontent.com/datasets/geo-countries/master/data/countries.geojson";
