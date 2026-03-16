@@ -5,6 +5,7 @@ import { MapPin, Copy, ExternalLink } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { useMapTheme, BasemapCycleToggle } from "@/hooks/use-map-theme";
+import { createEntityIcon } from "@/lib/map-pin-icons";
 
 interface Props {
   entity: any;
