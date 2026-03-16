@@ -10,6 +10,7 @@ import {
   DollarSign, Bell, Sparkles, Settings,
 } from "lucide-react";
 import ManagerNavGroups from "@/components/sidebar/ManagerNavGroups";
+import OfficerNavSections from "@/components/sidebar/OfficerNavSections";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
