@@ -45,21 +45,22 @@ const TYPE_OPTIONS = ["All Types", "Supplier", "Partner", "Target"] as const;
 
 /* ── Jurisdiction Risk Overlay colours ── */
 const RISK_SCALE = [
-  { label: "Critical (85-100)", color: "#8B0000", opacity: 0.5 },
-  { label: "High (70-84)", color: "#C0392B", opacity: 0.45 },
-  { label: "Medium-High (50-69)", color: "#D4750A", opacity: 0.4 },
-  { label: "Medium (30-49)", color: "#F0B429", opacity: 0.35 },
-  { label: "Low (0-29)", color: "#27AE60", opacity: 0.3 },
-  { label: "No data", color: "#9CA3AF", opacity: 0.15 },
+  { label: "Critical (85-100)", color: "#991B1B", opacity: 0.7 },
+  { label: "High (70-84)", color: "#DC2626", opacity: 0.7 },
+  { label: "Medium-High (50-69)", color: "#D97706", opacity: 0.7 },
+  { label: "Medium (30-49)", color: "#CA8A04", opacity: 0.7 },
+  { label: "Low (0-29)", color: "#15803D", opacity: 0.7 },
 ];
 
-function riskColor(score: number | null): { color: string; opacity: number } {
-  if (score === null || score === undefined) return { color: "#9CA3AF", opacity: 0.15 };
-  if (score >= 85) return { color: "#8B0000", opacity: 0.5 };
-  if (score >= 70) return { color: "#C0392B", opacity: 0.45 };
-  if (score >= 50) return { color: "#D4750A", opacity: 0.4 };
-  if (score >= 30) return { color: "#F0B429", opacity: 0.35 };
-  return { color: "#27AE60", opacity: 0.3 };
+function riskColor(score: number | null): { color: string; opacity: number; stroke: string; strokeWidth: number } {
+  if (score === null || score === undefined) return { color: "transparent", opacity: 0, stroke: "transparent", strokeWidth: 0 };
+  const stroke = "rgba(255,255,255,0.6)";
+  const strokeWidth = 1.5;
+  if (score >= 85) return { color: "#991B1B", opacity: 0.7, stroke, strokeWidth };
+  if (score >= 70) return { color: "#DC2626", opacity: 0.7, stroke, strokeWidth };
+  if (score >= 50) return { color: "#D97706", opacity: 0.7, stroke, strokeWidth };
+  if (score >= 30) return { color: "#CA8A04", opacity: 0.7, stroke, strokeWidth };
+  return { color: "#15803D", opacity: 0.7, stroke, strokeWidth };
 }
 
 function computeJurisdictionScore(indicators: Array<{ indicator_type: string; value_json: any }>): number {
