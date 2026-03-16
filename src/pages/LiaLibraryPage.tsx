@@ -670,9 +670,14 @@ export default function LiaLibraryPage() {
         <div className="fvc-card text-center py-12">
           <Shield size={32} className="mx-auto text-muted-foreground/30 mb-3" />
           <h3 className="fvc-heading-3 text-foreground mb-1">No templates yet</h3>
-          <p className="text-sm text-muted-foreground">
-            {canEdit ? "Create your first Master LIA template to get started." : "No Master LIA templates have been created."}
+          <p className="text-sm text-muted-foreground mb-4">
+            {canEdit ? "Create your first Master LIA template or load our pre-built DUAA 2025-compliant templates." : "No Master LIA templates have been created."}
           </p>
+          {canEdit && (
+            <Button variant="outline" className="gap-1.5" onClick={seedPrebuiltTemplates} disabled={seeding}>
+              <BookTemplate size={14} /> {seeding ? "Loading…" : "Load Pre-built Templates (DUAA 2025)"}
+            </Button>
+          )}
         </div>
       ) : (
         <div className="space-y-2">
