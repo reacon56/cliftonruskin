@@ -125,37 +125,40 @@ const PURPOSES = [
 
 const LIA_KNOWLEDGE_SECTIONS: KnowledgeSection[] = [
   {
-    title: "What is a Master LIA?",
+    title: "What is a Legitimate Interests Assessment?",
     type: "text",
     content:
-      "A Legitimate Interests Assessment (LIA) is a structured analysis required under Article 6(1)(f) UK GDPR whenever an organisation relies on legitimate interests as its lawful basis for processing personal data. Master LIA templates are organisation-level assessments that are completed once and referenced by individual cases.",
+      "A Legitimate Interests Assessment (LIA) is the documented process by which an organisation establishes that its use of personal data is lawful under Article 6(1)(f) of the UK GDPR. It involves three questions: Is there a genuine legitimate interest? Is the processing necessary to achieve it? Do the individual's rights override that interest?\n\nIn a due diligence context, you process personal data about company directors, beneficial owners, and other individuals connected to third parties you screen. An LIA documents why you are entitled to do this.",
   },
   {
-    title: "DUAA 2025 — What Changed",
+    title: "Why a Master Template?",
+    type: "text",
+    content:
+      "A Master LIA is completed once at the programme level and referenced across all individual cases of that type. This is more defensible than completing a fresh LIA for each case — it demonstrates a systematic, policy-led approach to data protection rather than ad-hoc decisions.\n\nThe ICO recommends a programmatic approach for organisations conducting regular third-party screening. Your Master LIA Templates are the foundation of that approach.",
+  },
+  {
+    title: "Legislative Reference",
     type: "quote",
     content:
-      'The Data (Use and Access) Act 2025 introduced Article 6(1)(ea) — a new "Recognised Legitimate Interests" basis for processing that is specifically directed at crime prevention and detection. Where this basis applies, the traditional balancing test is not legally required, although documenting it remains best practice.',
+      "UK GDPR Article 6(1)(f): Processing is lawful where it is necessary for the purposes of the legitimate interests pursued by the controller or by a third party, except where such interests are overridden by the interests or fundamental rights and freedoms of the data subject.",
   },
   {
-    title: "When to Use Each Template",
-    type: "keyvalue",
-    pairs: [
-      { key: "Standard DD", value: "Routine third-party checks — Tier B/C entities, low-risk jurisdictions" },
-      { key: "Enhanced CI", value: "High-risk entities, Tier A, EDD-triggered cases, PEP/sanctions hits" },
-      { key: "PEP & Sanctions", value: "Dedicated screening-only cases or ongoing monitoring programmes" },
-    ],
-  },
-  {
-    title: "Regulatory Context",
+    title: "The DUAA 2025 Change — What It Means",
     type: "text",
     content:
-      "These templates are calibrated to UK GDPR as amended by the Data (Use and Access) Act 2025 (in force 5 February 2026). The UK adequacy decision was renewed on 19 December 2025 until 27 December 2031 — no additional transfer mechanism is required for EU data subjects.",
+      "The Data (Use and Access) Act 2025, in force from 5 February 2026, introduced a seventh lawful basis: Recognised Legitimate Interests (Article 6(1)(ea) UK GDPR).\n\nFor organisations conducting due diligence specifically directed at crime prevention or fraud detection, processing under this basis removes the requirement to complete the balancing test. The EU-UK adequacy decision was renewed on 19 December 2025 until 2031, so EU-subject data transfers remain unaffected.\n\nPractical implication: your PEP and Sanctions Screening template may now rely on Article 6(1)(ea) as its primary basis, removing the need for a balancing test where processing is directed at financial crime prevention.",
   },
   {
-    title: "Version Control",
+    title: "What Happens Without This?",
     type: "text",
     content:
-      "Templates are versioned. When legislation changes or your programme evolves, create a new version rather than editing an active template. The previous version is automatically marked as superseded, maintaining a full audit trail.",
+      "Without documented LIA templates, your organisation cannot demonstrate compliance with the ICO's accountability principle (Article 5(2) UK GDPR). In the event of an ICO investigation following a data subject complaint, the absence of documented lawful basis is the most common finding.\n\nFor SRA-regulated firms: the SRA's AML Standards 2023 require documented processing records for all CDD/EDD activities. A Master LIA template satisfies this requirement programmatically rather than case-by-case.\n\nCR's pre-built templates are updated to reflect current legislation. The DUAA 2025 versions were reviewed by our compliance team against ICO guidance current as of March 2026.",
+  },
+  {
+    title: "Disclaimer",
+    type: "text",
+    content:
+      "This guidance reflects UK GDPR and DUAA 2025. For EU-established entities, equivalent obligations exist under EU GDPR Article 6 and applicable national implementations. This is not legal advice — consult your DPO or legal counsel for jurisdiction-specific requirements.",
   },
 ];
 
