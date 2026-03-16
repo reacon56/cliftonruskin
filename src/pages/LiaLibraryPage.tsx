@@ -669,11 +669,21 @@ export default function LiaLibraryPage() {
 
   return (
     <div>
-      <div className="flex items-start justify-between mb-8">
+      <div className="flex items-start justify-between mb-4">
         <div>
-          <h1 className="fvc-heading-1 text-foreground">Master LIA Templates</h1>
+          <div className="flex items-center gap-2">
+            <h1 className="fvc-heading-1 text-foreground">Master LIA Templates</h1>
+            <RegChangeDot alertId={DUAA_ALERT_ID} onReshow={() => setAlertKey((k) => k + 1)} />
+          </div>
           <div className="fvc-gold-rule mt-3 mb-2" />
-          <p className="text-sm text-muted-foreground">Organisation-level Legitimate Interests Assessments — finalise once, reference per case</p>
+          <div className="flex items-center gap-3">
+            <p className="text-sm text-muted-foreground">Organisation-level Legitimate Interests Assessments — finalise once, reference per case</p>
+            <KnowledgePanelWidget
+              pageId="lia-library"
+              title="Master LIA Templates — Why They Matter"
+              sections={LIA_KNOWLEDGE_SECTIONS}
+            />
+          </div>
         </div>
         {canEdit && (
           <Button onClick={() => { setForm(INITIAL_FORM); setCreateOpen(true); }} className="gap-1.5">
@@ -681,6 +691,13 @@ export default function LiaLibraryPage() {
           </Button>
         )}
       </div>
+
+      {/* RegChange Alert Banner */}
+      <RegChangeAlertBanner
+        alertId={DUAA_ALERT_ID}
+        text="The Data (Use and Access) Act 2025 came into force on 5 February 2026, introducing a new seventh lawful basis — Recognised Legitimate Interests — which affects how LIA templates should be structured for financial crime prevention purposes."
+        dateText="In force: 5 February 2026"
+      />
 
       {/* Info banner */}
       <div className="flex items-start gap-3 p-3.5 rounded-lg border border-border bg-muted/30 mb-6">
