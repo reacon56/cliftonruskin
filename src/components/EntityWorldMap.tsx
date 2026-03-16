@@ -88,11 +88,7 @@ interface Props {
   entities: Entity[];
 }
 
-const tierMarkerColor = (tier: string) => {
-  if (tier === "A") return "#ef4444";
-  if (tier === "B") return "#d97706";
-  return "#22c55e";
-};
+// tierMarkerColor now imported from map-pin-icons
 
 export default function EntityWorldMap({ entities }: Props) {
   const mapRef = useRef<HTMLDivElement>(null);
