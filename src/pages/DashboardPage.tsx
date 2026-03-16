@@ -26,7 +26,9 @@ import ProgrammeHealthIndicator from "@/components/dashboard/ProgrammeHealthIndi
 import ManagerDashboardView from "@/components/dashboard/ManagerDashboardView";
 import MonitoringAlertsCard from "@/components/dashboard/MonitoringAlertsCard";
 import JurisdictionImpactCard from "@/components/dashboard/JurisdictionImpactCard";
+import ExpandableTile from "@/components/dashboard/ExpandableTile";
 import { useViewMode } from "@/contexts/ViewModeContext";
+
 interface DashboardStats {
   totalEntities: number;
   dueSoon: number;
@@ -263,6 +265,174 @@ export default function DashboardPage() {
     return "bg-success/10 text-success";
   };
 
+  /* --- Expanded content helpers --- */
+
+  // Risk Distribution expanded
+  const riskDistributionExpanded = (
+    <div className="space-y-6">
+      <div className="flex justify-center">
+        <div className="w-72 h-72">
+          <RiskDistributionChart entities={allEntities} />
+        </div>
+      </div>
+      <div>
+        <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-3">Entity Breakdown</h4>
+        <div className="border border-border rounded-lg overflow-hidden">
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="border-b border-border bg-muted/30">
+                <th className="text-left p-3 text-xs font-medium text-muted-foreground">Entity</th>
+                <th className="text-left p-3 text-xs font-medium text-muted-foreground">Risk Tier</th>
+                <th className="text-left p-3 text-xs font-medium text-muted-foreground">Country</th>
+              </tr>
+            </thead>
+            <tbody>
+              {allEntities.map((e: any) => (
+                <tr key={e.id} className="border-b border-border/50 last:border-0 cursor-pointer hover:bg-muted/30" onClick={() => navigate(`/entities/${e.id}`)}>
+                  <td className="p-3 text-foreground font-medium">{e.name}</td>
+                  <td className="p-3"><Badge className={`fvc-status-badge ${tierColor(e.risk_tier)}`}>Tier {e.risk_tier}</Badge></td>
+                  <td className="p-3 text-muted-foreground">{e.country || "—"}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  );
+
+  // Programme Health expanded
+  const programmeHealthExpanded = (
+    <div className="space-y-6">
+      <ProgrammeHealthIndicator
+        compliancePct={stats.compliancePct}
+        overdueCount={stats.overdue}
+        activeCases={stats.activeCases}
+        highAlerts={stats.highAlerts}
+        totalEntities={stats.totalEntities}
+      />
+      <div className="grid md:grid-cols-3 gap-4">
+        <div className="rounded-lg border border-border p-4">
+          <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2">Policy Compliance</h4>
+          <div className="text-3xl font-display font-bold text-foreground">{stats.compliancePct}%</div>
+          <div className="text-xs text-muted-foreground mt-1">{stats.totalEntities - stats.overdue} of {stats.totalEntities} entities in-date</div>
+        </div>
+        <div className="rounded-lg border border-border p-4">
+          <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2">Active Cases</h4>
+          <div className="text-3xl font-display font-bold text-foreground">{stats.activeCases}</div>
+          <div className="text-xs text-muted-foreground mt-1">{stats.completedThisMonth} completed this month</div>
+        </div>
+        <div className="rounded-lg border border-border p-4">
+          <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2">Overdue Reviews</h4>
+          <div className="text-3xl font-display font-bold text-foreground text-destructive">{stats.overdue}</div>
+          <div className="text-xs text-muted-foreground mt-1">{stats.highAlerts} high-severity alerts</div>
+        </div>
+      </div>
+      {overdueEntities.length > 0 && (
+        <div>
+          <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-3">Overdue Review List</h4>
+          <div className="border border-border rounded-lg overflow-hidden">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b border-border bg-muted/30">
+                  <th className="text-left p-3 text-xs font-medium text-muted-foreground">Entity</th>
+                  <th className="text-left p-3 text-xs font-medium text-muted-foreground">Due Date</th>
+                  <th className="text-left p-3 text-xs font-medium text-muted-foreground">Country</th>
+                </tr>
+              </thead>
+              <tbody>
+                {overdueEntities.map((e: any) => (
+                  <tr key={e.id} className="border-b border-border/50 last:border-0">
+                    <td className="p-3 text-foreground font-medium">{e.name}</td>
+                    <td className="p-3 text-destructive">{e.next_review_date || "—"}</td>
+                    <td className="p-3 text-muted-foreground">{e.country || "—"}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+
+  // Entity Locations / Map expanded
+  const mapExpanded = (
+    <div className="h-full min-h-[500px]">
+      {mapView === "map" ? (
+        <EntityWorldMap entities={allEntities} />
+      ) : (
+        <RiskCoverageView entities={allEntities} />
+      )}
+    </div>
+  );
+
+  // Review Schedule expanded
+  const reviewExpanded = (
+    <div className="space-y-6">
+      <div className="h-[350px]">
+        <ReviewTimeline entities={allEntities} />
+      </div>
+      <div>
+        <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-3">All Upcoming Reviews</h4>
+        <div className="border border-border rounded-lg overflow-hidden">
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="border-b border-border bg-muted/30">
+                <th className="text-left p-3 text-xs font-medium text-muted-foreground">Entity</th>
+                <th className="text-left p-3 text-xs font-medium text-muted-foreground">Risk Tier</th>
+                <th className="text-left p-3 text-xs font-medium text-muted-foreground">Due Date</th>
+                <th className="text-left p-3 text-xs font-medium text-muted-foreground">Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              {allEntities
+                .filter((e: any) => e.next_review_date)
+                .sort((a: any, b: any) => (a.next_review_date > b.next_review_date ? 1 : -1))
+                .map((e: any) => {
+                  const isOverdue = e.next_review_date < new Date().toISOString().split("T")[0];
+                  return (
+                    <tr key={e.id} className="border-b border-border/50 last:border-0 cursor-pointer hover:bg-muted/30" onClick={() => navigate(`/entities/${e.id}`)}>
+                      <td className="p-3 text-foreground font-medium">{e.name}</td>
+                      <td className="p-3"><Badge className={`fvc-status-badge ${tierColor(e.risk_tier)}`}>Tier {e.risk_tier}</Badge></td>
+                      <td className="p-3 text-muted-foreground">{e.next_review_date}</td>
+                      <td className="p-3">
+                        <Badge className={`fvc-status-badge ${isOverdue ? "bg-destructive/10 text-destructive" : "bg-success/10 text-success"}`}>
+                          {isOverdue ? "Overdue" : "Upcoming"}
+                        </Badge>
+                      </td>
+                    </tr>
+                  );
+                })}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  );
+
+  // Map/Risk toggle for header
+  const mapToggle = (
+    <div className="flex items-center rounded-md border border-border overflow-hidden print:hidden">
+      <button
+        onClick={(e) => { e.stopPropagation(); setMapView("map"); }}
+        className={`flex items-center gap-1 px-2.5 py-1 text-[11px] font-medium transition-colors ${
+          mapView === "map" ? "bg-accent/10 text-accent" : "text-muted-foreground hover:bg-muted/50"
+        }`}
+      >
+        <Globe size={11} /> Map
+      </button>
+      <button
+        onClick={(e) => { e.stopPropagation(); setMapView("risk"); }}
+        className={`flex items-center gap-1 px-2.5 py-1 text-[11px] font-medium transition-colors ${
+          mapView === "risk" ? "bg-accent/10 text-accent" : "text-muted-foreground hover:bg-muted/50"
+        }`}
+      >
+        <BarChart3 size={11} /> Risk & Coverage
+      </button>
+    </div>
+  );
+
   return (
     <div ref={dashRef} className="print:p-8">
       {/* Header */}
@@ -340,20 +510,23 @@ export default function DashboardPage() {
 
       {/* Risk Distribution + Programme Health */}
       <div className="grid lg:grid-cols-2 gap-6 mb-10">
-        <div className="fvc-card animate-fade-in" style={{ animationDelay: "100ms", animationFillMode: "both" }}>
-          <div className="flex items-center gap-2 mb-4">
-            <PieChartIcon size={16} className="text-accent" />
-            <h2 className="fvc-heading-3 text-foreground">Risk Distribution</h2>
-          </div>
-          <p className="text-[11px] text-muted-foreground mb-4">Entity distribution across risk tiers</p>
+        <ExpandableTile
+          title="Risk Distribution"
+          subtitle="Entity distribution across risk tiers"
+          icon={<PieChartIcon size={16} className="text-accent" />}
+          expandedContent={riskDistributionExpanded}
+          className="animate-fade-in"
+        >
           <RiskDistributionChart entities={allEntities} />
-        </div>
-        <div className="fvc-card animate-fade-in" style={{ animationDelay: "150ms", animationFillMode: "both" }}>
-          <div className="flex items-center gap-2 mb-4">
-            <ShieldCheck size={16} className="text-accent" />
-            <h2 className="fvc-heading-3 text-foreground">Programme Health</h2>
-          </div>
-          <p className="text-[11px] text-muted-foreground mb-4">Composite health score based on compliance and alerts</p>
+        </ExpandableTile>
+
+        <ExpandableTile
+          title="Programme Health"
+          subtitle="Composite health score based on compliance and alerts"
+          icon={<ShieldCheck size={16} className="text-accent" />}
+          expandedContent={programmeHealthExpanded}
+          className="animate-fade-in"
+        >
           <ProgrammeHealthIndicator
             compliancePct={stats.compliancePct}
             overdueCount={stats.overdue}
@@ -361,57 +534,35 @@ export default function DashboardPage() {
             highAlerts={stats.highAlerts}
             totalEntities={stats.totalEntities}
           />
-        </div>
+        </ExpandableTile>
       </div>
 
       {/* Map / Risk & Coverage + Review Timeline */}
       <div className="grid lg:grid-cols-2 gap-6 mb-10">
-        <div className="fvc-card animate-fade-in" style={{ animationDelay: "200ms", animationFillMode: "both" }}>
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center gap-2">
-              {mapView === "map" ? <MapPin size={16} className="text-accent" /> : <BarChart3 size={16} className="text-accent" />}
-              <h2 className="fvc-heading-3 text-foreground">
-                {mapView === "map" ? "Entity Locations" : "Risk & Coverage"}
-              </h2>
-            </div>
-            <div className="flex items-center rounded-md border border-border overflow-hidden print:hidden">
-              <button
-                onClick={() => setMapView("map")}
-                className={`flex items-center gap-1 px-2.5 py-1 text-[11px] font-medium transition-colors ${
-                  mapView === "map" ? "bg-accent/10 text-accent" : "text-muted-foreground hover:bg-muted/50"
-                }`}
-              >
-                <Globe size={11} /> Map
-              </button>
-              <button
-                onClick={() => setMapView("risk")}
-                className={`flex items-center gap-1 px-2.5 py-1 text-[11px] font-medium transition-colors ${
-                  mapView === "risk" ? "bg-accent/10 text-accent" : "text-muted-foreground hover:bg-muted/50"
-                }`}
-              >
-                <BarChart3 size={11} /> Risk & Coverage
-              </button>
-            </div>
-          </div>
-          <p className="text-[11px] text-muted-foreground mb-4">
-            {mapView === "map"
-              ? "Head office locations of registered entities"
-              : "Entities in-date vs overdue by risk tier and upcoming workload"}
-          </p>
+        <ExpandableTile
+          title={mapView === "map" ? "Entity Locations" : "Risk & Coverage"}
+          subtitle={mapView === "map" ? "Head office locations of registered entities" : "Entities in-date vs overdue by risk tier and upcoming workload"}
+          icon={mapView === "map" ? <MapPin size={16} className="text-accent" /> : <BarChart3 size={16} className="text-accent" />}
+          headerRight={mapToggle}
+          expandedContent={mapExpanded}
+          className="animate-fade-in"
+        >
           {mapView === "map" ? (
             <EntityWorldMap entities={allEntities} />
           ) : (
             <RiskCoverageView entities={allEntities} />
           )}
-        </div>
-        <div className="fvc-card animate-fade-in" style={{ animationDelay: "250ms", animationFillMode: "both" }}>
-          <div className="flex items-center gap-2 mb-4">
-            <CalendarClock size={16} className="text-accent" />
-            <h2 className="fvc-heading-3 text-foreground">Review Schedule</h2>
-          </div>
-          <p className="text-[11px] text-muted-foreground mb-4">Upcoming and overdue entity reviews</p>
+        </ExpandableTile>
+
+        <ExpandableTile
+          title="Review Schedule"
+          subtitle="Upcoming and overdue entity reviews"
+          icon={<CalendarClock size={16} className="text-accent" />}
+          expandedContent={reviewExpanded}
+          className="animate-fade-in"
+        >
           <ReviewTimeline entities={allEntities} />
-        </div>
+        </ExpandableTile>
       </div>
 
       <div className="grid lg:grid-cols-3 gap-6 mb-10">
@@ -423,7 +574,7 @@ export default function DashboardPage() {
           litigationSignals={changeStats.litigation}
         />
 
-        {/* Recent entities */}
+        {/* Recent entities — no expand */}
         <div className="fvc-card animate-fade-in" style={{ animationDelay: "300ms", animationFillMode: "both" }}>
           <div className="flex items-center justify-between mb-5">
             <h2 className="fvc-heading-3 text-foreground">Recent Entities</h2>
@@ -452,25 +603,25 @@ export default function DashboardPage() {
           )}
         </div>
 
-        {/* Active Cases - Enhanced */}
+        {/* Active Cases */}
         <ActiveCasesCard cases={recentCases} />
 
-        {/* Monitoring alerts — jurisdiction change impact */}
+        {/* Monitoring alerts */}
         <MonitoringAlertsCard />
 
-        {/* Jurisdiction change impact analysis */}
+        {/* Jurisdiction change impact */}
         <JurisdictionImpactCard />
 
-        {/* Plan & Utilisation */}
+        {/* Plan & Utilisation — no expand */}
         <PlanUtilisationCard entityCount={stats.totalEntities} />
 
-        {/* Approvals Summary */}
+        {/* Approvals Summary — no expand */}
         <ApprovalsSummaryCard />
 
-        {/* Enhancement Coverage */}
+        {/* Enhancement Coverage — no expand */}
         <EnhancementCoverageCard />
 
-        {/* Data Protection / LIA Summary */}
+        {/* Data Protection / LIA Summary — no expand */}
         <LiaSummaryCard />
       </div>
 
