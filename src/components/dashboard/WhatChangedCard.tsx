@@ -1,6 +1,7 @@
 import { useNavigate } from "react-router-dom";
 import { FileText, Newspaper, Users, Scale, ChevronRight } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import ExpandableTile from "./ExpandableTile";
 
 interface Props {
   totalChanges: number;
@@ -19,13 +20,40 @@ export default function WhatChangedCard({ totalChanges, adverseMedia, ownershipC
     { label: "Litigation / regulatory signals", count: litigationSignals, icon: <Scale size={14} />, color: "text-info", bg: "bg-info/10", route: "/monitoring?type=litigation" },
   ];
 
-  return (
-    <div className="fvc-card">
-      <div className="flex items-center justify-between mb-5">
-        <h2 className="fvc-heading-3 text-foreground">What Changed</h2>
-        <span className="text-[10px] font-medium uppercase tracking-[0.08em] text-muted-foreground">Last 30 days</span>
-      </div>
+  const expandedContent = (
+    <div className="space-y-6">
+      {rows.map((row) => (
+        <div key={row.label} className="rounded-lg border border-border p-4">
+          <div className="flex items-center gap-3 mb-3">
+            <div className={`flex h-8 w-8 items-center justify-center rounded-full ${row.bg}`}>
+              <span className={row.color}>{row.icon}</span>
+            </div>
+            <div>
+              <span className="text-sm font-medium text-foreground">{row.label}</span>
+              <div className="text-2xl font-display font-bold text-foreground">{row.count}</div>
+            </div>
+          </div>
+          <button
+            onClick={() => navigate(row.route)}
+            className="fvc-link text-xs flex items-center gap-1"
+          >
+            View details <ChevronRight size={12} />
+          </button>
+        </div>
+      ))}
+    </div>
+  );
 
+  const headerRight = (
+    <span className="text-[10px] font-medium uppercase tracking-[0.08em] text-muted-foreground">Last 30 days</span>
+  );
+
+  return (
+    <ExpandableTile
+      title="What Changed"
+      headerRight={headerRight}
+      expandedContent={expandedContent}
+    >
       <div className="space-y-0">
         {rows.map((row) => (
           <div
@@ -48,6 +76,6 @@ export default function WhatChangedCard({ totalChanges, adverseMedia, ownershipC
           </div>
         ))}
       </div>
-    </div>
+    </ExpandableTile>
   );
 }
