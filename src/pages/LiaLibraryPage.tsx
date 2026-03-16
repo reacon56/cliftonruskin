@@ -621,7 +621,7 @@ export default function LiaLibraryPage() {
               <Textarea rows={2} value={form.safeguards} onChange={(e) => set({ safeguards: e.target.value })} placeholder="Describe additional safeguards…" disabled={readOnly} />
             </div>
             <div className="space-y-2">
-              <Label className="text-xs">Retention period</Label>
+              <Label className="text-xs flex items-center gap-1.5">Retention period <FieldTooltip text="How long case data will be kept after closure. MLR 2017 mandates 5 years minimum for AML-obligated firms. Standard commercial limitation period is 6 years. Enhanced DD cases: 7 years." /></Label>
               <Select value={form.retention_months?.toString() ?? ""} onValueChange={(v) => set({ retention_months: v ? Number(v) : null })} disabled={readOnly}>
                 <SelectTrigger className="text-xs"><SelectValue placeholder="Select…" /></SelectTrigger>
                 <SelectContent>
