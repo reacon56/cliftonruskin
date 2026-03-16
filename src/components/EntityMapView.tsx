@@ -294,10 +294,13 @@ export default function EntityMapView({ entities, highlightId }: Props) {
   // Build entity lookup for coords
   const entityLookup = useMemo(() => {
     const map = new Map<string, { name: string; lat: number; lng: number }>();
-    const addEntity = (e: { id: string; name: string; registered_lat?: number | null; registered_lng?: number | null; hq_lat?: number | null; hq_lng?: number | null }) => {
+    const addEntity = (e: { id: string; name: string; latitude?: number | null; longitude?: number | null; registered_lat?: number | null; registered_lng?: number | null; hq_lat?: number | null; hq_lng?: number | null }) => {
       let lat: number | null = null;
       let lng: number | null = null;
-      if (pinType === "hq" && e.hq_lat && e.hq_lng) {
+      // Primary: precise latitude/longitude columns
+      if (e.latitude != null && e.longitude != null) {
+        lat = e.latitude; lng = e.longitude;
+      } else if (pinType === "hq" && e.hq_lat && e.hq_lng) {
         lat = e.hq_lat; lng = e.hq_lng;
       } else if (e.registered_lat && e.registered_lng) {
         lat = e.registered_lat; lng = e.registered_lng;
