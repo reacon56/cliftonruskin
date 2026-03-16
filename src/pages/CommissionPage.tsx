@@ -12,7 +12,7 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import { ChevronRight, Check, AlertTriangle, Sparkles, Briefcase, Zap, Settings2, Clock, FileText } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import { requiresApproval } from "@/lib/approval-utils";
+import { Card, CardContent } from "@/components/ui/card";
 import EnhancementSuggestionPanel from "@/components/EnhancementSuggestionPanel";
 import { useEntitlements } from "@/hooks/use-entitlements";
 import DpDeclarationStep, {
