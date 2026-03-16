@@ -358,9 +358,9 @@ export default function DashboardPage() {
 
   // Entity Locations / Map expanded
   const mapExpanded = (
-    <div className="h-full min-h-[500px]">
+    <div style={{ height: "calc(85vh - 120px)", width: "100%" }}>
       {mapView === "map" ? (
-        <EntityWorldMap entities={allEntities} />
+        <EntityWorldMap entities={allEntities} expanded />
       ) : (
         <RiskCoverageView entities={allEntities} />
       )}

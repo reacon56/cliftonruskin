@@ -10,6 +10,8 @@ interface Props {
   className?: string;
   headerRight?: ReactNode;
   icon?: ReactNode;
+  /** Called when expanded state changes — use to call map.invalidateSize() etc. */
+  onExpandChange?: (expanded: boolean) => void;
 }
 
 export default function ExpandableTile({
@@ -20,10 +22,15 @@ export default function ExpandableTile({
   className,
   headerRight,
   icon,
+  onExpandChange,
 }: Props) {
   const [expanded, setExpanded] = useState(false);
 
   const close = useCallback(() => setExpanded(false), []);
+
+  useEffect(() => {
+    onExpandChange?.(expanded);
+  }, [expanded, onExpandChange]);
 
   useEffect(() => {
     if (!expanded) return;
@@ -40,7 +47,11 @@ export default function ExpandableTile({
 
   return (
     <>
-      <div className={cn("fvc-card relative group/tile", className)}>
+      {/* Source tile — hidden when modal is open to prevent ghost tile */}
+      <div
+        className={cn("fvc-card relative group/tile", className)}
+        style={expanded ? { visibility: "hidden" } : undefined}
+      >
         {/* Header row */}
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-2 min-w-0">
@@ -57,7 +68,6 @@ export default function ExpandableTile({
                 "opacity-0 group-hover/tile:opacity-100 focus:opacity-100",
                 "touch-device:opacity-100",
                 "md:opacity-0 md:group-hover/tile:opacity-100",
-                // Always visible on touch/mobile via CSS below
               )}
               style={{ touchAction: "manipulation" }}
               aria-label={`Expand ${title}`}
@@ -98,7 +108,7 @@ export default function ExpandableTile({
                 <X size={18} />
               </button>
             </div>
-            {/* Modal content */}
+            {/* Modal content — map tiles use full height */}
             <div className="flex-1 overflow-auto p-6">
               {expandedContent ?? children}
             </div>
