@@ -446,6 +446,14 @@ export default function EntityMapView({ entities, highlightId }: Props) {
       }
       // Fly back
       map.flyTo(pre.center, pre.zoom, { animate: true, duration: 1.5 });
+
+      // Re-activate jurisdiction risk overlay after return animation if it was active before
+      if (pre.riskOverlayWasActive) {
+        map.once("moveend", () => {
+          setRiskOverlay(true);
+        });
+      }
+
       preFlyStateRef.current = null;
     }
 
