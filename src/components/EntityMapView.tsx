@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState, useMemo, useCallback } from "react";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
-import { useMapTheme, MapThemeToggle, BasemapToggle } from "@/hooks/use-map-theme";
+import { useMapTheme, BasemapCycleToggle } from "@/hooks/use-map-theme";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
