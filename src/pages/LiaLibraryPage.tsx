@@ -548,7 +548,7 @@ export default function LiaLibraryPage() {
           <AccordionTrigger className="text-sm font-medium text-foreground hover:no-underline py-3">
             <div className="flex items-center gap-2">
               <div className={`w-2 h-2 rounded-full ${sectionComplete.balancing ? "bg-accent" : "bg-muted-foreground/30"}`} />
-              <Scale size={14} className="text-muted-foreground" /> Balancing Test
+              <Scale size={14} className="text-muted-foreground" /> Balancing Test <FieldTooltip text="An assessment of whether the organisation's legitimate interests outweigh the privacy rights of the individuals whose data is being processed. Not required when relying on Recognised Legitimate Interests under DUAA 2025." />
             </div>
           </AccordionTrigger>
           <AccordionContent className="pb-4 space-y-4">
