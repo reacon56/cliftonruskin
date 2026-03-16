@@ -2,6 +2,7 @@ import { useEffect, useRef } from "react";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import { useMapTheme, BasemapCycleToggle } from "@/hooks/use-map-theme";
+import { createEntityIcon, buildEntityTooltipHtml } from "@/lib/map-pin-icons";
 
 // Country → approximate lat/lng for common countries
 const COUNTRY_COORDS: Record<string, [number, number]> = {
