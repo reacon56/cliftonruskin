@@ -303,6 +303,18 @@ export default function MarketLessonsAdmin() {
         </Button>
       </div>
 
+      <RegChangeAlertBanner
+        alertId="duaa-2025-art22-admin"
+        text="DUAA 2025 — Article 22 Now in Force: Automated decision-making in due diligence is now regulated under Article 22 of the Data (Use and Access) Act 2025 (in force 5 Feb 2026). AI-assisted processing is lawful where human review is documented before the case record is finalised."
+        dateText="In force: 5 Feb 2026"
+      />
+
+      <KnowledgePanelWidget
+        pageId="reg-intel-admin-art22"
+        title="AI-Assisted Processing & Article 22 Compliance"
+        sections={REG_INTEL_ADMIN_KNOWLEDGE}
+      />
+
       {/* Relevance context org selector */}
       {orgs.length > 0 && (
         <div className="flex items-center gap-3">
