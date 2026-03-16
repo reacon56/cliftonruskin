@@ -581,7 +581,7 @@ export default function EntityMapView({ entities, highlightId }: Props) {
         <div
           ref={mapRef}
           className="w-full h-[500px] rounded-lg overflow-hidden border border-border"
-          style={{ background: theme === "light" ? "hsl(0 0% 96%)" : "hsl(220 30% 8%)" }}
+          style={{ background: basemap === "classic" ? "hsl(0 0% 96%)" : "hsl(220 30% 8%)" }}
         />
 
         {/* Map Legend — bottom-left */}
