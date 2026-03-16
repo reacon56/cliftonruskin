@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Globe, ExternalLink, Info, ArrowUp, ArrowDown, Minus, Clock, Shield, FileText } from "lucide-react";
+import { ArrowLeft, Globe, ExternalLink, Info, ArrowUp, ArrowDown, Minus, Clock, Shield, FileText, Building2, Eye, Database, Gavel, AlertTriangle, BookOpen } from "lucide-react";
 import { Link } from "react-router-dom";
 import { countryCodeToFlag } from "@/lib/country-flag";
 import { format } from "date-fns";
