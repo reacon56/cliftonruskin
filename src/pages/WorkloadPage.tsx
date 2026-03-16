@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Calendar, GanttChart, Users, ChevronLeft, ChevronRight } from "lucide-react";
 import WorkloadFilters from "@/components/workload/WorkloadFilters";
 import OfficerCapacityPanel from "@/components/workload/OfficerCapacityPanel";
+import type { OfficerLoad } from "@/components/workload/OfficerCapacityPanel";
 import CalendarSwimlane from "@/components/workload/CalendarSwimlane";
 import GanttView from "@/components/workload/GanttView";
 import { addDays, isBefore, differenceInDays } from "date-fns";
@@ -37,12 +38,76 @@ interface ProfileRow {
   email: string;
 }
 
+/* ── Demo Data ── */
+const DEMO_OFFICERS = [
+  { id: "demo-jw", name: "James Whitfield", role: "Senior Analyst" },
+  { id: "demo-sc", name: "Sarah Chen", role: "Analyst" },
+  { id: "demo-mr", name: "Marcus Reid", role: "Associate Director" },
+];
+
+const DEMO_CASES: Array<{
+  id: string; entity: string; client: string; officer: string;
+  due: string; status: string; priority: string; startOffset: number;
+}> = [
+  { id: "dc-1", entity: "Al-Rashid Consulting Group", client: "Pemberton Holdings", officer: "demo-jw", due: "2026-03-21", status: "in_progress", priority: "high", startOffset: -5 },
+  { id: "dc-2", entity: "Cerberus Risk Analytics", client: "Pemberton Holdings", officer: "demo-jw", due: "2026-03-28", status: "research", priority: "medium", startOffset: -3 },
+  { id: "dc-3", entity: "Nordic Freight Solutions AB", client: "Pemberton Holdings", officer: "demo-jw", due: "2026-04-02", status: "assigned", priority: "high", startOffset: 0 },
+  { id: "dc-4", entity: "Shenzhen Apex Manufacturing", client: "Pemberton Holdings", officer: "demo-sc", due: "2026-03-18", status: "overdue", priority: "high", startOffset: -10 },
+  { id: "dc-5", entity: "Meridian Capital Partners", client: "Pemberton Holdings", officer: "demo-sc", due: "2026-03-25", status: "qc", priority: "medium", startOffset: -7 },
+  { id: "dc-6", entity: "São Paulo Trade Corp", client: "Pemberton Holdings", officer: "demo-mr", due: "2026-04-07", status: "assigned", priority: "medium", startOffset: 0 },
+  { id: "dc-7", entity: "Al-Rashid Consulting Group (2nd review)", client: "Pemberton Holdings", officer: "demo-mr", due: "2026-04-14", status: "scheduled", priority: "low", startOffset: 5 },
+];
+
+const DEMO_CAPACITY: OfficerLoad[] = [
+  { id: "demo-jw", name: "James Whitfield", role: "Senior Analyst · 3 cases", taskCount: 3, dueSoon: 1, overdue: 0, caseCount: 3, capacityPercent: 85 },
+  { id: "demo-sc", name: "Sarah Chen", role: "Analyst · 2 cases", taskCount: 2, dueSoon: 0, overdue: 1, caseCount: 2, capacityPercent: 70 },
+  { id: "demo-mr", name: "Marcus Reid", role: "Associate Director · 2 cases", taskCount: 2, dueSoon: 0, overdue: 0, caseCount: 2, capacityPercent: 90 },
+];
+
+function buildDemoTasks(): TaskRow[] {
+  const today = new Date();
+  return DEMO_CASES.map(c => ({
+    id: `task-${c.id}`,
+    title: `${c.entity} — ${c.client}`,
+    status: c.status === "overdue" ? "in_progress" : c.status === "qc" ? "in_progress" : c.status === "research" ? "in_progress" : c.status,
+    due_date: c.due,
+    owner_id: c.officer,
+    case_id: c.id,
+    created_at: addDays(today, c.startOffset).toISOString(),
+  }));
+}
+
+function buildDemoCases(): CaseRow[] {
+  const today = new Date();
+  return DEMO_CASES.map(c => ({
+    id: c.id,
+    org_id: "demo-org",
+    assigned_to: c.officer,
+    status: c.status,
+    priority: c.priority,
+    due_date: c.due,
+    sla_days: null,
+    created_at: addDays(today, c.startOffset).toISOString(),
+  }));
+}
+
+function buildDemoProfiles(): ProfileRow[] {
+  return DEMO_OFFICERS.map(o => ({
+    user_id: o.id,
+    full_name: o.name,
+    email: `${o.name.toLowerCase().replace(" ", ".")}@cliftonruskin.com`,
+  }));
+}
+
+/* ── Component ── */
+
 export default function WorkloadPage() {
   const { user } = useAuth();
   const [tasks, setTasks] = useState<TaskRow[]>([]);
   const [cases, setCases] = useState<CaseRow[]>([]);
   const [profiles, setProfiles] = useState<ProfileRow[]>([]);
   const [orgs, setOrgs] = useState<{ id: string; name: string }[]>([]);
+  const [useDemo, setUseDemo] = useState(false);
 
   const [filterOrg, setFilterOrg] = useState("all");
   const [filterOfficer, setFilterOfficer] = useState("all");
@@ -59,14 +124,27 @@ export default function WorkloadPage() {
       supabase.from("profiles").select("user_id, full_name, email"),
       supabase.from("organisations").select("id, name").order("name"),
     ]).then(([tasksRes, casesRes, profilesRes, orgsRes]) => {
-      setTasks(tasksRes.data ?? []);
-      setCases(casesRes.data ?? []);
-      setProfiles(profilesRes.data ?? []);
-      setOrgs(orgsRes.data ?? []);
+      const dbTasks = tasksRes.data ?? [];
+      const dbCases = casesRes.data ?? [];
+      const dbProfiles = profilesRes.data ?? [];
+
+      if (dbTasks.length === 0 && dbCases.length === 0) {
+        // No real data — use demo
+        setTasks(buildDemoTasks());
+        setCases(buildDemoCases());
+        setProfiles(buildDemoProfiles());
+        setOrgs([{ id: "demo-org", name: "Pemberton Holdings" }]);
+        setUseDemo(true);
+      } else {
+        setTasks(dbTasks);
+        setCases(dbCases);
+        setProfiles(dbProfiles);
+        setOrgs(orgsRes.data ?? []);
+      }
     });
   }, []);
 
-  // Derive officer list from internal profiles that have assignments
+  // Derive officer list
   const officerIds = useMemo(() => {
     const ids = new Set<string>();
     cases.forEach(c => { if (c.assigned_to) ids.add(c.assigned_to); });
@@ -121,34 +199,25 @@ export default function WorkloadPage() {
     }));
   }, [filteredTasks, slaBreach]);
 
-  // Gantt items
+  // Gantt items — grouped by officer
   const ganttItems = useMemo(() => {
     const items: Array<{
       id: string; label: string; type: "task" | "milestone";
       start: string; end: string; status: string; officer: string; slaBreach: boolean;
     }> = [];
 
-    // Case milestones
+    // Group by officer for clear rows
+    const officerCases: Record<string, typeof DEMO_CASES> = {};
     const filteredCaseIds = new Set(filteredTasks.map(t => t.case_id));
+
     cases.forEach(c => {
       if (!filteredCaseIds.has(c.id)) return;
       if (filterOrg !== "all" && c.org_id !== filterOrg) return;
-      if (c.due_date) {
-        const officer = profiles.find(p => p.user_id === c.assigned_to);
-        items.push({
-          id: `case-${c.id}`,
-          label: `Case Due`,
-          type: "milestone",
-          start: c.created_at.split("T")[0],
-          end: c.due_date,
-          status: c.status === "complete" ? "done" : "in_progress",
-          officer: officer?.full_name || "Unassigned",
-          slaBreach: slaBreach.has(c.id),
-        });
-      }
+      const officerId = c.assigned_to || "unassigned";
+      if (!officerCases[officerId]) officerCases[officerId] = [];
     });
 
-    // Tasks
+    // Add tasks as bars
     filteredTasks.forEach(t => {
       const c = caseMap[t.case_id];
       const officer = profiles.find(p => p.user_id === t.owner_id);
@@ -164,11 +233,16 @@ export default function WorkloadPage() {
       });
     });
 
+    // Sort by officer then date
+    items.sort((a, b) => a.officer.localeCompare(b.officer) || a.start.localeCompare(b.start));
+
     return items;
   }, [filteredTasks, cases, caseMap, profiles, slaBreach, filterOrg]);
 
   // Capacity data
-  const capacityData = useMemo(() => {
+  const capacityData: OfficerLoad[] = useMemo(() => {
+    if (useDemo) return DEMO_CAPACITY;
+
     const today = new Date();
     const soonThreshold = addDays(today, 3);
 
@@ -193,7 +267,7 @@ export default function WorkloadPage() {
       };
     }).filter(o => o.taskCount > 0 || o.caseCount > 0)
       .sort((a, b) => b.taskCount - a.taskCount);
-  }, [officerList, filteredTasks]);
+  }, [useDemo, officerList, filteredTasks]);
 
   // Filtered officer list for calendar
   const calendarOfficers = useMemo(() => {
