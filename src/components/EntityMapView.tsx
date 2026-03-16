@@ -447,6 +447,7 @@ export default function EntityMapView({ entities, highlightId }: Props) {
   }, [premisesView, returnToProgrammeView]);
 
 
+  useEffect(() => {
     if (!mapRef.current || leafletMap.current) return;
     const map = L.map(mapRef.current, {
       center: [30, 0],
