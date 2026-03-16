@@ -180,31 +180,71 @@ export default function HomePage() {
               {
                 icon: FileText,
                 title: "Assurance Note",
-                desc: "A concise, decision-grade summary with ranked risks, clear recommendations, and next steps.",
                 tag: "Standard",
+                subtitle: "For routine onboarding and periodic review",
+                features: [
+                  "Corporate identity check",
+                  "Sanctions screening",
+                  "Adverse media",
+                  "Risk recommendation",
+                ],
+                turnaround: "5–7 business days",
+                cta: "Learn more",
+                ctaLink: "/services",
               },
               {
                 icon: BookOpen,
                 title: "Assurance Dossier",
-                desc: "A comprehensive investigation with corroborated findings, ownership clarity, and an audit-ready evidence pack.",
                 tag: "Enhanced",
+                subtitle: "For high-value transactions and complex structures",
+                features: [
+                  "Everything in Assurance Note, plus:",
+                  "Beneficial ownership mapping",
+                  "Litigation history",
+                  "In-country source enquiries",
+                  "Board-ready brief",
+                ],
+                turnaround: "10–15 business days",
+                cta: "Learn more",
+                ctaLink: "/services",
               },
               {
                 icon: RefreshCw,
-                title: "Refresh Note",
-                desc: "A focused update that highlights material change, new findings, and what (if anything) to do next.",
-                tag: "Ongoing",
+                title: "Assurance Programme",
+                tag: "Managed Service",
+                subtitle: "For ongoing third-party risk programmes",
+                features: [
+                  "Continuous monitoring",
+                  "Annual review cycle",
+                  "Dedicated CR officer",
+                  "Jurisdiction alerts",
+                  "Programme ROI reporting",
+                ],
+                turnaround: "Ongoing",
+                cta: "Enquire",
+                ctaLink: "/contact",
               },
-            ].map(({ icon: Icon, title, desc, tag }) => (
-              <div key={title} className="group relative rounded-xl border border-white/[0.07] bg-white/[0.03] p-8 hover:border-[#c9a962]/25 hover:bg-white/[0.06] transition-all duration-500 hover:shadow-[0_8px_30px_-12px_rgba(201,169,98,0.1)]">
+            ].map(({ icon: Icon, title, tag, subtitle, features, turnaround, cta, ctaLink }) => (
+              <div key={title} className="group relative rounded-xl border border-white/[0.07] bg-white/[0.03] p-8 hover:border-[#c9a962]/25 hover:bg-white/[0.06] transition-all duration-500 hover:shadow-[0_8px_30px_-12px_rgba(201,169,98,0.1)] flex flex-col">
                 <span className="text-[10px] font-semibold uppercase tracking-[0.15em] text-[#c9a962]/70">{tag}</span>
                 <div className="mt-5 h-11 w-11 rounded-lg bg-[#c9a962]/[0.08] flex items-center justify-center mb-5 group-hover:bg-[#c9a962]/15 transition-colors duration-500">
                   <Icon className="h-5 w-5 text-[#c9a962]" />
                 </div>
-                <h3 className="font-display text-xl font-semibold text-white mb-3 tracking-tight">{title}</h3>
-                <p className="text-[13px] text-white/45 leading-relaxed mb-6">{desc}</p>
-                <Link to="/services" className="inline-flex items-center gap-1.5 text-[13px] text-[#c9a962] font-medium hover:gap-2.5 transition-all duration-300">
-                  Learn more <ArrowRight className="h-3.5 w-3.5" />
+                <h3 className="font-display text-xl font-semibold text-white mb-2 tracking-tight">{title}</h3>
+                <p className="text-[13px] text-white/50 leading-relaxed mb-5">{subtitle}</p>
+                <ul className="space-y-2 mb-6 flex-1">
+                  {features.map((f) => (
+                    <li key={f} className="flex items-start gap-2 text-[13px] text-white/40 leading-relaxed">
+                      <span className="mt-1.5 h-1 w-1 rounded-full bg-[#c9a962]/50 shrink-0" />
+                      {f}
+                    </li>
+                  ))}
+                </ul>
+                <div className="text-[11px] font-medium uppercase tracking-[0.1em] text-white/25 mb-5">
+                  Turnaround: {turnaround}
+                </div>
+                <Link to={ctaLink} className="inline-flex items-center gap-1.5 text-[13px] text-[#c9a962] font-medium hover:gap-2.5 transition-all duration-300">
+                  {cta} <ArrowRight className="h-3.5 w-3.5" />
                 </Link>
               </div>
             ))}
