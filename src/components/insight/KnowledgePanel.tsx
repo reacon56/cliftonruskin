@@ -13,6 +13,18 @@ export interface KnowledgeSection {
   pairs?: { key: string; value: string }[];
 }
 
+function RenderContent({ content, className }: { content?: string; className?: string }) {
+  if (!content) return null;
+  const paragraphs = content.split("\n\n");
+  return (
+    <div className={className}>
+      {paragraphs.map((p, i) => (
+        <p key={i} className={i > 0 ? "mt-2" : ""}>{p}</p>
+      ))}
+    </div>
+  );
+}
+
 interface KnowledgePanelProps {
   pageId: string;
   title: string;
