@@ -86,38 +86,14 @@ serve(async (req) => {
     const category = suggestCategory(title);
     const country = detectCountry(title);
 
-    // Step 1: Generate summary & reflection
-    const summarySystem = `You are a senior governance analyst at a discreet British institutional advisory firm.
-Your task is to produce two pieces of text based on a headline from a public governance, regulatory or enforcement report.
-
-Rules:
-- Write original text. Do not copy or closely paraphrase the publisher's words.
-- Use a restrained, neutral, institutional British advisory tone.
-- Avoid sensational language, moral judgement, or emotive adjectives (never use "shocking", "disastrous", "catastrophic").
-- Maintain measured phrasing throughout.
-
-Output EXACTLY this JSON (no markdown, no wrapping):
-{
-  "summary": "<3-4 sentence neutral factual summary of the likely content, based on the headline and source>",
-  "reflection": "<1-2 sentence board-level governance reflection, framed as a consideration>"
-}`;
-
-    const summaryUser = `Headline: "${title}"\nSource: ${source}\nURL: ${link}\n\nGenerate the summary and governance reflection.`;
-
-    const summaryRaw = await callAI(LOVABLE_API_KEY, summarySystem, summaryUser);
-    let parsed: { summary: string; reflection: string };
-    try {
-      parsed = JSON.parse(cleanJson(summaryRaw));
-    } catch {
-      parsed = {
-        summary: "A governance-related matter has been publicly reported. Further details are available via the source link.",
-        reflection: "Boards may wish to consider the relevance of this development to their own oversight arrangements.",
-      };
-    }
-
-    // Step 2: Relevance scoring against PIP (if org_id provided)
+    // Step 1: Relevance scoring against PIP (if org_id provided)
+    // This runs FIRST so we can skip analysis for not_relevant items
     let relevance_score: string | null = null;
     let relevance_reasoning: string | null = null;
+    let sectors: string[] = [];
+    let jurisdictionNames: string[] = [];
+    let manualContext = "";
+    let hasPip = false;
 
     if (org_id) {
       try {
@@ -132,16 +108,17 @@ Output EXACTLY this JSON (no markdown, no wrapping):
           .maybeSingle();
 
         if (pip) {
-          const sectors = (pip.sector_profile as string[]) || [];
+          hasPip = true;
+          sectors = (pip.sector_profile as string[]) || [];
           const jurisdictions = (pip.jurisdiction_profile as any[]) || [];
-          const jurisdictionNames = jurisdictions.map((j: any) => j.name).filter(Boolean);
+          jurisdictionNames = jurisdictions.map((j: any) => j.name).filter(Boolean);
           const riskProfile = pip.risk_profile || {};
-          const manualContext = pip.manual_context || "";
+          manualContext = (pip.manual_context as string) || "";
 
           const relevanceSystem = `You are a relevance scoring engine for a due diligence platform. Score whether a regulatory intelligence item is relevant to a specific DD programme based on its sector and geographic profile. Return ONLY valid JSON, no markdown fences.`;
 
           const relevanceUser = JSON.stringify({
-            article: { title, category, summary: parsed.summary },
+            article: { title, category, source },
             programme_profile: {
               sectors,
               jurisdictions: jurisdictionNames,
@@ -165,8 +142,60 @@ Output EXACTLY this JSON (no markdown, no wrapping):
         }
       } catch (pipErr) {
         console.error("PIP lookup/relevance scoring failed:", pipErr);
-        // Non-fatal — proceed without relevance score
       }
+    }
+
+    // Step 2: If not_relevant, skip AI analysis entirely — flag for discard
+    if (relevance_score === "not_relevant") {
+      return new Response(
+        JSON.stringify({
+          summary: null,
+          reflection: null,
+          category,
+          country,
+          relevance_score,
+          relevance_reasoning,
+        }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    // Step 3: Generate programme-aware summary & reflection
+    // If we have a PIP, contextualise the analysis prompt
+    const programmeContext = hasPip
+      ? `\n\nProgramme context for this analysis:
+The client's programme covers entities in these sectors: ${sectors.join(", ") || "not specified"}.
+They have geographic exposure in: ${jurisdictionNames.join(", ") || "not specified"}.
+${manualContext ? `Additional context: ${manualContext}` : ""}
+Write an editorial opinion that is specific to organisations with this programme profile, not generic commentary.`
+      : "";
+
+    const summarySystem = `You are a senior governance analyst at a discreet British institutional advisory firm.
+Your task is to produce two pieces of text based on a headline from a public governance, regulatory or enforcement report.
+
+Rules:
+- Write original text. Do not copy or closely paraphrase the publisher's words.
+- Use a restrained, neutral, institutional British advisory tone.
+- Avoid sensational language, moral judgement, or emotive adjectives (never use "shocking", "disastrous", "catastrophic").
+- Maintain measured phrasing throughout.${programmeContext}
+
+Output EXACTLY this JSON (no markdown, no wrapping):
+{
+  "summary": "<3-4 sentence neutral factual summary of the likely content, based on the headline and source>",
+  "reflection": "<1-2 sentence board-level governance reflection, framed as a consideration${hasPip ? " specific to the programme profile described above" : ""}>"
+}`;
+
+    const summaryUser = `Headline: "${title}"\nSource: ${source}\nURL: ${link}\n\nGenerate the summary and governance reflection.`;
+
+    const summaryRaw = await callAI(LOVABLE_API_KEY, summarySystem, summaryUser);
+    let parsed: { summary: string; reflection: string };
+    try {
+      parsed = JSON.parse(cleanJson(summaryRaw));
+    } catch {
+      parsed = {
+        summary: "A governance-related matter has been publicly reported. Further details are available via the source link.",
+        reflection: "Boards may wish to consider the relevance of this development to their own oversight arrangements.",
+      };
     }
 
     return new Response(
