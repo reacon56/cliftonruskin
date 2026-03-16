@@ -349,10 +349,12 @@ export default function EntityMapView({ entities, highlightId }: Props) {
     const map = leafletMap.current;
     if (!map) return;
 
-    // Determine coordinates
+    // Determine coordinates — prefer precise latitude/longitude
     let lat: number | null = null;
     let lng: number | null = null;
-    if (pinType === "hq" && entity.hq_lat && entity.hq_lng) {
+    if (entity.latitude != null && entity.longitude != null) {
+      lat = entity.latitude; lng = entity.longitude;
+    } else if (pinType === "hq" && entity.hq_lat && entity.hq_lng) {
       lat = entity.hq_lat; lng = entity.hq_lng;
     } else if (entity.registered_lat && entity.registered_lng) {
       lat = entity.registered_lat; lng = entity.registered_lng;
