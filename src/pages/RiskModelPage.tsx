@@ -15,6 +15,36 @@ import {
   Building2, Users, Zap, History, PenLine, ChevronRight,
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { KnowledgePanelWidget } from "@/components/insight/KnowledgePanel";
+import type { KnowledgeSection } from "@/components/insight/KnowledgePanel";
+
+const RISK_MODEL_KNOWLEDGE_SECTIONS: KnowledgeSection[] = [
+  {
+    title: "How the Model Works",
+    content: "CR-JURIS-1.0 scores jurisdictions across four pillars: Financial Crime Risk, Regulatory Maturity, Transparency & Beneficial Ownership, and Geopolitical Exposure. Each pillar is weighted according to its relative importance, and the composite score determines the overall risk band (Low, Medium, High, or Critical).",
+  },
+  {
+    title: "Why Pillar Weighting Matters",
+    content: "A jurisdiction can score well on transparency but critically on geopolitical exposure (e.g. UAE). The composite score reflects this tension rather than masking it. Pillar weights are versioned and auditable — any change is recorded with a justification.",
+  },
+  {
+    title: "FATF References",
+    content: "FATF Mutual Evaluation Reports are a primary input. Grey list status triggers an automatic risk floor of High regardless of other pillar scores. Call for Action (black list) status mandates a minimum Critical band.",
+  },
+  {
+    title: "How to Challenge a Score",
+    content: "Analysts can apply a manual override with a documented reason. Overrides are flagged in the jurisdiction profile and visible in the audit trail. All overrides require a justification and are time-stamped with the overriding analyst's identity.",
+  },
+  {
+    title: "Quick Reference",
+    type: "keyvalue",
+    pairs: [
+      { key: "Framework", value: "FATF Methodology" },
+      { key: "Engine", value: "CR-JURIS-1.0 Internal Spec" },
+      { key: "Guidance", value: "ICO Data Minimisation Guidance" },
+    ],
+  },
+];
 
 const BANDS = ["Low", "Medium", "High", "Critical"] as const;
 const BAND_COLORS: Record<string, string> = {
@@ -192,6 +222,12 @@ export default function RiskModelPage() {
           </div>
         )}
       </div>
+
+      <KnowledgePanelWidget
+        pageId="risk-model-juris-v1"
+        title="CR-JURIS-1.0 Risk Methodology"
+        sections={RISK_MODEL_KNOWLEDGE_SECTIONS}
+      />
 
       <Tabs value={activeTab} onValueChange={setActiveTab}>
         <TabsList className="bg-transparent p-0 gap-1">
