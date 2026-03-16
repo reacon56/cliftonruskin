@@ -179,7 +179,7 @@ function buildArc(from: L.LatLngTuple, to: L.LatLngTuple, segments = 30): L.LatL
 export default function EntityMapView({ entities, highlightId }: Props) {
   const mapRef = useRef<HTMLDivElement>(null);
   const leafletMap = useRef<L.Map | null>(null);
-  const markersRef = useRef<L.CircleMarker[]>([]);
+  const clusterGroupRef = useRef<L.MarkerClusterGroup | null>(null);
   const tileLayerRef = useRef<L.TileLayer | null>(null);
   const geoLayerRef = useRef<L.GeoJSON | null>(null);
   const ownershipLayerRef = useRef<L.LayerGroup | null>(null);
