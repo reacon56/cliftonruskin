@@ -952,6 +952,15 @@ export default function EntityMapView({ entities, highlightId }: Props) {
               Commission check
             </Button>
           </div>
+          {hasStreetAddress(selected) && (
+            <button
+              onClick={() => flyToPremises(selected)}
+              className="w-full mt-2 flex items-center justify-center gap-1.5 px-2 py-1.5 text-[11px] text-muted-foreground hover:text-foreground transition-colors rounded-md hover:bg-muted/50"
+            >
+              <Building2 className="h-3 w-3" />
+              View premises
+            </button>
+          )}
         </div>
       )}
     </div>
