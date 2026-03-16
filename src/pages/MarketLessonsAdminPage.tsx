@@ -276,7 +276,26 @@ export default function MarketLessonsAdmin() {
         </Button>
       </div>
 
-      {/* RSS Results */}
+      {/* Relevance context org selector */}
+      {orgs.length > 0 && (
+        <div className="flex items-center gap-3">
+          <span className="text-xs font-medium text-muted-foreground">Score relevance against:</span>
+          <Select value={relevanceOrgId} onValueChange={setRelevanceOrgId}>
+            <SelectTrigger className="w-64 h-8 text-xs">
+              <SelectValue placeholder="Select client programme (optional)" />
+            </SelectTrigger>
+            <SelectContent>
+              {orgs.map((o: any) => (
+                <SelectItem key={o.id} value={o.id}>{o.name}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          {relevanceOrgId && (
+            <Button variant="ghost" size="sm" className="text-xs h-7" onClick={() => setRelevanceOrgId("")}>Clear</Button>
+          )}
+        </div>
+      )}
+
       {rssItems.length > 0 && (
         <Card>
           <CardHeader className="pb-3">
