@@ -2,14 +2,14 @@ import { NavLink, useLocation } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import {
   LayoutDashboard, Building2, FileCheck, FolderOpen, Activity,
-  Shield, Users, ClipboardList, HeadphonesIcon, ListTodo,
+  Shield, Users, ClipboardList, HeadphonesIcon,
   LogOut, ChevronLeft, ChevronRight, Moon, Sun,
-  ArrowLeftRight, CheckCircle2, Scale, ArrowUpCircle,
-  Briefcase, Eye, BookOpen, BarChart3, Search,
-  Send, FlaskConical, Globe, Wallet, Receipt,
+  ArrowLeftRight, CheckCircle2, Scale,
+  Briefcase, BookOpen, Wallet, Receipt,
   DollarSign, Bell, Sparkles, Settings,
 } from "lucide-react";
 import ManagerNavGroups from "@/components/sidebar/ManagerNavGroups";
+import OfficerNavSections from "@/components/sidebar/OfficerNavSections";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
@@ -85,22 +85,12 @@ export default function AppSidebar() {
 
   // Manager nav is now handled by ManagerNavGroups component
 
-  // ── Officer nav: scoped visibility ──
-  const officerNav: NavItem[] = [
-    { label: "My Cases", path: "/cases", icon: <ListTodo size={18} /> },
-    { label: "My Tasks", path: "/my-tasks", icon: <ClipboardList size={18} /> },
-    { label: "Entity Lookup", path: "/entities", icon: <Search size={18} /> },
-    { label: "Partner Requests", path: "/partner-requests", icon: <Send size={18} /> },
-    { label: "Knowledge Base", path: "/knowledge-base", icon: <BookOpen size={18} /> },
-    { label: "Research Console", path: "/research-console", icon: <FlaskConical size={18} /> },
-    { label: "Jurisdiction Library", path: "/jurisdiction-library", icon: <Globe size={18} /> },
-    { label: "Jurisdictions", path: "/jurisdictions", icon: <Globe size={18} /> },
-    { label: "Submitted to QA", path: "/qa-queue", icon: <Eye size={18} /> },
-  ];
+  // Officer nav is now handled by OfficerNavSections component
 
-  // For officer and client views, use flat nav
+  // For client views, use flat nav; manager and officer use dedicated components
   const showManagerGroups = activeView === "internal" && effectiveIsManager;
-  const navItems = showManagerGroups ? [] : (activeView === "internal" ? officerNav : clientNav);
+  const showOfficerSections = activeView === "internal" && !effectiveIsManager;
+  const navItems = (showManagerGroups || showOfficerSections) ? [] : clientNav;
 
   const handleToggleView = () => {
     toggleView();
@@ -141,6 +131,7 @@ export default function AppSidebar() {
       {/* Navigation */}
       <nav className="flex-1 py-4 px-2 space-y-0.5 overflow-y-auto">
         {showManagerGroups && <ManagerNavGroups collapsed={collapsed} />}
+        {showOfficerSections && <OfficerNavSections collapsed={collapsed} />}
         {navItems.map((item) => {
           const isActive = location.pathname === item.path || location.pathname.startsWith(item.path + "/");
           return (
