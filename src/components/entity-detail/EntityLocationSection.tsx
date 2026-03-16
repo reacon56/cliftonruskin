@@ -4,7 +4,7 @@ import "leaflet/dist/leaflet.css";
 import { MapPin, Copy, ExternalLink } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
-import { useMapTheme, MapThemeToggle } from "@/hooks/use-map-theme";
+import { useMapTheme, BasemapCycleToggle } from "@/hooks/use-map-theme";
 
 interface Props {
   entity: any;
