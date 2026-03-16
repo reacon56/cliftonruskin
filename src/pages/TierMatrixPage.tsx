@@ -11,7 +11,41 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Shield, Save, Plus, History, X, CheckCircle2,
 } from "lucide-react";
+import { KnowledgePanelWidget } from "@/components/insight/KnowledgePanel";
+import type { KnowledgeSection } from "@/components/insight/KnowledgePanel";
 
+const TIER_KNOWLEDGE: KnowledgeSection[] = [
+  {
+    title: "What the Tier Does",
+    content: "A tier is not just a label. It determines the due diligence pathway (Standard / Enhanced), the review cadence, the approval level required, and the reporting obligations to the client.",
+  },
+  {
+    title: "Tier A — Highest Risk",
+    content: "Enhanced DD required. Four-eyes sign-off. 6-month review cycle. Typically: PEP exposure, High-risk jurisdiction, complex ownership, prior adverse findings.",
+  },
+  {
+    title: "Tier B — Elevated Risk",
+    content: "Standard DD with enhanced elements. 12-month review cycle. Analyst sign-off sufficient.",
+  },
+  {
+    title: "Tier C — Standard Risk",
+    content: "Standard DD. 24-month review cycle. Officer-level sign-off.",
+  },
+  {
+    title: "Regulatory Proportionality",
+    content: "The FCA and HMRC both require that EDD is applied proportionately to actual risk. Applying EDD to every entity regardless of tier is not compliant — it is over-processing. The tier matrix is the proportionality mechanism.",
+  },
+  {
+    title: "Quick Reference",
+    type: "keyvalue",
+    pairs: [
+      { key: "Regulation", value: "MLR 2017 Regulation 33" },
+      { key: "FCA", value: "Financial Crime Guide" },
+      { key: "HMRC", value: "AML Supervision Guidance" },
+      { key: "Internal", value: "CR Tier Policy" },
+    ],
+  },
+];
 const SOURCE_CATEGORY_OPTIONS = [
   { key: "sanctions", label: "Sanctions Check" },
   { key: "corporate_registry", label: "Corporate Registry Verification" },
