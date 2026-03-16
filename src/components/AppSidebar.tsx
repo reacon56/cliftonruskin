@@ -3,12 +3,13 @@ import { useAuth } from "@/contexts/AuthContext";
 import {
   LayoutDashboard, Building2, FileCheck, FolderOpen, Activity,
   Shield, Users, ClipboardList, HeadphonesIcon, ListTodo,
-  Settings, FileText, LogOut, ChevronLeft, ChevronRight, Moon, Sun,
-  ArrowLeftRight, CheckCircle2, Scale, ArrowUpCircle, Newspaper,
-  Briefcase, Eye, BookOpen, GitMerge, BarChart3, Search,
-  Send, Layers, Database, FlaskConical, Globe, Package, Wallet, Receipt,
-  DollarSign, TrendingUp, Server, Bell, Sparkles,
+  LogOut, ChevronLeft, ChevronRight, Moon, Sun,
+  ArrowLeftRight, CheckCircle2, Scale, ArrowUpCircle,
+  Briefcase, Eye, BookOpen, BarChart3, Search,
+  Send, FlaskConical, Globe, Wallet, Receipt,
+  DollarSign, Bell, Sparkles, Settings,
 } from "lucide-react";
+import ManagerNavGroups from "@/components/sidebar/ManagerNavGroups";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
