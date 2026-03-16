@@ -4020,6 +4020,53 @@ export type Database = {
           },
         ]
       }
+      programme_intelligence_profile: {
+        Row: {
+          entity_count: number
+          generated_from_entity_count: number
+          id: string
+          jurisdiction_profile: Json
+          last_generated_at: string
+          manual_context: string | null
+          org_id: string
+          risk_profile: Json
+          sector_profile: Json
+          tier_a_count: number
+        }
+        Insert: {
+          entity_count?: number
+          generated_from_entity_count?: number
+          id?: string
+          jurisdiction_profile?: Json
+          last_generated_at?: string
+          manual_context?: string | null
+          org_id: string
+          risk_profile?: Json
+          sector_profile?: Json
+          tier_a_count?: number
+        }
+        Update: {
+          entity_count?: number
+          generated_from_entity_count?: number
+          id?: string
+          jurisdiction_profile?: Json
+          last_generated_at?: string
+          manual_context?: string | null
+          org_id?: string
+          risk_profile?: Json
+          sector_profile?: Json
+          tier_a_count?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "programme_intelligence_profile_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: true
+            referencedRelation: "organisations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       programme_settings: {
         Row: {
           addons: Json
@@ -5467,6 +5514,10 @@ export type Database = {
     }
     Functions: {
       can_qc_signoff: { Args: { _user_id: string }; Returns: boolean }
+      generate_programme_profile: {
+        Args: { _org_id: string }
+        Returns: undefined
+      }
       get_user_org_id: { Args: { _user_id: string }; Returns: string }
       has_role: {
         Args: {
