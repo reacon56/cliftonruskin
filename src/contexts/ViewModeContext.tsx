@@ -28,7 +28,7 @@ export function ViewModeProvider({ children }: { children: React.ReactNode }) {
   };
 
   return (
-    <ViewModeContext.Provider value={{ activeView, canToggle: hasBoth, toggle, setView: setViewAs }}>
+    <ViewModeContext.Provider value={{ activeView, canToggle: isInternal, toggle, setView: setViewAs }}>
       {children}
     </ViewModeContext.Provider>
   );
