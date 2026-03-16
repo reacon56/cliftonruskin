@@ -533,8 +533,7 @@ export default function EntityMapView({ entities, highlightId }: Props) {
             <Layers className="h-3 w-3" />
             Jurisdiction Risk
           </button>
-          <BasemapToggle basemap={basemap} onToggle={toggleBasemap} />
-          <MapThemeToggle theme={theme} onToggle={toggle} />
+          <BasemapCycleToggle basemap={basemap} onCycle={cycleBasemap} />
         </div>
       </div>
 
