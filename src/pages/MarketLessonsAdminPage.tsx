@@ -119,7 +119,7 @@ export default function MarketLessonsAdmin() {
     try {
       const { data: aiData, error: aiError } = await supabase.functions.invoke(
         "generate-governance-summary",
-        { body: { title: item.title, source: item.source, link: item.link } }
+        { body: { title: item.title, source: item.source, link: item.link, org_id: relevanceOrgId || undefined } }
       );
       if (aiError) throw aiError;
 
