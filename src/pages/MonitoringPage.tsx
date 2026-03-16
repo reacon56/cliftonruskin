@@ -105,7 +105,15 @@ export default function MonitoringPage() {
           onApplyFilters={handleApplyFilters}
         />
       </div>
-      <p className="text-sm text-muted-foreground mb-8">Continuous monitoring alerts and events</p>
+      <p className="text-sm text-muted-foreground mb-4">Continuous monitoring alerts and events</p>
+
+      <div className="mb-6">
+        <KnowledgePanelWidget
+          pageId="monitoring-legal-obligation"
+          title="Why Ongoing Monitoring is a Legal Obligation"
+          sections={MONITORING_KNOWLEDGE_SECTIONS}
+        />
+      </div>
 
       <div className="flex gap-3 mb-6">
         <Select value={filterSeverity} onValueChange={setFilterSeverity}>
