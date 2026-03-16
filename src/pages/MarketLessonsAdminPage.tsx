@@ -9,7 +9,14 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table";
-import { ExternalLink, Loader2, Newspaper, Eye, EyeOff, RefreshCw } from "lucide-react";
+import {
+  Tooltip, TooltipContent, TooltipProvider, TooltipTrigger,
+} from "@/components/ui/tooltip";
+import {
+  Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter,
+} from "@/components/ui/dialog";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { ExternalLink, Loader2, Newspaper, Eye, EyeOff, RefreshCw, AlertTriangle, Ban, ChevronDown, ChevronRight } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { countryCodeToFlag } from "@/lib/country-flag";
 
@@ -32,11 +39,28 @@ interface MarketLesson {
   jurisdiction_country_code: string | null;
   published: boolean;
   created_at: string;
+  relevance_score: string | null;
+  relevance_reasoning: string | null;
+}
+
+type RelevanceLevel = "high" | "moderate" | "low" | "not_relevant";
+
+const RELEVANCE_CONFIG: Record<RelevanceLevel, { label: string; className: string }> = {
+  high: { label: "HIGH RELEVANCE", className: "bg-destructive/15 text-destructive border-destructive/30" },
+  moderate: { label: "MODERATE RELEVANCE", className: "bg-amber-100 text-amber-800 border-amber-300 dark:bg-amber-900/30 dark:text-amber-400 dark:border-amber-700" },
+  low: { label: "LOW RELEVANCE", className: "text-muted-foreground border-muted-foreground/30 bg-muted/50" },
+  not_relevant: { label: "NOT RELEVANT", className: "text-muted-foreground/60 border-muted-foreground/20 bg-muted/30 line-through" },
+};
+
+function RelevanceBadge({ score }: { score: string | null }) {
+  if (!score || !(score in RELEVANCE_CONFIG)) return null;
+  const cfg = RELEVANCE_CONFIG[score as RelevanceLevel];
+  return <Badge variant="outline" className={`text-[10px] ${cfg.className}`}>{cfg.label}</Badge>;
 }
 
 export default function MarketLessonsAdmin() {
-  const { canQuote, canClose, user } = useAuth(); // Ops Admin or Assurance Manager
-  const canPublish = canQuote || canClose; // fvc_assurance_manager or fvc_ops_admin
+  const { canQuote, canClose, user, profile } = useAuth();
+  const canPublish = canQuote || canClose;
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -44,8 +68,10 @@ export default function MarketLessonsAdmin() {
   const [fetching, setFetching] = useState(false);
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [generating, setGenerating] = useState<Set<string>>(new Set());
+  const [expandedDraft, setExpandedDraft] = useState<string | null>(null);
+  const [suppressDialog, setSuppressDialog] = useState<{ id: string; title: string } | null>(null);
+  const [suppressOrgId, setSuppressOrgId] = useState("");
 
-  // Fetch existing drafts and published lessons
   const { data: lessons = [], isLoading } = useQuery({
     queryKey: ["market-lessons"],
     queryFn: async () => {
@@ -58,7 +84,14 @@ export default function MarketLessonsAdmin() {
     },
   });
 
-  // Fetch RSS feeds
+  const { data: orgs = [] } = useQuery({
+    queryKey: ["orgs-for-suppression"],
+    queryFn: async () => {
+      const { data } = await supabase.from("organisations").select("id, name").order("name");
+      return data ?? [];
+    },
+  });
+
   const handleFetchRss = async () => {
     setFetching(true);
     setRssItems([]);
@@ -67,7 +100,6 @@ export default function MarketLessonsAdmin() {
       const { data, error } = await supabase.functions.invoke("fetch-governance-rss");
       if (error) throw error;
       const items = (data?.items || []) as RssItem[];
-      // Filter out URLs already in lessons
       const existingUrls = new Set(lessons.map((l) => l.publication_url));
       const fresh = items.filter((i) => !existingUrls.has(i.link));
       setRssItems(fresh);
@@ -81,11 +113,9 @@ export default function MarketLessonsAdmin() {
     }
   };
 
-  // Create draft for a single item
   const createDraft = async (item: RssItem) => {
     setGenerating((prev) => new Set(prev).add(item.link));
     try {
-      // Generate AI summary
       const { data: aiData, error: aiError } = await supabase.functions.invoke(
         "generate-governance-summary",
         { body: { title: item.title, source: item.source, link: item.link } }
@@ -105,6 +135,8 @@ export default function MarketLessonsAdmin() {
         jurisdiction_country_code: aiData.country || null,
         published: false,
         created_by: user?.id,
+        relevance_score: aiData.relevance_score || null,
+        relevance_reasoning: aiData.relevance_reasoning || null,
       } as any);
 
       if (insertError) throw insertError;
@@ -123,7 +155,6 @@ export default function MarketLessonsAdmin() {
     }
   };
 
-  // Create selected drafts
   const handleCreateSelected = async () => {
     const items = rssItems.filter((i) => selected.has(i.link));
     for (const item of items) {
@@ -132,7 +163,6 @@ export default function MarketLessonsAdmin() {
     setSelected(new Set());
   };
 
-  // Toggle publish
   const togglePublish = useMutation({
     mutationFn: async ({ id, published }: { id: string; published: boolean }) => {
       const { error } = await supabase
@@ -141,7 +171,6 @@ export default function MarketLessonsAdmin() {
         .eq("id", id);
       if (error) throw error;
 
-      // Log to audit
       await supabase.from("audit_events").insert({
         action_type: published ? "market_lesson_published" : "market_lesson_unpublished",
         object_type: "market_lesson",
@@ -158,6 +187,22 @@ export default function MarketLessonsAdmin() {
     },
   });
 
+  const handleSuppress = async () => {
+    if (!suppressDialog || !suppressOrgId) return;
+    const { error } = await supabase.from("market_lesson_suppressions" as any).insert({
+      market_lesson_id: suppressDialog.id,
+      org_id: suppressOrgId,
+      suppressed_by: user?.id ?? "",
+    } as any);
+    if (error) {
+      toast({ title: "Suppression failed", description: error.message, variant: "destructive" });
+    } else {
+      toast({ title: "Suppressed", description: `Item suppressed for selected organisation.` });
+    }
+    setSuppressDialog(null);
+    setSuppressOrgId("");
+  };
+
   const toggleSelect = (link: string) => {
     setSelected((prev) => {
       const next = new Set(prev);
@@ -167,6 +212,51 @@ export default function MarketLessonsAdmin() {
     });
   };
 
+  const renderPublishButton = (lesson: MarketLesson) => {
+    if (!canPublish) return null;
+    const score = lesson.relevance_score as RelevanceLevel | null;
+
+    if (score === "not_relevant") {
+      return (
+        <div className="flex items-center gap-1">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setSuppressDialog({ id: lesson.id, title: lesson.title })}
+            className="text-xs gap-1 text-muted-foreground"
+          >
+            <Ban className="h-3 w-3" /> Suppress
+          </Button>
+        </div>
+      );
+    }
+
+    const isLow = score === "low";
+    const isHigh = score === "high";
+
+    return (
+      <TooltipProvider>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button
+              variant={isHigh ? "default" : "outline"}
+              size="sm"
+              onClick={() => togglePublish.mutate({ id: lesson.id, published: true })}
+              className={`text-xs gap-1 ${isHigh ? "bg-amber-600 hover:bg-amber-700 text-white border-amber-700" : ""} ${isLow ? "opacity-60" : ""}`}
+            >
+              <Eye className="h-3 w-3" /> Approve & Publish
+            </Button>
+          </TooltipTrigger>
+          {isLow && (
+            <TooltipContent>
+              <p className="text-xs max-w-52">Low relevance to current programme — publish only if you consider it material</p>
+            </TooltipContent>
+          )}
+        </Tooltip>
+      </TooltipProvider>
+    );
+  };
+
   const drafts = lessons.filter((l) => !l.published);
   const published = lessons.filter((l) => l.published);
 
@@ -174,7 +264,7 @@ export default function MarketLessonsAdmin() {
     <div className="space-y-8">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-display font-semibold text-foreground">Market Lessons</h1>
+          <h1 className="text-2xl font-display font-semibold text-foreground">Regulatory Intelligence</h1>
           <p className="text-sm text-muted-foreground mt-1">
             Curate governance observations from public sources. All entries are draft until explicitly published.
           </p>
@@ -223,9 +313,7 @@ export default function MarketLessonsAdmin() {
                         onCheckedChange={() => toggleSelect(item.link)}
                       />
                     </TableCell>
-                    <TableCell className="font-medium text-sm max-w-md truncate">
-                      {item.title}
-                    </TableCell>
+                    <TableCell className="font-medium text-sm max-w-md truncate">{item.title}</TableCell>
                     <TableCell className="text-xs text-muted-foreground">{item.source}</TableCell>
                     <TableCell className="text-xs text-muted-foreground">
                       {item.pubDate ? new Date(item.pubDate).toLocaleDateString("en-GB") : "—"}
@@ -243,11 +331,7 @@ export default function MarketLessonsAdmin() {
                         disabled={generating.has(item.link)}
                         className="text-xs gap-1"
                       >
-                        {generating.has(item.link) ? (
-                          <Loader2 className="h-3 w-3 animate-spin" />
-                        ) : (
-                          "Create draft"
-                        )}
+                        {generating.has(item.link) ? <Loader2 className="h-3 w-3 animate-spin" /> : "Create draft"}
                       </Button>
                     </TableCell>
                   </TableRow>
@@ -274,55 +358,102 @@ export default function MarketLessonsAdmin() {
           ) : drafts.length === 0 ? (
             <p className="text-sm text-muted-foreground py-6 px-6">No draft entries.</p>
           ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Title</TableHead>
-                  <TableHead className="w-36">Category</TableHead>
-                  <TableHead className="w-36">Source</TableHead>
-                  <TableHead className="w-10"></TableHead>
-                  <TableHead className="w-28">Status</TableHead>
-                  <TableHead className="w-28"></TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {drafts.map((l) => (
-                  <TableRow key={l.id}>
-                    <TableCell className="font-medium text-sm">
-                      <a href={l.publication_url} target="_blank" rel="noopener noreferrer"
-                        className="hover:underline inline-flex items-center gap-1">
-                        {l.title}
-                        <ExternalLink className="h-3 w-3 text-muted-foreground" />
-                      </a>
-                    </TableCell>
-                    <TableCell>
-                      <Badge variant="outline" className="text-xs">{l.category}</Badge>
-                    </TableCell>
-                    <TableCell className="text-xs text-muted-foreground">{l.publication_name}</TableCell>
-                    <TableCell>
-                      {l.jurisdiction_country_code && (
-                        <span className="text-sm">{countryCodeToFlag(l.jurisdiction_country_code)}</span>
-                      )}
-                    </TableCell>
-                    <TableCell>
+            <div className="divide-y divide-border">
+              {drafts.map((l) => (
+                <div key={l.id}>
+                  <div
+                    className="flex items-center gap-3 px-4 py-3 cursor-pointer hover:bg-muted/30 transition-colors"
+                    onClick={() => setExpandedDraft(expandedDraft === l.id ? null : l.id)}
+                  >
+                    {expandedDraft === l.id ? (
+                      <ChevronDown className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+                    ) : (
+                      <ChevronRight className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+                    )}
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <span className="text-sm font-medium truncate">{l.title}</span>
+                        {l.jurisdiction_country_code && (
+                          <span className="text-sm">{countryCodeToFlag(l.jurisdiction_country_code)}</span>
+                        )}
+                        <RelevanceBadge score={l.relevance_score} />
+                      </div>
+                      <div className="flex items-center gap-2 mt-0.5">
+                        <Badge variant="outline" className="text-[10px]">{l.category}</Badge>
+                        <span className="text-[11px] text-muted-foreground">{l.publication_name}</span>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2 shrink-0" onClick={(e) => e.stopPropagation()}>
                       <Badge variant="secondary" className="text-xs">Draft</Badge>
-                    </TableCell>
-                    <TableCell>
-                      {canPublish && (
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => togglePublish.mutate({ id: l.id, published: true })}
-                          className="text-xs gap-1"
-                        >
-                          <Eye className="h-3 w-3" /> Publish
-                        </Button>
+                      {renderPublishButton(l)}
+                    </div>
+                  </div>
+
+                  {/* Expanded detail panel */}
+                  {expandedDraft === l.id && (
+                    <div className="px-6 pb-4 space-y-4 bg-muted/10 border-t border-border">
+                      {/* Relevance Score Panel */}
+                      {l.relevance_score && (
+                        <div className="rounded-md border border-border p-3 space-y-2 mt-3">
+                          <div className="flex items-center gap-2">
+                            <AlertTriangle className="h-3.5 w-3.5 text-muted-foreground" />
+                            <span className="text-xs font-medium uppercase tracking-wider text-muted-foreground">Programme Relevance</span>
+                          </div>
+                          <RelevanceBadge score={l.relevance_score} />
+                          {l.relevance_reasoning && (
+                            <div className="space-y-1 mt-1">
+                              {l.relevance_reasoning.split("\n").filter(Boolean).map((line, i) => (
+                                <p key={i} className="text-xs text-muted-foreground leading-relaxed">{line}</p>
+                              ))}
+                            </div>
+                          )}
+                        </div>
                       )}
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+
+                      {/* CR Analysis */}
+                      {l.governance_reflection && (
+                        <div className="space-y-1">
+                          <span className="text-xs font-medium uppercase tracking-wider text-muted-foreground">CR Analysis</span>
+                          <p className="text-xs text-foreground/80 leading-relaxed whitespace-pre-wrap">{l.governance_reflection}</p>
+                        </div>
+                      )}
+                      {l.summary_text && (
+                        <div className="space-y-1">
+                          <span className="text-xs font-medium uppercase tracking-wider text-muted-foreground">Summary</span>
+                          <p className="text-xs text-foreground/80 leading-relaxed">{l.summary_text}</p>
+                        </div>
+                      )}
+
+                      {/* Suppress option for not_relevant */}
+                      {l.relevance_score === "not_relevant" && canPublish && (
+                        <div className="flex items-center gap-2 pt-2 border-t border-border">
+                          <span className="text-xs text-muted-foreground">Not relevant to this programme —</span>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="text-xs h-7"
+                            onClick={() => setSuppressDialog({ id: l.id, title: l.title })}
+                          >
+                            Suppress for an organisation
+                          </Button>
+                        </div>
+                      )}
+
+                      <div className="flex items-center gap-2 pt-1">
+                        <a
+                          href={l.publication_url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-xs text-primary hover:underline inline-flex items-center gap-1"
+                        >
+                          View source <ExternalLink className="h-3 w-3" />
+                        </a>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
           )}
         </CardContent>
       </Card>
@@ -343,6 +474,7 @@ export default function MarketLessonsAdmin() {
               <TableHeader>
                 <TableRow>
                   <TableHead>Title</TableHead>
+                  <TableHead className="w-28">Relevance</TableHead>
                   <TableHead className="w-36">Category</TableHead>
                   <TableHead className="w-36">Source</TableHead>
                   <TableHead className="w-10"></TableHead>
@@ -360,6 +492,7 @@ export default function MarketLessonsAdmin() {
                         <ExternalLink className="h-3 w-3 text-muted-foreground" />
                       </a>
                     </TableCell>
+                    <TableCell><RelevanceBadge score={l.relevance_score} /></TableCell>
                     <TableCell>
                       <Badge variant="outline" className="text-xs">{l.category}</Badge>
                     </TableCell>
@@ -391,6 +524,35 @@ export default function MarketLessonsAdmin() {
           )}
         </CardContent>
       </Card>
+
+      {/* Suppress Dialog */}
+      <Dialog open={!!suppressDialog} onOpenChange={() => { setSuppressDialog(null); setSuppressOrgId(""); }}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Suppress for Organisation</DialogTitle>
+            <DialogDescription>
+              This will hide "{suppressDialog?.title}" from the selected organisation's Regulatory Briefings feed. Other organisations will still see it if published.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-2">
+            <label className="text-sm font-medium">Select Organisation</label>
+            <Select value={suppressOrgId} onValueChange={setSuppressOrgId}>
+              <SelectTrigger>
+                <SelectValue placeholder="Choose organisation…" />
+              </SelectTrigger>
+              <SelectContent>
+                {orgs.map((o: any) => (
+                  <SelectItem key={o.id} value={o.id}>{o.name}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => { setSuppressDialog(null); setSuppressOrgId(""); }}>Cancel</Button>
+            <Button onClick={handleSuppress} disabled={!suppressOrgId}>Suppress</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
