@@ -18,12 +18,13 @@ import {
 import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/hooks/use-toast";
 import {
-  Shield, Plus, Search, CheckCircle2, Scale, Eye, Lock, Info,
+  Shield, Plus, Search, CheckCircle2, Scale, Eye, Lock, Info, BookTemplate,
 } from "lucide-react";
 import {
   INTEREST_CHIPS, DATA_SUBJECT_OPTIONS, DATA_CATEGORY_OPTIONS,
   SOURCE_OPTIONS, MITIGATION_OPTIONS,
 } from "@/components/lia/LiaFormTypes";
+import { SEED_TEMPLATES } from "@/lib/lia-seed-templates";
 
 interface MasterLiaTemplate {
   id: string;
