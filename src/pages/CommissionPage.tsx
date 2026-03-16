@@ -40,6 +40,7 @@ export default function CommissionPage() {
   const { canAccessReportTier, canUseAddon, canUsePartnerEscalation, canExportAiBrief } = useEntitlements();
   const [searchParams] = useSearchParams();
   const [step, setStep] = useState(0);
+  const [quickCommissioning, setQuickCommissioning] = useState(false);
   const [entities, setEntities] = useState<any[]>([]);
   const [moduleTypes, setModuleTypes] = useState<any[]>([]);
   const [form, setForm] = useState({
