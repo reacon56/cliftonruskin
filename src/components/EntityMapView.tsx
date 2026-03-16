@@ -203,7 +203,7 @@ export default function EntityMapView({ entities, highlightId }: Props) {
   // Premises fly-to state
   const [premisesView, setPremisesView] = useState(false);
   const premisesLabelRef = useRef<L.Marker | null>(null);
-  const preFlyStateRef = useRef<{ center: L.LatLng; zoom: number; basemap: MapBasemap } | null>(null);
+  const preFlyStateRef = useRef<{ center: L.LatLng; zoom: number; basemap: MapBasemap; riskOverlayWasActive: boolean } | null>(null);
 
   // In-map filters
   const [tierFilter, setTierFilter] = useState<string>("All Tiers");
