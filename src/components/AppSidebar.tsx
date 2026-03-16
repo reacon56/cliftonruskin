@@ -2,11 +2,10 @@ import { NavLink, useLocation } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import {
   LayoutDashboard, Building2, FileCheck, FolderOpen, Activity,
-  Shield, Users, ClipboardList, HeadphonesIcon, ListTodo,
+  Shield, Users, ClipboardList, HeadphonesIcon,
   LogOut, ChevronLeft, ChevronRight, Moon, Sun,
-  ArrowLeftRight, CheckCircle2, Scale, ArrowUpCircle,
-  Briefcase, Eye, BookOpen, BarChart3, Search,
-  Send, FlaskConical, Globe, Wallet, Receipt,
+  ArrowLeftRight, CheckCircle2, Scale,
+  Briefcase, BookOpen, Wallet, Receipt,
   DollarSign, Bell, Sparkles, Settings,
 } from "lucide-react";
 import ManagerNavGroups from "@/components/sidebar/ManagerNavGroups";
