@@ -853,7 +853,17 @@ export default function EntityMapView({ entities, highlightId }: Props) {
           style={{ background: basemap === "classic" ? "hsl(0 0% 96%)" : "hsl(220 30% 8%)" }}
         />
 
-        {/* Map Legend — bottom-left */}
+        {/* Back to programme view button */}
+        {premisesView && (
+          <button
+            onClick={returnToProgrammeView}
+            className="absolute top-3 left-3 z-[1001] flex items-center gap-1.5 px-3 py-2 text-xs font-medium rounded-md bg-background/90 text-foreground border border-border backdrop-blur-sm shadow-md hover:bg-background transition-colors"
+          >
+            <ArrowLeft className="h-3.5 w-3.5" />
+            Back to programme view
+          </button>
+        )}
+
         <div className="absolute bottom-3 left-3 z-[1000] rounded-lg border border-border bg-card/95 backdrop-blur-sm px-3 py-2.5 shadow-sm max-w-[210px]">
           <p className="text-[9px] uppercase tracking-[0.1em] text-muted-foreground font-semibold mb-1.5">Entity Pins</p>
           <div className="space-y-1">
