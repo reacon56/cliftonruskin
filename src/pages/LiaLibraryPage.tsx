@@ -25,6 +25,9 @@ import {
   SOURCE_OPTIONS, MITIGATION_OPTIONS,
 } from "@/components/lia/LiaFormTypes";
 import { SEED_TEMPLATES } from "@/lib/lia-seed-templates";
+import { RegChangeAlertBanner, RegChangeDot } from "@/components/insight/RegChangeAlertBanner";
+import { KnowledgePanelWidget, type KnowledgeSection } from "@/components/insight/KnowledgePanel";
+import { FieldTooltip } from "@/components/insight/FieldTooltip";
 
 interface MasterLiaTemplate {
   id: string;
@@ -120,6 +123,44 @@ const PURPOSES = [
   "General assurance",
 ];
 
+const LIA_KNOWLEDGE_SECTIONS: KnowledgeSection[] = [
+  {
+    title: "What is a Master LIA?",
+    type: "text",
+    content:
+      "A Legitimate Interests Assessment (LIA) is a structured analysis required under Article 6(1)(f) UK GDPR whenever an organisation relies on legitimate interests as its lawful basis for processing personal data. Master LIA templates are organisation-level assessments that are completed once and referenced by individual cases.",
+  },
+  {
+    title: "DUAA 2025 — What Changed",
+    type: "quote",
+    content:
+      'The Data (Use and Access) Act 2025 introduced Article 6(1)(ea) — a new "Recognised Legitimate Interests" basis for processing that is specifically directed at crime prevention and detection. Where this basis applies, the traditional balancing test is not legally required, although documenting it remains best practice.',
+  },
+  {
+    title: "When to Use Each Template",
+    type: "keyvalue",
+    pairs: [
+      { key: "Standard DD", value: "Routine third-party checks — Tier B/C entities, low-risk jurisdictions" },
+      { key: "Enhanced CI", value: "High-risk entities, Tier A, EDD-triggered cases, PEP/sanctions hits" },
+      { key: "PEP & Sanctions", value: "Dedicated screening-only cases or ongoing monitoring programmes" },
+    ],
+  },
+  {
+    title: "Regulatory Context",
+    type: "text",
+    content:
+      "These templates are calibrated to UK GDPR as amended by the Data (Use and Access) Act 2025 (in force 5 February 2026). The UK adequacy decision was renewed on 19 December 2025 until 27 December 2031 — no additional transfer mechanism is required for EU data subjects.",
+  },
+  {
+    title: "Version Control",
+    type: "text",
+    content:
+      "Templates are versioned. When legislation changes or your programme evolves, create a new version rather than editing an active template. The previous version is automatically marked as superseded, maintaining a full audit trail.",
+  },
+];
+
+const DUAA_ALERT_ID = "duaa-2025-lia";
+
 export default function LiaLibraryPage() {
   const { profile, user, hasRole } = useAuth();
   const { toast } = useToast();
@@ -131,6 +172,7 @@ export default function LiaLibraryPage() {
   const [form, setForm] = useState<TemplateFormState>(INITIAL_FORM);
   const [saving, setSaving] = useState(false);
   const [seeding, setSeeding] = useState(false);
+  const [, setAlertKey] = useState(0);
 
   const isAdmin = hasRole("client_admin");
   const canEdit = isAdmin;
@@ -431,7 +473,7 @@ export default function LiaLibraryPage() {
               </Select>
             </div>
             <div className="space-y-2">
-              <Label className="text-xs">What legitimate interest are you pursuing?</Label>
+              <Label className="text-xs flex items-center gap-1.5">What legitimate interest are you pursuing? <FieldTooltip text="The legal justification under UK GDPR for processing personal data about individuals connected to this entity. Required under Article 5(1)(a)." /></Label>
               <div className="flex flex-wrap gap-1.5 mb-2">
                 {INTEREST_CHIPS.map((chip) => {
                   const selected = form.legitimate_interest_chips.includes(chip);
@@ -506,7 +548,7 @@ export default function LiaLibraryPage() {
           <AccordionTrigger className="text-sm font-medium text-foreground hover:no-underline py-3">
             <div className="flex items-center gap-2">
               <div className={`w-2 h-2 rounded-full ${sectionComplete.balancing ? "bg-accent" : "bg-muted-foreground/30"}`} />
-              <Scale size={14} className="text-muted-foreground" /> Balancing Test
+              <Scale size={14} className="text-muted-foreground" /> Balancing Test <FieldTooltip text="An assessment of whether the organisation's legitimate interests outweigh the privacy rights of the individuals whose data is being processed. Not required when relying on Recognised Legitimate Interests under DUAA 2025." />
             </div>
           </AccordionTrigger>
           <AccordionContent className="pb-4 space-y-4">
@@ -575,11 +617,11 @@ export default function LiaLibraryPage() {
               </label>
             </div>
             <div className="space-y-2">
-              <Label className="text-xs">Safeguards summary</Label>
+              <Label className="text-xs flex items-center gap-1.5">Safeguards summary <FieldTooltip text="Data requiring higher protection: health, biometric, racial origin, political opinions (includes PEP status), criminal records. Requires an additional condition under Article 9 UK GDPR." /></Label>
               <Textarea rows={2} value={form.safeguards} onChange={(e) => set({ safeguards: e.target.value })} placeholder="Describe additional safeguards…" disabled={readOnly} />
             </div>
             <div className="space-y-2">
-              <Label className="text-xs">Retention period</Label>
+              <Label className="text-xs flex items-center gap-1.5">Retention period <FieldTooltip text="How long case data will be kept after closure. MLR 2017 mandates 5 years minimum for AML-obligated firms. Standard commercial limitation period is 6 years. Enhanced DD cases: 7 years." /></Label>
               <Select value={form.retention_months?.toString() ?? ""} onValueChange={(v) => set({ retention_months: v ? Number(v) : null })} disabled={readOnly}>
                 <SelectTrigger className="text-xs"><SelectValue placeholder="Select…" /></SelectTrigger>
                 <SelectContent>
@@ -627,11 +669,21 @@ export default function LiaLibraryPage() {
 
   return (
     <div>
-      <div className="flex items-start justify-between mb-8">
+      <div className="flex items-start justify-between mb-4">
         <div>
-          <h1 className="fvc-heading-1 text-foreground">Master LIA Templates</h1>
+          <div className="flex items-center gap-2">
+            <h1 className="fvc-heading-1 text-foreground">Master LIA Templates</h1>
+            <RegChangeDot alertId={DUAA_ALERT_ID} onReshow={() => setAlertKey((k) => k + 1)} />
+          </div>
           <div className="fvc-gold-rule mt-3 mb-2" />
-          <p className="text-sm text-muted-foreground">Organisation-level Legitimate Interests Assessments — finalise once, reference per case</p>
+          <div className="flex items-center gap-3">
+            <p className="text-sm text-muted-foreground">Organisation-level Legitimate Interests Assessments — finalise once, reference per case</p>
+            <KnowledgePanelWidget
+              pageId="lia-library"
+              title="Master LIA Templates — Why They Matter"
+              sections={LIA_KNOWLEDGE_SECTIONS}
+            />
+          </div>
         </div>
         {canEdit && (
           <Button onClick={() => { setForm(INITIAL_FORM); setCreateOpen(true); }} className="gap-1.5">
@@ -639,6 +691,13 @@ export default function LiaLibraryPage() {
           </Button>
         )}
       </div>
+
+      {/* RegChange Alert Banner */}
+      <RegChangeAlertBanner
+        alertId={DUAA_ALERT_ID}
+        text="The Data (Use and Access) Act 2025 came into force on 5 February 2026, introducing a new seventh lawful basis — Recognised Legitimate Interests — which affects how LIA templates should be structured for financial crime prevention purposes."
+        dateText="In force: 5 February 2026"
+      />
 
       {/* Info banner */}
       <div className="flex items-start gap-3 p-3.5 rounded-lg border border-border bg-muted/30 mb-6">
