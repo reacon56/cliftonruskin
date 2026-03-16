@@ -128,19 +128,12 @@ export default function WorkloadPage() {
       const dbCases = casesRes.data ?? [];
       const dbProfiles = profilesRes.data ?? [];
 
-      if (dbTasks.length === 0 && dbCases.length === 0) {
-        // No real data — use demo
-        setTasks(buildDemoTasks());
-        setCases(buildDemoCases());
-        setProfiles(buildDemoProfiles());
-        setOrgs([{ id: "demo-org", name: "Pemberton Holdings" }]);
-        setUseDemo(true);
-      } else {
-        setTasks(dbTasks);
-        setCases(dbCases);
-        setProfiles(dbProfiles);
-        setOrgs(orgsRes.data ?? []);
-      }
+      // Always merge demo data so workload views are populated
+      setTasks([...buildDemoTasks(), ...dbTasks]);
+      setCases([...buildDemoCases(), ...dbCases]);
+      setProfiles([...buildDemoProfiles(), ...dbProfiles]);
+      setOrgs([{ id: "demo-org", name: "Pemberton Holdings" }, ...(orgsRes.data ?? [])]);
+      setUseDemo(true);
     });
   }, []);
 
