@@ -19,6 +19,7 @@ import ActivityTab from "@/components/entity-detail/ActivityTab";
 import CommercialPostureTab from "@/components/entity-detail/CommercialPostureTab";
 import JurisdictionBenchmarkTab from "@/components/entity-detail/JurisdictionBenchmarkTab";
 import OwnershipStructureTab from "@/components/entity-detail/OwnershipStructureTab";
+import DataProtectionTab from "@/components/entity-detail/DataProtectionTab";
 import { useFeatureFlags } from "@/hooks/use-feature-flags";
 
 import { Lock } from "lucide-react";
