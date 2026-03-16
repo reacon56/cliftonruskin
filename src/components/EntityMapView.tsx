@@ -1,7 +1,7 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useMemo } from "react";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
-import { useMapTheme, MapThemeToggle } from "@/hooks/use-map-theme";
+import { useMapTheme, MapThemeToggle, BasemapToggle } from "@/hooks/use-map-theme";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
@@ -29,17 +29,17 @@ interface Props {
   highlightId?: string | null;
 }
 
-const tierMarkerColor = (tier: string) => {
-  if (tier === "A") return "#ef4444";
-  if (tier === "B") return "#d97706";
-  return "#22c55e";
-};
+const TIER_COLORS: Record<string, string> = { A: "#ef4444", B: "#d97706", C: "#22c55e" };
+const tierMarkerColor = (tier: string) => TIER_COLORS[tier] || "#22c55e";
 
 const tierBg = (tier: string) => {
   if (tier === "A") return "bg-destructive/10 text-destructive";
   if (tier === "B") return "bg-warning/10 text-warning";
   return "bg-success/10 text-success";
 };
+
+const TIER_OPTIONS = ["All Tiers", "Tier A", "Tier B", "Tier C"] as const;
+const TYPE_OPTIONS = ["All Types", "Supplier", "Partner", "Target"] as const;
 
 export default function EntityMapView({ entities, highlightId }: Props) {
   const mapRef = useRef<HTMLDivElement>(null);
@@ -49,7 +49,24 @@ export default function EntityMapView({ entities, highlightId }: Props) {
   const navigate = useNavigate();
   const [pinType, setPinType] = useState<"registered" | "hq">("registered");
   const [selected, setSelected] = useState<Entity | null>(null);
-  const { theme, toggle, tileUrl } = useMapTheme();
+  const { theme, basemap, toggle, toggleBasemap, tileUrl } = useMapTheme();
+
+  // In-map filters
+  const [tierFilter, setTierFilter] = useState<string>("All Tiers");
+  const [typeFilter, setTypeFilter] = useState<string>("All Types");
+
+  const filteredEntities = useMemo(() => {
+    return entities.filter((e) => {
+      if (tierFilter !== "All Tiers") {
+        const letter = tierFilter.replace("Tier ", "").toUpperCase();
+        if (e.risk_tier?.toUpperCase() !== letter) return false;
+      }
+      if (typeFilter !== "All Types") {
+        if (e.entity_type?.toLowerCase() !== typeFilter.toLowerCase()) return false;
+      }
+      return true;
+    });
+  }, [entities, tierFilter, typeFilter]);
 
   useEffect(() => {
     if (!mapRef.current || leafletMap.current) return;
@@ -69,11 +86,10 @@ export default function EntityMapView({ entities, highlightId }: Props) {
     const map = leafletMap.current;
     if (!map) return;
 
-    // Clear old markers
     markersRef.current.forEach((m) => map.removeLayer(m));
     markersRef.current = [];
 
-    entities.forEach((entity) => {
+    filteredEntities.forEach((entity) => {
       let lat: number | null = null;
       let lng: number | null = null;
 
@@ -107,9 +123,9 @@ export default function EntityMapView({ entities, highlightId }: Props) {
         map.setView([lat, lng], 6, { animate: true });
       }
     });
-  }, [entities, pinType, highlightId]);
+  }, [filteredEntities, pinType, highlightId]);
 
-  // Swap tile layer on theme change
+  // Swap tile layer on theme/basemap change
   useEffect(() => {
     const map = leafletMap.current;
     if (!map) return;
@@ -117,7 +133,6 @@ export default function EntityMapView({ entities, highlightId }: Props) {
     tileLayerRef.current = L.tileLayer(tileUrl, { maxZoom: 18 }).addTo(map);
   }, [tileUrl]);
 
-  const todayStr = new Date().toISOString().split("T")[0];
   const getDueStatus = (e: Entity) => {
     if (!e.next_review_date) return { label: "No date", color: "bg-muted text-muted-foreground" };
     const days = Math.ceil((new Date(e.next_review_date).getTime() - Date.now()) / 86400000);
@@ -128,7 +143,7 @@ export default function EntityMapView({ entities, highlightId }: Props) {
 
   return (
     <div className="relative">
-      {/* Pin type control */}
+      {/* Pin type + theme controls */}
       <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-2">
           <span className="text-[10px] uppercase tracking-[0.08em] text-muted-foreground font-semibold">Show pins:</span>
@@ -151,14 +166,83 @@ export default function EntityMapView({ entities, highlightId }: Props) {
             </button>
           </div>
         </div>
-        <MapThemeToggle theme={theme} onToggle={toggle} />
+        <div className="flex items-center gap-1.5">
+          <BasemapToggle basemap={basemap} onToggle={toggleBasemap} />
+          <MapThemeToggle theme={theme} onToggle={toggle} />
+        </div>
       </div>
 
-      <div
-        ref={mapRef}
-        className="w-full h-[500px] rounded-lg overflow-hidden border border-border"
-        style={{ background: theme === "light" ? "hsl(0 0% 96%)" : "hsl(220 30% 8%)" }}
-      />
+      {/* In-map filter chips */}
+      <div className="flex items-center gap-4 mb-3 flex-wrap">
+        <div className="flex items-center gap-1">
+          {TIER_OPTIONS.map((opt) => (
+            <button
+              key={opt}
+              onClick={() => setTierFilter(opt)}
+              className={`px-2.5 py-1 rounded-full text-[11px] font-medium border transition-colors ${
+                tierFilter === opt
+                  ? "bg-primary text-primary-foreground border-primary"
+                  : "bg-card text-muted-foreground border-border hover:bg-muted/50"
+              }`}
+            >
+              {opt}
+            </button>
+          ))}
+        </div>
+        <div className="flex items-center gap-1">
+          {TYPE_OPTIONS.map((opt) => (
+            <button
+              key={opt}
+              onClick={() => setTypeFilter(opt)}
+              className={`px-2.5 py-1 rounded-full text-[11px] font-medium border transition-colors ${
+                typeFilter === opt
+                  ? "bg-primary text-primary-foreground border-primary"
+                  : "bg-card text-muted-foreground border-border hover:bg-muted/50"
+              }`}
+            >
+              {opt}
+            </button>
+          ))}
+        </div>
+        {(tierFilter !== "All Tiers" || typeFilter !== "All Types") && (
+          <span className="text-[10px] text-muted-foreground">
+            Showing {filteredEntities.length} of {entities.length} entities
+          </span>
+        )}
+      </div>
+
+      {/* Map canvas */}
+      <div className="relative">
+        <div
+          ref={mapRef}
+          className="w-full h-[500px] rounded-lg overflow-hidden border border-border"
+          style={{ background: theme === "light" ? "hsl(0 0% 96%)" : "hsl(220 30% 8%)" }}
+        />
+
+        {/* Map Legend — bottom-left */}
+        <div className="absolute bottom-3 left-3 z-[1000] rounded-lg border border-border bg-card/95 backdrop-blur-sm px-3 py-2.5 shadow-sm">
+          <p className="text-[9px] uppercase tracking-[0.1em] text-muted-foreground font-semibold mb-1.5">Legend</p>
+          <div className="space-y-1">
+            <div className="flex items-center gap-2">
+              <span className="inline-block w-2.5 h-2.5 rounded-full border border-white/50" style={{ backgroundColor: TIER_COLORS.A }} />
+              <span className="text-[10px] text-foreground">Tier A — High Risk</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="inline-block w-2.5 h-2.5 rounded-full border border-white/50" style={{ backgroundColor: TIER_COLORS.B }} />
+              <span className="text-[10px] text-foreground">Tier B — Medium Risk</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="inline-block w-2.5 h-2.5 rounded-full border border-white/50" style={{ backgroundColor: TIER_COLORS.C }} />
+              <span className="text-[10px] text-foreground">Tier C — Low Risk</span>
+            </div>
+          </div>
+          <div className="border-t border-border mt-1.5 pt-1.5">
+            <span className="text-[9px] text-muted-foreground">
+              Showing: {pinType === "registered" ? "Registered Office" : "Head Office"}
+            </span>
+          </div>
+        </div>
+      </div>
 
       {/* Popover for selected entity */}
       {selected && (
