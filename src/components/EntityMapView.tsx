@@ -638,7 +638,7 @@ export default function EntityMapView({ entities, highlightId }: Props) {
                   <option key={e.id} value={e.id}>{e.name}</option>
                 ))}
             </select>
-          )
+          )}
           <button
             onClick={() => setRiskOverlay((p) => !p)}
             className={`flex items-center gap-1.5 px-2.5 py-1.5 text-[11px] font-medium rounded-md border transition-colors ${
