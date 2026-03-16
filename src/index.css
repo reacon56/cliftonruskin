@@ -367,3 +367,44 @@
   background: transparent !important;
   border: none !important;
 }
+.premises-label-container {
+  background: transparent !important;
+  border: none !important;
+}
+.premises-label {
+  position: relative;
+  background: rgba(15, 23, 42, 0.88);
+  backdrop-filter: blur(8px);
+  border-radius: 8px;
+  padding: 10px 14px;
+  min-width: 200px;
+  max-width: 280px;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+  border: 1px solid rgba(255,255,255,0.12);
+}
+.premises-label-dot {
+  position: absolute;
+  bottom: -5px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #ef4444;
+  border: 1.5px solid #fff;
+  box-shadow: 0 0 6px rgba(239,68,68,0.6);
+}
+.premises-label-name {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 12px;
+  font-weight: 700;
+  color: #fff;
+  margin-bottom: 3px;
+  line-height: 1.3;
+}
+.premises-label-address {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 10px;
+  color: rgba(255,255,255,0.7);
+  line-height: 1.4;
+}

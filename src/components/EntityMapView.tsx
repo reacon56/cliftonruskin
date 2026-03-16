@@ -4,13 +4,14 @@ import "leaflet/dist/leaflet.css";
 import "leaflet.markercluster";
 import "leaflet.markercluster/dist/MarkerCluster.css";
 import "leaflet.markercluster/dist/MarkerCluster.Default.css";
-import { useMapTheme, BasemapCycleToggle } from "@/hooks/use-map-theme";
+import { useMapTheme, BasemapCycleToggle, type MapBasemap } from "@/hooks/use-map-theme";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { X, Layers, Share2 } from "lucide-react";
+import { X, Layers, Share2, ArrowLeft, Building2 } from "lucide-react";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 interface Entity {
   id: string;
@@ -23,10 +24,18 @@ interface Entity {
   registered_lng: number | null;
   registered_city: string | null;
   registered_country: string | null;
+  registered_address_line1: string | null;
+  registered_address_line2: string | null;
+  registered_region: string | null;
+  registered_postcode: string | null;
   hq_lat: number | null;
   hq_lng: number | null;
   head_office_city: string | null;
   head_office_country: string | null;
+  head_office_address_line1: string | null;
+  head_office_address_line2: string | null;
+  head_office_region: string | null;
+  head_office_postcode: string | null;
 }
 
 interface Props {
@@ -183,10 +192,16 @@ export default function EntityMapView({ entities, highlightId }: Props) {
   const navigate = useNavigate();
   const [pinType, setPinType] = useState<"registered" | "hq">("registered");
   const [selected, setSelected] = useState<Entity | null>(null);
-  const { basemap, cycleBasemap, tileUrl } = useMapTheme();
+  const { basemap, setBasemap, cycleBasemap, tileUrl } = useMapTheme();
   const [riskOverlay, setRiskOverlay] = useState(false);
   const [ownershipOverlay, setOwnershipOverlay] = useState(false);
   const [ownershipFilterEntity, setOwnershipFilterEntity] = useState<string>("all");
+  const isMobile = useIsMobile();
+
+  // Premises fly-to state
+  const [premisesView, setPremisesView] = useState(false);
+  const premisesLabelRef = useRef<L.Marker | null>(null);
+  const preFlyStateRef = useRef<{ center: L.LatLng; zoom: number; basemap: MapBasemap } | null>(null);
 
   // In-map filters
   const [tierFilter, setTierFilter] = useState<string>("All Tiers");
@@ -295,6 +310,142 @@ export default function EntityMapView({ entities, highlightId }: Props) {
     }
     return map;
   }, [entities, relatedEntities, pinType]);
+
+  /** Check if entity has a street-level address (not just city/country) */
+  const hasStreetAddress = useCallback((entity: Entity): boolean => {
+    if (pinType === "hq") {
+      return !!(entity.head_office_address_line1 && entity.head_office_address_line1.trim());
+    }
+    return !!(entity.registered_address_line1 && entity.registered_address_line1.trim());
+  }, [pinType]);
+
+  /** Get the full formatted address for an entity based on pinType */
+  const getFullAddress = useCallback((entity: Entity): string => {
+    if (pinType === "hq") {
+      return [entity.head_office_address_line1, entity.head_office_address_line2, entity.head_office_city, entity.head_office_region, entity.head_office_postcode, entity.head_office_country].filter(Boolean).join(", ");
+    }
+    return [entity.registered_address_line1, entity.registered_address_line2, entity.registered_city, entity.registered_region, entity.registered_postcode, entity.registered_country].filter(Boolean).join(", ");
+  }, [pinType]);
+
+  /** Check if coords have building-level precision (≥4 decimal places) */
+  const hasPreciseCoords = useCallback((entity: Entity): boolean => {
+    const lat = pinType === "hq" ? entity.hq_lat : entity.registered_lat;
+    const lng = pinType === "hq" ? entity.hq_lng : entity.registered_lng;
+    if (!lat || !lng) return false;
+    const latStr = lat.toString();
+    const lngStr = lng.toString();
+    const latDecimals = latStr.includes('.') ? latStr.split('.')[1].length : 0;
+    const lngDecimals = lngStr.includes('.') ? lngStr.split('.')[1].length : 0;
+    return latDecimals >= 4 && lngDecimals >= 4;
+  }, [pinType]);
+
+  /** Fly to entity premises */
+  const flyToPremises = useCallback((entity: Entity) => {
+    const map = leafletMap.current;
+    if (!map) return;
+
+    // Determine coordinates
+    let lat: number | null = null;
+    let lng: number | null = null;
+    if (pinType === "hq" && entity.hq_lat && entity.hq_lng) {
+      lat = entity.hq_lat; lng = entity.hq_lng;
+    } else if (entity.registered_lat && entity.registered_lng) {
+      lat = entity.registered_lat; lng = entity.registered_lng;
+    }
+    if (!lat || !lng) return;
+
+    // Save pre-fly state
+    preFlyStateRef.current = {
+      center: map.getCenter(),
+      zoom: map.getZoom(),
+      basemap,
+    };
+
+    // Close popup
+    setSelected(null);
+
+    // Switch to satellite
+    if (basemap !== "satellite") {
+      setBasemap("satellite");
+    }
+
+    const targetZoom = isMobile ? 16 : 18;
+
+    // Fly to
+    map.flyTo([lat, lng], targetZoom, {
+      animate: true,
+      duration: 1.8,
+      easeLinearity: 0.4,
+    });
+
+    // Show address label after animation
+    const onMoveEnd = () => {
+      map.off("moveend", onMoveEnd);
+      // Remove existing label
+      if (premisesLabelRef.current) {
+        map.removeLayer(premisesLabelRef.current);
+      }
+
+      const address = getFullAddress(entity);
+      const labelHtml = `<div class="premises-label">
+        <div class="premises-label-dot"></div>
+        <div class="premises-label-name">${entity.name}</div>
+        <div class="premises-label-address">${address}</div>
+      </div>`;
+
+      const label = L.marker([lat!, lng!], {
+        icon: L.divIcon({
+          className: "premises-label-container",
+          html: labelHtml,
+          iconSize: [240, 0],
+          iconAnchor: [120, 50],
+        }),
+        interactive: false,
+        pane: "tooltipPane",
+      });
+      label.addTo(map);
+      premisesLabelRef.current = label;
+      setPremisesView(true);
+    };
+
+    map.once("moveend", onMoveEnd);
+  }, [pinType, basemap, setBasemap, isMobile, getFullAddress]);
+
+  /** Return to programme view */
+  const returnToProgrammeView = useCallback(() => {
+    const map = leafletMap.current;
+    if (!map) return;
+
+    // Remove address label
+    if (premisesLabelRef.current) {
+      map.removeLayer(premisesLabelRef.current);
+      premisesLabelRef.current = null;
+    }
+
+    const pre = preFlyStateRef.current;
+    if (pre) {
+      // Restore basemap
+      if (pre.basemap !== "satellite") {
+        setBasemap(pre.basemap);
+      }
+      // Fly back
+      map.flyTo(pre.center, pre.zoom, { animate: true, duration: 1.5 });
+      preFlyStateRef.current = null;
+    }
+
+    setPremisesView(false);
+  }, [setBasemap]);
+
+  // Escape key handler for premises view
+  useEffect(() => {
+    if (!premisesView) return;
+    const handler = (e: KeyboardEvent) => {
+      if (e.key === "Escape") returnToProgrammeView();
+    };
+    window.addEventListener("keydown", handler);
+    return () => window.removeEventListener("keydown", handler);
+  }, [premisesView, returnToProgrammeView]);
+
 
   useEffect(() => {
     if (!mapRef.current || leafletMap.current) return;
@@ -702,7 +853,17 @@ export default function EntityMapView({ entities, highlightId }: Props) {
           style={{ background: basemap === "classic" ? "hsl(0 0% 96%)" : "hsl(220 30% 8%)" }}
         />
 
-        {/* Map Legend — bottom-left */}
+        {/* Back to programme view button */}
+        {premisesView && (
+          <button
+            onClick={returnToProgrammeView}
+            className="absolute top-3 left-3 z-[1001] flex items-center gap-1.5 px-3 py-2 text-xs font-medium rounded-md bg-background/90 text-foreground border border-border backdrop-blur-sm shadow-md hover:bg-background transition-colors"
+          >
+            <ArrowLeft className="h-3.5 w-3.5" />
+            Back to programme view
+          </button>
+        )}
+
         <div className="absolute bottom-3 left-3 z-[1000] rounded-lg border border-border bg-card/95 backdrop-blur-sm px-3 py-2.5 shadow-sm max-w-[210px]">
           <p className="text-[9px] uppercase tracking-[0.1em] text-muted-foreground font-semibold mb-1.5">Entity Pins</p>
           <div className="space-y-1">
@@ -801,6 +962,15 @@ export default function EntityMapView({ entities, highlightId }: Props) {
               Commission check
             </Button>
           </div>
+          {hasStreetAddress(selected) && (
+            <button
+              onClick={() => flyToPremises(selected)}
+              className="w-full mt-2 flex items-center justify-center gap-1.5 px-2 py-1.5 text-[11px] text-muted-foreground hover:text-foreground transition-colors rounded-md hover:bg-muted/50"
+            >
+              <Building2 className="h-3 w-3" />
+              View premises
+            </button>
+          )}
         </div>
       )}
     </div>
