@@ -127,12 +127,18 @@ export default function ManagerDashboardView({ selectedOrgId, onOrgChange }: Pro
     const days = parseInt(riskPeriod);
     const since = new Date(Date.now() - days * 86400000).toISOString();
 
-    const { data: logs } = await supabase
+    let query = supabase
       .from("audit_events")
       .select("metadata, entity_id, created_at")
       .eq("object_type", "entity")
       .eq("action_type", "risk_tier_changed")
       .gte("created_at", since);
+
+    if (selectedOrgId && selectedOrgId !== "all") {
+      query = query.eq("org_id", selectedOrgId);
+    }
+
+    const { data: logs } = await query;
 
     setRiskLogs(logs ?? []);
 
