@@ -76,6 +76,8 @@ interface Entity {
   name: string;
   country: string | null;
   risk_tier: string;
+  latitude?: number | null;
+  longitude?: number | null;
   registered_lat?: number | null;
   registered_lng?: number | null;
   hq_lat?: number | null;
