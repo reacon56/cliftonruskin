@@ -1,5 +1,42 @@
 import { Shield, AlertTriangle } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { RegChangeAlertBanner } from "@/components/insight/RegChangeAlertBanner";
+import { KnowledgePanelWidget } from "@/components/insight/KnowledgePanel";
+import type { KnowledgeSection } from "@/components/insight/KnowledgePanel";
+
+const DP_CASE_KNOWLEDGE: KnowledgeSection[] = [
+  {
+    title: "Why Every Case Needs a Documented Lawful Basis",
+    content: "Processing personal data in a due diligence context requires a lawful basis under UK GDPR. The basis must be selected before processing begins and recorded in the case file.",
+  },
+  {
+    title: "The Three Bases Most Used in DD",
+    type: "keyvalue",
+    pairs: [
+      { key: "Art 6(1)(f)", value: "Legitimate Interests — standard DD" },
+      { key: "Art 6(1)(c)", value: "Legal Obligation — AML/MLR regulated firms" },
+      { key: "Art 6(1)(ea)", value: "Recognised Legitimate Interests under DUAA 2025 — crime prevention, no balancing test required" },
+    ],
+  },
+  {
+    title: "What DP Review Status Means",
+    content: "Pending = AI output generated, human review not yet completed. In Review = analyst actively reviewing. Approved = human sign-off recorded, compliant with Article 22. Flagged = issue identified, legal review required.",
+  },
+  {
+    title: "Retention Period",
+    content: "The lawful basis determines the retention period. Art 6(1)(c) (MLR): 5 years from end of relationship. Art 6(1)(f): 6 years (Limitation Act). Records must be deleted or anonymised at expiry unless a new basis applies.",
+  },
+  {
+    title: "Quick Reference",
+    type: "keyvalue",
+    pairs: [
+      { key: "Primary", value: "DUAA 2025 Article 22" },
+      { key: "Basis", value: "UK GDPR Article 6" },
+      { key: "Guidance", value: "ICO Lawful Basis Guidance" },
+      { key: "Regulation", value: "MLR 2017 Regulation 40" },
+    ],
+  },
+];
 
 const LAWFUL_BASIS_LABELS: Record<string, string> = {
   legitimate_interests: "Legitimate interests",
@@ -35,6 +72,20 @@ export default function DataProtectionSummary({ caseData, isInternal, dpReview }
 
   return (
     <div className="fvc-card">
+      <RegChangeAlertBanner
+        alertId="duaa-2025-art22-case"
+        text="DUAA 2025 — Article 22 Applies to This Review: Where AI-assisted processing has been used in this case, Article 22 of the Data (Use and Access) Act 2025 requires a documented human review before the case record is finalised. The DP Review Status field below records this compliance step."
+        dateText="In force: 5 Feb 2026"
+      />
+
+      <div className="mb-4">
+        <KnowledgePanelWidget
+          pageId="case-dp-lawful-basis"
+          title="Lawful Basis & DP Review — What This Tab Records"
+          sections={DP_CASE_KNOWLEDGE}
+        />
+      </div>
+
       <div className="flex items-center gap-2 mb-4">
         <Shield size={16} className="text-accent" />
         <h2 className="fvc-heading-3 text-foreground">Data Protection</h2>
