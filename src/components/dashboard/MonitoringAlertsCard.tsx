@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import { Radar, ChevronRight, Building2 } from "lucide-react";
+import ExpandableTile from "./ExpandableTile";
 
 interface MonitoringAlert {
   id: string;
@@ -47,7 +48,6 @@ export default function MonitoringAlertsCard() {
   const loadData = async () => {
     const orgId = profile!.org_id!;
 
-    // Count monitored entities
     const { count } = await supabase
       .from("client_monitored_entity" as any)
       .select("id", { count: "exact", head: true })
@@ -55,7 +55,6 @@ export default function MonitoringAlertsCard() {
       .eq("enabled", true);
     setMonitoredCount(count ?? 0);
 
-    // Get recent alert notifications for this org
     const { data: notifications } = await supabase
       .from("alert_notification")
       .select("alert_event_id, alert_event:alert_event_id(id, alert_type, summary, detected_at, jurisdiction_id, jurisdiction:jurisdiction_id(country_name))")
@@ -69,7 +68,6 @@ export default function MonitoringAlertsCard() {
       return;
     }
 
-    // Deduplicate by alert_event_id
     const eventMap = new Map<string, any>();
     for (const n of notifications as any[]) {
       const ev = n.alert_event;
@@ -77,12 +75,10 @@ export default function MonitoringAlertsCard() {
       eventMap.set(ev.id, ev);
     }
 
-    // For each alert event, find affected monitored entities via jurisdiction links
     const result: MonitoringAlert[] = [];
     for (const [, ev] of eventMap) {
       if (!ev.jurisdiction_id) continue;
 
-      // Get entities linked to this jurisdiction that are monitored
       const { data: linked } = await supabase
         .from("entity_jurisdiction_link")
         .select("entity_id, entities:entity_id(id, name, org_id)")
@@ -107,21 +103,76 @@ export default function MonitoringAlertsCard() {
     setAlerts(result);
   };
 
-  return (
-    <div className="fvc-card lg:col-span-2 animate-fade-in" style={{ animationDelay: "350ms", animationFillMode: "both" }}>
-      <div className="flex items-center justify-between mb-5">
-        <div className="flex items-center gap-2">
-          <Radar size={16} className="text-accent" />
-          <h2 className="fvc-heading-3 text-foreground">Monitoring Alerts</h2>
-          {monitoredCount > 0 && (
-            <Badge className="bg-accent/10 text-accent-foreground text-[9px] px-1.5 py-0">
-              {monitoredCount} monitored
-            </Badge>
-          )}
-        </div>
-        <button onClick={() => navigate("/client-alerts")} className="fvc-link text-xs">View all</button>
-      </div>
+  const headerRight = (
+    <button onClick={() => navigate("/client-alerts")} className="fvc-link text-xs">View all</button>
+  );
 
+  const monitoredBadge = monitoredCount > 0 ? (
+    <Badge className="bg-accent/10 text-accent-foreground text-[9px] px-1.5 py-0 ml-2">
+      {monitoredCount} monitored
+    </Badge>
+  ) : null;
+
+  const expandedContent = (
+    <div className="space-y-0">
+      {alerts.length === 0 ? (
+        <div className="text-center py-6">
+          <p className="text-sm text-muted-foreground">No new monitoring alerts.</p>
+        </div>
+      ) : (
+        <div className="border border-border rounded-lg overflow-hidden">
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="border-b border-border bg-muted/30">
+                <th className="text-left p-3 text-xs font-medium text-muted-foreground">Type</th>
+                <th className="text-left p-3 text-xs font-medium text-muted-foreground">Jurisdiction</th>
+                <th className="text-left p-3 text-xs font-medium text-muted-foreground">Summary</th>
+                <th className="text-left p-3 text-xs font-medium text-muted-foreground">Date</th>
+                <th className="text-left p-3 text-xs font-medium text-muted-foreground">Affected Entities</th>
+              </tr>
+            </thead>
+            <tbody>
+              {alerts.map((a) => (
+                <tr key={a.id} className="border-b border-border/50 last:border-0">
+                  <td className="p-3">
+                    <Badge className={`fvc-status-badge shrink-0 text-[9px] ${ALERT_COLORS[a.alert_type] ?? "bg-muted text-muted-foreground"}`}>
+                      {ALERT_LABELS[a.alert_type] ?? a.alert_type.replace(/_/g, " ")}
+                    </Badge>
+                  </td>
+                  <td className="p-3 text-muted-foreground">{a.jurisdiction_name ?? "—"}</td>
+                  <td className="p-3 text-foreground">{a.summary}</td>
+                  <td className="p-3 text-muted-foreground whitespace-nowrap">
+                    {new Date(a.detected_at).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })}
+                  </td>
+                  <td className="p-3">
+                    <div className="flex flex-wrap gap-1">
+                      {a.affected_entities.slice(0, 3).map((ent) => (
+                        <Button key={ent.id} variant="ghost" size="sm" className="h-5 px-1.5 text-[10px] text-primary hover:underline" onClick={() => navigate(`/entities/${ent.id}`)}>
+                          {ent.name}
+                        </Button>
+                      ))}
+                      {a.affected_entities.length > 3 && (
+                        <span className="text-[10px] text-muted-foreground">+{a.affected_entities.length - 3}</span>
+                      )}
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+    </div>
+  );
+
+  return (
+    <ExpandableTile
+      title="Monitoring Alerts"
+      icon={<Radar size={16} className="text-accent" />}
+      headerRight={<div className="flex items-center">{monitoredBadge}{headerRight}</div>}
+      expandedContent={expandedContent}
+      className="lg:col-span-2 animate-fade-in"
+    >
       {alerts.length === 0 ? (
         <div className="text-center py-6">
           <p className="text-sm text-muted-foreground">No new monitoring alerts.</p>
@@ -134,10 +185,7 @@ export default function MonitoringAlertsCard() {
       ) : (
         <div className="space-y-0">
           {alerts.map((a) => (
-            <div
-              key={a.id}
-              className="py-3 border-b border-border/60 last:border-0 transition-colors hover:bg-muted/30 -mx-2 px-2 rounded"
-            >
+            <div key={a.id} className="py-3 border-b border-border/60 last:border-0 transition-colors hover:bg-muted/30 -mx-2 px-2 rounded">
               <div className="flex items-start justify-between gap-3">
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 flex-wrap mb-0.5">
@@ -154,19 +202,12 @@ export default function MonitoringAlertsCard() {
                   </div>
                 </div>
               </div>
-
               {a.affected_entities.length > 0 && (
                 <div className="mt-2 flex items-center gap-1.5 flex-wrap">
                   <Building2 size={10} className="text-muted-foreground shrink-0" />
                   <span className="text-[10px] text-muted-foreground">Affected:</span>
                   {a.affected_entities.slice(0, 3).map((ent) => (
-                    <Button
-                      key={ent.id}
-                      variant="ghost"
-                      size="sm"
-                      className="h-5 px-1.5 text-[10px] text-primary hover:underline"
-                      onClick={() => navigate(`/entities/${ent.id}`)}
-                    >
+                    <Button key={ent.id} variant="ghost" size="sm" className="h-5 px-1.5 text-[10px] text-primary hover:underline" onClick={() => navigate(`/entities/${ent.id}`)}>
                       {ent.name} <ChevronRight size={8} />
                     </Button>
                   ))}
@@ -179,6 +220,6 @@ export default function MonitoringAlertsCard() {
           ))}
         </div>
       )}
-    </div>
+    </ExpandableTile>
   );
 }
