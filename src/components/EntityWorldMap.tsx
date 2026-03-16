@@ -91,6 +91,8 @@ interface Props {
   entities: Entity[];
   /** When true, map fills available height and calls invalidateSize */
   expanded?: boolean;
+  /** Called when a marker is clicked – receives the entity id */
+  onEntityClick?: (entityId: string) => void;
 }
 
 // tierMarkerColor now imported from map-pin-icons
