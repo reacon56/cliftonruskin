@@ -177,7 +177,8 @@ export default function EntityWorldMap({ entities, expanded, onEntityClick }: Pr
         marker.on("click", () => onEntityClick(entity.id));
         marker.getElement()?.style.setProperty("cursor", "pointer");
       }
-  }, [entities]);
+    });
+  }, [entities, onEntityClick]);
 
   // Swap tile layer on theme change
   useEffect(() => {
