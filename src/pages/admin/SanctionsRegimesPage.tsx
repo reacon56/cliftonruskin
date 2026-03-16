@@ -14,6 +14,38 @@ import { Plus, Pencil, Trash2, ExternalLink, Shield } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { countryCodeToFlag } from "@/lib/country-flag";
+import { RegChangeAlertBanner } from "@/components/insight/RegChangeAlertBanner";
+import { KnowledgePanelWidget } from "@/components/insight/KnowledgePanel";
+import type { KnowledgeSection } from "@/components/insight/KnowledgePanel";
+
+const SANCTIONS_KNOWLEDGE: KnowledgeSection[] = [
+  {
+    title: "The Divergence Point",
+    content: "Prior to Brexit, UK sanctions mirrored EU designations. Post-Brexit, OFSI administers UK sanctions independently. The lists have diverged significantly, particularly on Russia, Iran and Belarus.",
+  },
+  {
+    title: "Key Differences Today",
+    content: "OFAC operates a 50% rule (entities 50%+ owned by a designated person are automatically sanctioned). The UK OFSI rule is different — ownership alone does not automatically designate unless the entity is separately listed.",
+  },
+  {
+    title: "Why Screening Both is Required",
+    content: "For any transaction with a US nexus (USD clearing, US counterparty, US-incorporated entity), OFAC applies regardless of where your firm is based. UK firms with US operations or USD exposure must screen both lists.",
+  },
+  {
+    title: "What CR Screens",
+    content: "The platform screens against UK OFSI, UN, EU, and OFAC consolidated lists via OpenSanctions integration. All four are required for a complete screen.",
+  },
+  {
+    title: "Quick Reference",
+    type: "keyvalue",
+    pairs: [
+      { key: "UK", value: "OFSI Consolidated List" },
+      { key: "US", value: "OFAC SDN List" },
+      { key: "Data", value: "OpenSanctions" },
+      { key: "Legislation", value: "Russia Regulations 2019 (as amended)" },
+    ],
+  },
+];
 
 type RegimeRow = {
   id: string;
