@@ -624,6 +624,21 @@ export default function EntityMapView({ entities, highlightId }: Props) {
             <Share2 className="h-3 w-3" />
             Ownership Network
           </button>
+          {ownershipOverlay && (
+            <select
+              value={ownershipFilterEntity}
+              onChange={(e) => setOwnershipFilterEntity(e.target.value)}
+              className="px-2 py-1 text-[11px] font-medium rounded-md border border-border bg-card text-foreground max-w-[180px] truncate"
+              title="Filter network by entity"
+            >
+              <option value="all">All entities</option>
+              {entities
+                .filter((e) => ownershipRels?.some((r) => r.source_entity_id === e.id || r.target_entity_id === e.id))
+                .map((e) => (
+                  <option key={e.id} value={e.id}>{e.name}</option>
+                ))}
+            </select>
+          )
           <button
             onClick={() => setRiskOverlay((p) => !p)}
             className={`flex items-center gap-1.5 px-2.5 py-1.5 text-[11px] font-medium rounded-md border transition-colors ${
