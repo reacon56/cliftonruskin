@@ -71,6 +71,7 @@ export default function MarketLessonsAdmin() {
   const [expandedDraft, setExpandedDraft] = useState<string | null>(null);
   const [suppressDialog, setSuppressDialog] = useState<{ id: string; title: string } | null>(null);
   const [suppressOrgId, setSuppressOrgId] = useState("");
+  const [relevanceOrgId, setRelevanceOrgId] = useState("");
 
   const { data: lessons = [], isLoading } = useQuery({
     queryKey: ["market-lessons"],
