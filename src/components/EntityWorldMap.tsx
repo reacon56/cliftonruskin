@@ -2,6 +2,7 @@ import { useEffect, useRef } from "react";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import { useMapTheme, BasemapCycleToggle } from "@/hooks/use-map-theme";
+import { createEntityIcon, buildEntityTooltipHtml } from "@/lib/map-pin-icons";
 
 // Country → approximate lat/lng for common countries
 const COUNTRY_COORDS: Record<string, [number, number]> = {
@@ -87,11 +88,7 @@ interface Props {
   entities: Entity[];
 }
 
-const tierMarkerColor = (tier: string) => {
-  if (tier === "A") return "#ef4444";
-  if (tier === "B") return "#d97706";
-  return "#22c55e";
-};
+// tierMarkerColor now imported from map-pin-icons
 
 export default function EntityWorldMap({ entities }: Props) {
   const mapRef = useRef<HTMLDivElement>(null);
@@ -124,16 +121,15 @@ export default function EntityWorldMap({ entities }: Props) {
     const map = leafletMap.current;
     if (!map) return;
 
-    // Clear existing markers
+    // Clear existing markers (but not tile layers)
     map.eachLayer((layer) => {
-      if (layer instanceof L.CircleMarker) map.removeLayer(layer);
+      if (layer instanceof L.Marker || layer instanceof L.CircleMarker) map.removeLayer(layer);
     });
 
     entities.forEach((entity) => {
       let lat: number | undefined;
       let lng: number | undefined;
 
-      // Prefer lat/lng from DB, fallback to country lookup
       if (entity.registered_lat && entity.registered_lng) {
         lat = entity.registered_lat;
         lng = entity.registered_lng;
@@ -150,19 +146,19 @@ export default function EntityWorldMap({ entities }: Props) {
       }
 
       if (lat === undefined || lng === undefined) return;
-      const color = tierMarkerColor(entity.risk_tier);
 
-      L.circleMarker([lat, lng], {
-        radius: 7,
-        fillColor: color,
-        fillOpacity: 0.9,
-        color: "#ffffff",
-        weight: 1.5,
-        opacity: 1,
-      })
+      const icon = createEntityIcon(entity.risk_tier);
+      L.marker([lat, lng], { icon })
         .bindTooltip(
-          `<div style="font-family:'DM Sans',sans-serif;font-size:12px;"><strong>${entity.name}</strong><br/><span style="opacity:0.7">${entity.country} · Tier ${entity.risk_tier}</span></div>`,
-          { direction: "top", offset: [0, -8] }
+          buildEntityTooltipHtml({
+            ...entity,
+            entity_type: undefined,
+            registered_country: null,
+            head_office_city: null,
+            head_office_country: null,
+            next_review_date: null,
+          }),
+          { direction: "top", offset: [0, -14], className: "leaflet-tooltip-entity" }
         )
         .addTo(map);
     });
