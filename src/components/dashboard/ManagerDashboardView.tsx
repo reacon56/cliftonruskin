@@ -44,11 +44,16 @@ export default function ManagerDashboardView({ selectedOrgId, onOrgChange }: Pro
   }, [selectedOrgId, riskPeriod]);
 
   const loadSlaMetrics = async () => {
-    const { data: cases } = await supabase
+    let query = supabase
       .from("cases")
       .select("id, due_date, status, created_at, entities(name), product_type")
-      .eq("org_id", selectedOrgId)
       .in("status", ["delivered", "closed", "complete"]);
+
+    if (selectedOrgId && selectedOrgId !== "all") {
+      query = query.eq("org_id", selectedOrgId);
+    }
+
+    const { data: cases } = await query;
 
     if (!cases?.length) {
       setSlaMetrics({ onTime: 0, late: 0, avgDays: 0 });
@@ -78,11 +83,17 @@ export default function ManagerDashboardView({ selectedOrgId, onOrgChange }: Pro
   };
 
   const loadOfficerWorkload = async () => {
-    const { data: cases } = await supabase
+    let query = supabase
       .from("cases")
       .select("assigned_to")
       .not("status", "in", '("delivered","closed","cancelled","complete")')
       .not("assigned_to", "is", null);
+
+    if (selectedOrgId && selectedOrgId !== "all") {
+      query = query.eq("org_id", selectedOrgId);
+    }
+
+    const { data: cases } = await query;
 
     if (!cases?.length) {
       setOfficerWorkload([]);
@@ -116,12 +127,18 @@ export default function ManagerDashboardView({ selectedOrgId, onOrgChange }: Pro
     const days = parseInt(riskPeriod);
     const since = new Date(Date.now() - days * 86400000).toISOString();
 
-    const { data: logs } = await supabase
+    let query = supabase
       .from("audit_events")
       .select("metadata, entity_id, created_at")
       .eq("object_type", "entity")
       .eq("action_type", "risk_tier_changed")
       .gte("created_at", since);
+
+    if (selectedOrgId && selectedOrgId !== "all") {
+      query = query.eq("org_id", selectedOrgId);
+    }
+
+    const { data: logs } = await query;
 
     setRiskLogs(logs ?? []);
 
