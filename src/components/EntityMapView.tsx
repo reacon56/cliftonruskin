@@ -363,15 +363,22 @@ export default function EntityMapView({ entities, highlightId }: Props) {
     }
     if (!lat || !lng) return;
 
-    // Save pre-fly state
+    // Save pre-fly state including risk overlay status
+    const wasRiskActive = riskOverlay;
     preFlyStateRef.current = {
       center: map.getCenter(),
       zoom: map.getZoom(),
       basemap,
+      riskOverlayWasActive: wasRiskActive,
     };
 
     // Close popup
     setSelected(null);
+
+    // Deactivate jurisdiction risk overlay before fly-to for clean animation
+    if (wasRiskActive) {
+      setRiskOverlay(false);
+    }
 
     // Switch to satellite
     if (basemap !== "satellite") {
