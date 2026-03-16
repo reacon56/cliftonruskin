@@ -130,6 +130,7 @@ export default function LiaLibraryPage() {
   const [editTemplate, setEditTemplate] = useState<MasterLiaTemplate | null>(null);
   const [form, setForm] = useState<TemplateFormState>(INITIAL_FORM);
   const [saving, setSaving] = useState(false);
+  const [seeding, setSeeding] = useState(false);
 
   const isAdmin = hasRole("client_admin");
   const canEdit = isAdmin;
