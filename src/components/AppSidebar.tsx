@@ -91,7 +91,7 @@ export default function AppSidebar() {
     { label: "Programme Settings", path: "/programme-settings", icon: <Settings size={18} /> },
     { label: "LIA Management", path: "/lia-library", icon: <Scale size={18} /> },
     { label: "Partner Directory", path: "/partner-directory", icon: <Briefcase size={18} /> },
-    { label: "Reconciliation Tasks", path: "/reconciliation", icon: <GitMerge size={18} /> },
+    
     { label: "Risk Model", path: "/risk-model", icon: <Shield size={18} /> },
     { label: "Tier Matrix", path: "/tier-matrix", icon: <Shield size={18} /> },
     { label: "Reports QA Queue", path: "/qa-queue", icon: <Eye size={18} /> },
