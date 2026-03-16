@@ -1395,6 +1395,8 @@ export type Database = {
           incorporation_country_name: string | null
           internal_contacts: Json | null
           last_review_date: string | null
+          latitude: number | null
+          longitude: number | null
           master_entity_id: string | null
           name: string
           next_review_date: string | null
@@ -1443,6 +1445,8 @@ export type Database = {
           incorporation_country_name?: string | null
           internal_contacts?: Json | null
           last_review_date?: string | null
+          latitude?: number | null
+          longitude?: number | null
           master_entity_id?: string | null
           name: string
           next_review_date?: string | null
@@ -1491,6 +1495,8 @@ export type Database = {
           incorporation_country_name?: string | null
           internal_contacts?: Json | null
           last_review_date?: string | null
+          latitude?: number | null
+          longitude?: number | null
           master_entity_id?: string | null
           name?: string
           next_review_date?: string | null
