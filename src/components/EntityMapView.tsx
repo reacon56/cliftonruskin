@@ -374,21 +374,21 @@ export default function EntityMapView({ entities, highlightId }: Props) {
     if (!riskOverlay || !geoData || !riskMap) return;
     const layer = L.geoJSON(geoData, {
       style: (feature) => {
-        const iso3 = feature?.properties?.ISO_A3 || feature?.properties?.iso_a3 || "";
-        const iso2 = ISO3_TO_ISO2[iso3] || iso3;
-        const score = riskMap.get(iso2.toUpperCase()) ?? null;
+        const iso2 = featureToIso2(feature?.properties);
+        const score = iso2 ? (riskMap[iso2] ?? null) : null;
         const rc = riskColor(score);
         return { fillColor: rc.color, fillOpacity: rc.opacity, color: rc.stroke, weight: rc.strokeWidth };
       },
       onEachFeature: (feature, layer) => {
         const name = feature?.properties?.ADMIN || feature?.properties?.name || "";
-        const iso3 = feature?.properties?.ISO_A3 || feature?.properties?.iso_a3 || "";
-        const iso2 = ISO3_TO_ISO2[iso3] || iso3;
-        const score = riskMap.get(iso2.toUpperCase());
-        layer.bindTooltip(
-          `<strong>${name}</strong><br/>Risk score: ${score !== undefined ? score : "No data"}`,
-          { sticky: true, className: "leaflet-tooltip-risk" }
-        );
+        const iso2 = featureToIso2(feature?.properties);
+        const score = iso2 ? riskMap[iso2] : undefined;
+        if (score !== undefined) {
+          layer.bindTooltip(
+            `<strong>${name}</strong><br/>Risk score: ${score}`,
+            { sticky: true, className: "leaflet-tooltip-risk" }
+          );
+        }
       },
     });
     layer.addTo(map);
