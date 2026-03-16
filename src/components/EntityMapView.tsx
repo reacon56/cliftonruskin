@@ -312,13 +312,76 @@ export default function EntityMapView({ entities, highlightId }: Props) {
     return () => { map.remove(); leafletMap.current = null; };
   }, []);
 
-  // Draw entity markers
+  // Draw entity markers with clustering
   useEffect(() => {
     const map = leafletMap.current;
     if (!map) return;
 
-    markersRef.current.forEach((m) => map.removeLayer(m));
-    markersRef.current = [];
+    // Remove previous cluster group
+    if (clusterGroupRef.current) {
+      map.removeLayer(clusterGroupRef.current);
+      clusterGroupRef.current = null;
+    }
+
+    const TIER_PRIORITY: Record<string, number> = { A: 3, B: 2, C: 1 };
+
+    const clusterGroup = (L as any).markerClusterGroup({
+      maxClusterRadius: 20,
+      spiderfyOnMaxZoom: true,
+      showCoverageOnHover: false,
+      zoomToBoundsOnClick: true,
+      spiderfyDistanceMultiplier: 2,
+      iconCreateFunction: (cluster: any) => {
+        const childMarkers = cluster.getAllChildMarkers();
+        const count = childMarkers.length;
+        // Find highest risk tier in cluster
+        let maxPriority = 0;
+        let maxTier = "C";
+        const entityNames: string[] = [];
+        for (const m of childMarkers) {
+          const e = m.options._entityData as Entity | undefined;
+          if (e) {
+            const p = TIER_PRIORITY[e.risk_tier] || 0;
+            if (p > maxPriority) { maxPriority = p; maxTier = e.risk_tier; }
+            entityNames.push(`${e.name} (Tier ${e.risk_tier})`);
+          }
+        }
+        const color = tierMarkerColor(maxTier);
+        // Build tooltip content
+        const city = (childMarkers[0]?.options?._entityData as Entity | undefined)?.registered_city || "";
+        const tooltipHtml = `<strong>${count} entities${city ? ` in ${city}` : ""}:</strong><br/>` +
+          entityNames.map(n => `• ${n}`).join("<br/>");
+
+        return L.divIcon({
+          html: `<div style="
+            width:28px;height:28px;border-radius:50%;
+            background:${color};
+            border:2.5px solid rgba(255,255,255,0.9);
+            display:flex;align-items:center;justify-content:center;
+            color:#fff;font-size:11px;font-weight:700;
+            box-shadow:0 2px 6px rgba(0,0,0,0.35);
+            cursor:pointer;
+          " title="">${count}</div>`,
+          className: "entity-cluster-icon",
+          iconSize: L.point(28, 28),
+          iconAnchor: L.point(14, 14),
+        });
+      },
+    });
+
+    // Bind cluster tooltips after cluster is formed
+    clusterGroup.on("clustermouseover", (e: any) => {
+      const cluster = e.layer;
+      const childMarkers = cluster.getAllChildMarkers();
+      const count = childMarkers.length;
+      const entities: Entity[] = childMarkers
+        .map((m: any) => m.options._entityData as Entity | undefined)
+        .filter(Boolean);
+      const city = entities[0]?.registered_city || "";
+      const tooltipHtml = `<strong>${count} entities${city ? ` in ${city}` : ""}:</strong><br/>` +
+        entities.map(e => `• ${e.name} (Tier ${e.risk_tier})`).join("<br/>");
+      cluster.bindTooltip(tooltipHtml, { direction: "top", sticky: false, className: "leaflet-tooltip-cluster" }).openTooltip();
+    });
 
     filteredEntities.forEach((entity) => {
       let lat: number | null = null;
@@ -345,16 +408,19 @@ export default function EntityMapView({ entities, highlightId }: Props) {
         weight: isHighlighted ? 2.5 : 1.5,
         opacity: 1,
         pane: "markerPane",
-      });
+        _entityData: entity,
+      } as any);
 
       marker.on("click", () => setSelected(entity));
-      marker.addTo(map);
-      markersRef.current.push(marker);
+      clusterGroup.addLayer(marker);
 
       if (isHighlighted) {
         map.setView([lat, lng], 6, { animate: true });
       }
     });
+
+    map.addLayer(clusterGroup);
+    clusterGroupRef.current = clusterGroup;
   }, [filteredEntities, pinType, highlightId]);
 
   // Swap tile layer on theme/basemap change
