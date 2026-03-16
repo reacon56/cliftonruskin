@@ -71,6 +71,7 @@ import MethodologyPage from "@/pages/MethodologyPage";
 import MethodologyAdminPage from "@/pages/admin/MethodologyAdminPage";
 import ClientOnboardingPage from "@/pages/ClientOnboardingPage";
 import ResetPasswordPage from "@/pages/ResetPasswordPage";
+import RegulatoryBriefingsPage from "@/pages/RegulatoryBriefingsPage";
 
 // Website pages
 import WebsiteLayout from "@/components/website/WebsiteLayout";
