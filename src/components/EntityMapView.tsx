@@ -20,6 +20,8 @@ interface Entity {
   risk_tier: string;
   entity_type: string;
   next_review_date: string | null;
+  latitude: number | null;
+  longitude: number | null;
   registered_lat: number | null;
   registered_lng: number | null;
   registered_city: string | null;
