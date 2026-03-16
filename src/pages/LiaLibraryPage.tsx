@@ -148,6 +148,48 @@ export default function LiaLibraryPage() {
     setTemplates((data as any[]) ?? []);
   };
 
+  const seedPrebuiltTemplates = async () => {
+    if (!profile?.org_id || !user) return;
+    setSeeding(true);
+    const now = new Date().toISOString();
+    const records = SEED_TEMPLATES.map((t) => ({
+      org_id: profile.org_id!,
+      name: t.name,
+      purpose_category: t.purpose_category,
+      lawful_basis: t.lawful_basis,
+      legitimate_interest: t.legitimate_interest,
+      necessity: t.necessity,
+      less_intrusive: t.less_intrusive,
+      balancing_fields: t.balancing_fields,
+      safeguards: t.safeguards,
+      retention_months: t.retention_months,
+      outcome: t.outcome,
+      conditions: t.conditions || null,
+      scope_summary: t.scope_summary,
+      effective_date: t.effective_date,
+      approved_by_name: t.approved_by_name,
+      status: t.status,
+      version_number: t.version_number,
+      approved_by: user.id,
+      approved_at: now,
+      updated_at: now,
+    }));
+    const { error } = await supabase.from("master_lia_templates" as any).insert(records as any);
+    if (error) {
+      toast({ title: "Error seeding templates", description: error.message, variant: "destructive" });
+    } else {
+      await supabase.from("audit_events").insert({
+        user_id: user.id, org_id: profile.org_id,
+        action_type: "MASTER_LIA_SEED_TEMPLATES",
+        object_type: "master_lia_template",
+        metadata: { count: records.length },
+      });
+      toast({ title: "Pre-built templates loaded", description: "3 DUAA 2025-compliant templates have been added to your library." });
+      loadTemplates();
+    }
+    setSeeding(false);
+  };
+
   const formToDb = (f: TemplateFormState) => ({
     name: f.name,
     purpose_category: f.purpose_category,
