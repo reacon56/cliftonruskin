@@ -323,6 +323,10 @@ export default function ProgrammeSettingsPage() {
             <Shield className="h-3.5 w-3.5" />
             Settings
           </TabsTrigger>
+          <TabsTrigger value="profile" className="gap-1.5">
+            <BarChart3 className="h-3.5 w-3.5" />
+            Programme Profile
+          </TabsTrigger>
           <TabsTrigger value="audit" className="gap-1.5">
             <History className="h-3.5 w-3.5" />
             Programme Audit Log
