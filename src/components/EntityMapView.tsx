@@ -162,7 +162,7 @@ export default function EntityMapView({ entities, highlightId }: Props) {
   const navigate = useNavigate();
   const [pinType, setPinType] = useState<"registered" | "hq">("registered");
   const [selected, setSelected] = useState<Entity | null>(null);
-  const { theme, basemap, toggle, toggleBasemap, tileUrl } = useMapTheme();
+  const { basemap, cycleBasemap, tileUrl } = useMapTheme();
   const [riskOverlay, setRiskOverlay] = useState(false);
   const [ownershipOverlay, setOwnershipOverlay] = useState(false);
 
