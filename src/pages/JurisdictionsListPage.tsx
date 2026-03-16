@@ -139,6 +139,18 @@ export default function JurisdictionsListPage() {
         <p className="text-sm text-muted-foreground mt-1">Explore jurisdiction risk indicators and intelligence profiles</p>
       </div>
 
+      <RegChangeAlertBanner
+        alertId="fatf-grey-feb-2025"
+        text="FATF Grey List — February 2025 Update: FATF updated its list of jurisdictions under increased monitoring in February 2025. Review your entity register for exposure to newly listed jurisdictions. Grey list status triggers a risk floor of High in CR-JURIS-1.0."
+        dateText="Updated: Feb 2025"
+      />
+
+      <KnowledgePanelWidget
+        pageId="jurisdiction-library-profiles"
+        title="How to Read a Jurisdiction Profile"
+        sections={JURISDICTION_KNOWLEDGE_SECTIONS}
+      />
+
       {/* Filters */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
         <div className="relative lg:col-span-1">
