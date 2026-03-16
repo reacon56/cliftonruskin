@@ -334,6 +334,8 @@ export default function EntityMapView({ entities, highlightId }: Props) {
 
   /** Check if coords have building-level precision (≥4 decimal places) */
   const hasPreciseCoords = useCallback((entity: Entity): boolean => {
+    // If precise latitude/longitude exist, they are building-level
+    if (entity.latitude != null && entity.longitude != null) return true;
     const lat = pinType === "hq" ? entity.hq_lat : entity.registered_lat;
     const lng = pinType === "hq" ? entity.hq_lng : entity.registered_lng;
     if (!lat || !lng) return false;
