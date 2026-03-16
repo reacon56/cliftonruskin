@@ -97,7 +97,7 @@ export default function EntityWorldMap({ entities }: Props) {
   const mapRef = useRef<HTMLDivElement>(null);
   const leafletMap = useRef<L.Map | null>(null);
   const tileLayerRef = useRef<L.TileLayer | null>(null);
-  const { theme, toggle, tileUrl } = useMapTheme();
+  const { basemap, cycleBasemap, tileUrl } = useMapTheme();
 
   useEffect(() => {
     if (!mapRef.current || leafletMap.current) return;
