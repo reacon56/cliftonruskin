@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { X, Layers } from "lucide-react";
+import { X, Layers, Share2 } from "lucide-react";
 
 interface Entity {
   id: string;
@@ -62,9 +62,6 @@ function riskColor(score: number | null): { color: string; opacity: number } {
   return { color: "#27AE60", opacity: 0.3 };
 }
 
-const GEOJSON_URL = "https://raw.githubusercontent.com/datasets/geo-countries/master/data/countries.geojson";
-
-/* ── Compute a synthetic risk score from jurisdiction indicators ── */
 function computeJurisdictionScore(indicators: Array<{ indicator_type: string; value_json: any }>): number {
   let score = 0;
   for (const ind of indicators) {
@@ -83,7 +80,6 @@ function computeJurisdictionScore(indicators: Array<{ indicator_type: string; va
     } else if (type === "CPI_SCORE") {
       const cpi = vj?.score;
       if (typeof cpi === "number") {
-        // CPI is 0-100 where low = corrupt. Invert for risk.
         const riskContrib = Math.max(0, 100 - cpi);
         if (riskContrib > 70) score += 10;
       }
@@ -92,7 +88,8 @@ function computeJurisdictionScore(indicators: Array<{ indicator_type: string; va
   return Math.min(100, score);
 }
 
-/* ── ISO3 → ISO2 mapping (common subset) ── */
+const GEOJSON_URL = "https://raw.githubusercontent.com/datasets/geo-countries/master/data/countries.geojson";
+
 const ISO3_TO_ISO2: Record<string, string> = {
   AFG:"AF",ALB:"AL",DZA:"DZ",AND:"AD",AGO:"AO",ATG:"AG",ARG:"AR",ARM:"AM",AUS:"AU",AUT:"AT",
   AZE:"AZ",BHS:"BS",BHR:"BH",BGD:"BD",BRB:"BB",BLR:"BY",BEL:"BE",BLZ:"BZ",BEN:"BJ",BTN:"BT",
@@ -117,17 +114,57 @@ const ISO3_TO_ISO2: Record<string, string> = {
   ABW:"AW",VGB:"VG",CYM:"KY",BMU:"BM",GIB:"GI",IMN:"IM",JEY:"JE",GGY:"GG",
 };
 
+/* ── Ownership arc line styles ── */
+const REL_STYLES: Record<string, { color: string; opacity: number; weight: number; dashArray?: string }> = {
+  ownership: { color: "#2E6DA4", opacity: 0.7, weight: 2 },
+  director:  { color: "#7B3FA0", opacity: 0.6, weight: 1.5, dashArray: "4 4" },
+  operational: { color: "#1A6B3C", opacity: 0.5, weight: 1, dashArray: "2 4" },
+};
+
+const REL_LEGEND = [
+  { label: "Ownership", color: "#2E6DA4", dash: "" },
+  { label: "Director", color: "#7B3FA0", dash: "4 4" },
+  { label: "Operational", color: "#1A6B3C", dash: "2 4" },
+];
+
+/** Build a curved arc between two points (great-circle approximation for Leaflet) */
+function buildArc(from: L.LatLngTuple, to: L.LatLngTuple, segments = 30): L.LatLngTuple[] {
+  const [lat1, lng1] = from;
+  const [lat2, lng2] = to;
+  // Midpoint offset for visual curve
+  const midLat = (lat1 + lat2) / 2;
+  const midLng = (lng1 + lng2) / 2;
+  const dx = lng2 - lng1;
+  const dy = lat2 - lat1;
+  const dist = Math.sqrt(dx * dx + dy * dy);
+  // Perpendicular offset scaled by distance
+  const offsetScale = Math.min(dist * 0.15, 8);
+  const perpLat = midLat + (-dx / dist) * offsetScale;
+  const perpLng = midLng + (dy / dist) * offsetScale;
+
+  const points: L.LatLngTuple[] = [];
+  for (let i = 0; i <= segments; i++) {
+    const t = i / segments;
+    const lat = (1 - t) * (1 - t) * lat1 + 2 * (1 - t) * t * perpLat + t * t * lat2;
+    const lng = (1 - t) * (1 - t) * lng1 + 2 * (1 - t) * t * perpLng + t * t * lng2;
+    points.push([lat, lng]);
+  }
+  return points;
+}
+
 export default function EntityMapView({ entities, highlightId }: Props) {
   const mapRef = useRef<HTMLDivElement>(null);
   const leafletMap = useRef<L.Map | null>(null);
   const markersRef = useRef<L.CircleMarker[]>([]);
   const tileLayerRef = useRef<L.TileLayer | null>(null);
   const geoLayerRef = useRef<L.GeoJSON | null>(null);
+  const ownershipLayerRef = useRef<L.LayerGroup | null>(null);
   const navigate = useNavigate();
   const [pinType, setPinType] = useState<"registered" | "hq">("registered");
   const [selected, setSelected] = useState<Entity | null>(null);
   const { theme, basemap, toggle, toggleBasemap, tileUrl } = useMapTheme();
   const [riskOverlay, setRiskOverlay] = useState(false);
+  const [ownershipOverlay, setOwnershipOverlay] = useState(false);
 
   // In-map filters
   const [tierFilter, setTierFilter] = useState<string>("All Tiers");
@@ -143,8 +180,6 @@ export default function EntityMapView({ entities, highlightId }: Props) {
         .from("jurisdiction_indicator")
         .select("jurisdiction_id, indicator_type, value_json, jurisdiction:jurisdiction_id(country_code)");
       if (error) throw error;
-
-      // Group by country_code and compute scores
       const byCountry = new Map<string, Array<{ indicator_type: string; value_json: any }>>();
       for (const row of data ?? []) {
         const cc = (row as any).jurisdiction?.country_code;
@@ -153,7 +188,6 @@ export default function EntityMapView({ entities, highlightId }: Props) {
         if (!byCountry.has(key)) byCountry.set(key, []);
         byCountry.get(key)!.push({ indicator_type: row.indicator_type, value_json: row.value_json });
       }
-
       const scoreMap = new Map<string, number>();
       byCountry.forEach((indicators, cc) => {
         scoreMap.set(cc, computeJurisdictionScore(indicators));
@@ -174,6 +208,57 @@ export default function EntityMapView({ entities, highlightId }: Props) {
     },
   });
 
+  /* ── Fetch ownership relationships ── */
+  const entityIds = useMemo(() => entities.map((e) => e.id), [entities]);
+
+  const { data: ownershipRels } = useQuery({
+    queryKey: ["ownership-map-relationships", entityIds],
+    enabled: ownershipOverlay && entityIds.length > 0,
+    staleTime: 1000 * 60 * 5,
+    queryFn: async () => {
+      // Fetch relationships where either end is in our visible entities
+      const { data, error } = await (supabase
+        .from("entity_relationships") as any)
+        .select("id, source_entity_id, target_entity_id, relationship_type, percentage, confidence_level")
+        .or(entityIds.map((id) => `source_entity_id.eq.${id}`).join(",") + "," + entityIds.map((id) => `target_entity_id.eq.${id}`).join(","));
+      if (error) throw error;
+      return (data ?? []) as Array<{
+        id: string;
+        source_entity_id: string;
+        target_entity_id: string;
+        relationship_type: string;
+        percentage: number | null;
+        confidence_level: string;
+      }>;
+    },
+  });
+
+  // Also fetch names/coords for related entities not in current view
+  const relatedEntityIds = useMemo(() => {
+    if (!ownershipRels) return [];
+    const entityIdSet = new Set(entityIds);
+    const missing = new Set<string>();
+    for (const r of ownershipRels) {
+      if (!entityIdSet.has(r.source_entity_id)) missing.add(r.source_entity_id);
+      if (!entityIdSet.has(r.target_entity_id)) missing.add(r.target_entity_id);
+    }
+    return Array.from(missing);
+  }, [ownershipRels, entityIds]);
+
+  const { data: relatedEntities } = useQuery({
+    queryKey: ["ownership-map-related-entities", relatedEntityIds],
+    enabled: relatedEntityIds.length > 0 && ownershipOverlay,
+    staleTime: 1000 * 60 * 5,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("entities")
+        .select("id, name, registered_lat, registered_lng, hq_lat, hq_lng")
+        .in("id", relatedEntityIds);
+      if (error) throw error;
+      return data ?? [];
+    },
+  });
+
   const filteredEntities = useMemo(() => {
     return entities.filter((e) => {
       if (tierFilter !== "All Tiers") {
@@ -186,6 +271,28 @@ export default function EntityMapView({ entities, highlightId }: Props) {
       return true;
     });
   }, [entities, tierFilter, typeFilter]);
+
+  // Build entity lookup for coords
+  const entityLookup = useMemo(() => {
+    const map = new Map<string, { name: string; lat: number; lng: number }>();
+    const addEntity = (e: { id: string; name: string; registered_lat?: number | null; registered_lng?: number | null; hq_lat?: number | null; hq_lng?: number | null }) => {
+      let lat: number | null = null;
+      let lng: number | null = null;
+      if (pinType === "hq" && e.hq_lat && e.hq_lng) {
+        lat = e.hq_lat; lng = e.hq_lng;
+      } else if (e.registered_lat && e.registered_lng) {
+        lat = e.registered_lat; lng = e.registered_lng;
+      }
+      if (lat !== null && lng !== null) {
+        map.set(e.id, { name: e.name, lat, lng });
+      }
+    };
+    for (const e of entities) addEntity(e);
+    if (relatedEntities) {
+      for (const e of relatedEntities) addEntity(e as any);
+    }
+    return map;
+  }, [entities, relatedEntities, pinType]);
 
   useEffect(() => {
     if (!mapRef.current || leafletMap.current) return;
@@ -233,7 +340,7 @@ export default function EntityMapView({ entities, highlightId }: Props) {
         color: "#ffffff",
         weight: isHighlighted ? 2.5 : 1.5,
         opacity: 1,
-        pane: "markerPane", // ensures pins render above overlayPane
+        pane: "markerPane",
       });
 
       marker.on("click", () => setSelected(entity));
@@ -252,37 +359,25 @@ export default function EntityMapView({ entities, highlightId }: Props) {
     if (!map) return;
     if (tileLayerRef.current) map.removeLayer(tileLayerRef.current);
     tileLayerRef.current = L.tileLayer(tileUrl, { maxZoom: 18 }).addTo(map);
-    // Re-add geojson layer below markers if active
-    if (geoLayerRef.current) {
-      geoLayerRef.current.bringToBack();
-    }
+    if (geoLayerRef.current) geoLayerRef.current.bringToBack();
   }, [tileUrl]);
 
   /* ── GeoJSON risk overlay ── */
   useEffect(() => {
     const map = leafletMap.current;
     if (!map) return;
-
-    // Remove existing
     if (geoLayerRef.current) {
       map.removeLayer(geoLayerRef.current);
       geoLayerRef.current = null;
     }
-
     if (!riskOverlay || !geoData || !riskMap) return;
-
     const layer = L.geoJSON(geoData, {
       style: (feature) => {
         const iso3 = feature?.properties?.ISO_A3 || feature?.properties?.iso_a3 || "";
         const iso2 = ISO3_TO_ISO2[iso3] || iso3;
         const score = riskMap.get(iso2.toUpperCase()) ?? null;
         const rc = riskColor(score);
-        return {
-          fillColor: rc.color,
-          fillOpacity: rc.opacity,
-          color: "rgba(255,255,255,0.3)",
-          weight: 0.5,
-        };
+        return { fillColor: rc.color, fillOpacity: rc.opacity, color: "rgba(255,255,255,0.3)", weight: 0.5 };
       },
       onEachFeature: (feature, layer) => {
         const name = feature?.properties?.ADMIN || feature?.properties?.name || "";
@@ -295,11 +390,90 @@ export default function EntityMapView({ entities, highlightId }: Props) {
         );
       },
     });
-
     layer.addTo(map);
     layer.bringToBack();
     geoLayerRef.current = layer;
   }, [riskOverlay, geoData, riskMap]);
+
+  /* ── Ownership network arc overlay ── */
+  useEffect(() => {
+    const map = leafletMap.current;
+    if (!map) return;
+
+    // Always clean up existing
+    if (ownershipLayerRef.current) {
+      map.removeLayer(ownershipLayerRef.current);
+      ownershipLayerRef.current = null;
+    }
+
+    if (!ownershipOverlay || !ownershipRels || ownershipRels.length === 0) return;
+
+    const group = L.layerGroup();
+
+    for (const rel of ownershipRels) {
+      const src = entityLookup.get(rel.source_entity_id);
+      const tgt = entityLookup.get(rel.target_entity_id);
+      if (!src || !tgt) continue;
+
+      const from: L.LatLngTuple = [src.lat, src.lng];
+      const to: L.LatLngTuple = [tgt.lat, tgt.lng];
+      const arcPoints = buildArc(from, to);
+
+      const relType = (rel.relationship_type || "ownership").toLowerCase();
+      const style = REL_STYLES[relType] || REL_STYLES.ownership;
+
+      const polyline = L.polyline(arcPoints, {
+        color: style.color,
+        opacity: style.opacity,
+        weight: style.weight,
+        dashArray: style.dashArray,
+        interactive: true,
+      });
+
+      // Popup on click
+      const pctText = rel.percentage != null ? `${rel.percentage}%` : "—";
+      polyline.bindPopup(
+        `<div style="font-size:12px;line-height:1.5;">
+          <strong>${src.name}</strong><br/>
+          <span style="color:${style.color};font-weight:600;">↕ ${relType.charAt(0).toUpperCase() + relType.slice(1)}</span>
+          ${rel.percentage != null ? ` · <strong>${pctText}</strong>` : ""}<br/>
+          <strong>${tgt.name}</strong>
+        </div>`,
+        { maxWidth: 260, className: "leaflet-popup-ownership" }
+      );
+
+      group.addLayer(polyline);
+
+      // Ownership percentage label at midpoint
+      if (rel.percentage != null && relType === "ownership") {
+        const mid = arcPoints[Math.floor(arcPoints.length / 2)];
+        const label = L.marker(mid, {
+          icon: L.divIcon({
+            className: "ownership-pct-label",
+            html: `<span style="
+              font-size:9px;
+              font-weight:600;
+              color:#2E6DA4;
+              background:rgba(255,255,255,0.92);
+              border:1px solid #2E6DA4;
+              border-radius:3px;
+              padding:1px 4px;
+              white-space:nowrap;
+              pointer-events:none;
+            ">${rel.percentage}%</span>`,
+            iconSize: [0, 0],
+            iconAnchor: [0, 0],
+          }),
+          interactive: false,
+          pane: "markerPane",
+        });
+        group.addLayer(label);
+      }
+    }
+
+    group.addTo(map);
+    ownershipLayerRef.current = group;
+  }, [ownershipOverlay, ownershipRels, entityLookup]);
 
   const getDueStatus = (e: Entity) => {
     if (!e.next_review_date) return { label: "No date", color: "bg-muted text-muted-foreground" };
@@ -335,6 +509,18 @@ export default function EntityMapView({ entities, highlightId }: Props) {
           </div>
         </div>
         <div className="flex items-center gap-1.5">
+          <button
+            onClick={() => setOwnershipOverlay((p) => !p)}
+            className={`flex items-center gap-1.5 px-2.5 py-1.5 text-[11px] font-medium rounded-md border transition-colors ${
+              ownershipOverlay
+                ? "bg-primary text-primary-foreground border-primary"
+                : "border-border text-muted-foreground hover:bg-muted/50"
+            }`}
+            title="Toggle ownership network arcs"
+          >
+            <Share2 className="h-3 w-3" />
+            Ownership Network
+          </button>
           <button
             onClick={() => setRiskOverlay((p) => !p)}
             className={`flex items-center gap-1.5 px-2.5 py-1.5 text-[11px] font-medium rounded-md border transition-colors ${
@@ -400,7 +586,7 @@ export default function EntityMapView({ entities, highlightId }: Props) {
         />
 
         {/* Map Legend — bottom-left */}
-        <div className="absolute bottom-3 left-3 z-[1000] rounded-lg border border-border bg-card/95 backdrop-blur-sm px-3 py-2.5 shadow-sm max-w-[200px]">
+        <div className="absolute bottom-3 left-3 z-[1000] rounded-lg border border-border bg-card/95 backdrop-blur-sm px-3 py-2.5 shadow-sm max-w-[210px]">
           <p className="text-[9px] uppercase tracking-[0.1em] text-muted-foreground font-semibold mb-1.5">Entity Pins</p>
           <div className="space-y-1">
             <div className="flex items-center gap-2">
@@ -422,24 +608,41 @@ export default function EntityMapView({ entities, highlightId }: Props) {
             </span>
           </div>
 
+          {/* Ownership network legend */}
+          {ownershipOverlay && (
+            <div className="border-t border-border mt-2 pt-2">
+              <p className="text-[9px] uppercase tracking-[0.1em] text-muted-foreground font-semibold mb-1.5">Ownership Network</p>
+              <div className="space-y-1">
+                {REL_LEGEND.map((rl) => (
+                  <div key={rl.label} className="flex items-center gap-2">
+                    <svg width="16" height="6" className="shrink-0">
+                      <line
+                        x1="0" y1="3" x2="16" y2="3"
+                        stroke={rl.color}
+                        strokeWidth={rl.label === "Operational" ? 1 : rl.label === "Director" ? 1.5 : 2}
+                        strokeDasharray={rl.dash || undefined}
+                      />
+                    </svg>
+                    <span className="text-[9px] text-foreground">{rl.label}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
           {/* Risk overlay legend */}
           {riskOverlay && (
-            <>
-              <div className="border-t border-border mt-2 pt-2">
-                <p className="text-[9px] uppercase tracking-[0.1em] text-muted-foreground font-semibold mb-1.5">Jurisdiction Risk</p>
-                <div className="space-y-1">
-                  {RISK_SCALE.map((rs) => (
-                    <div key={rs.label} className="flex items-center gap-2">
-                      <span
-                        className="inline-block w-3 h-2 rounded-[2px]"
-                        style={{ backgroundColor: rs.color, opacity: rs.opacity }}
-                      />
-                      <span className="text-[9px] text-foreground">{rs.label}</span>
-                    </div>
-                  ))}
-                </div>
+            <div className="border-t border-border mt-2 pt-2">
+              <p className="text-[9px] uppercase tracking-[0.1em] text-muted-foreground font-semibold mb-1.5">Jurisdiction Risk</p>
+              <div className="space-y-1">
+                {RISK_SCALE.map((rs) => (
+                  <div key={rs.label} className="flex items-center gap-2">
+                    <span className="inline-block w-3 h-2 rounded-[2px]" style={{ backgroundColor: rs.color, opacity: rs.opacity }} />
+                    <span className="text-[9px] text-foreground">{rs.label}</span>
+                  </div>
+                ))}
               </div>
-            </>
+            </div>
           )}
         </div>
       </div>
