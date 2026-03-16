@@ -1,6 +1,9 @@
 import { useEffect, useRef, useState, useMemo, useCallback } from "react";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
+import "leaflet.markercluster";
+import "leaflet.markercluster/dist/MarkerCluster.css";
+import "leaflet.markercluster/dist/MarkerCluster.Default.css";
 import { useMapTheme, BasemapCycleToggle } from "@/hooks/use-map-theme";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
