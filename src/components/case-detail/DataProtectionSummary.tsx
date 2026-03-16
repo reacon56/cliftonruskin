@@ -72,6 +72,20 @@ export default function DataProtectionSummary({ caseData, isInternal, dpReview }
 
   return (
     <div className="fvc-card">
+      <RegChangeAlertBanner
+        alertId="duaa-2025-art22-case"
+        text="DUAA 2025 — Article 22 Applies to This Review: Where AI-assisted processing has been used in this case, Article 22 of the Data (Use and Access) Act 2025 requires a documented human review before the case record is finalised. The DP Review Status field below records this compliance step."
+        dateText="In force: 5 Feb 2026"
+      />
+
+      <div className="mb-4">
+        <KnowledgePanelWidget
+          pageId="case-dp-lawful-basis"
+          title="Lawful Basis & DP Review — What This Tab Records"
+          sections={DP_CASE_KNOWLEDGE}
+        />
+      </div>
+
       <div className="flex items-center gap-2 mb-4">
         <Shield size={16} className="text-accent" />
         <h2 className="fvc-heading-3 text-foreground">Data Protection</h2>
