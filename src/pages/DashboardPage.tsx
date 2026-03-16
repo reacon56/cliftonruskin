@@ -548,7 +548,7 @@ export default function DashboardPage() {
           className="animate-fade-in"
         >
           {mapView === "map" ? (
-            <EntityWorldMap entities={allEntities} />
+            <EntityWorldMap entities={allEntities} onEntityClick={(id) => navigate(`/entities/${id}`)} />
           ) : (
             <RiskCoverageView entities={allEntities} />
           )}
