@@ -83,39 +83,7 @@ export default function AppSidebar() {
     { label: "Support", path: "/support", icon: <HeadphonesIcon size={18} /> }
   );
 
-  // ── Manager nav: full visibility ──
-  const managerNav: NavItem[] = [
-    { label: "Dashboard", path: "/dashboard", icon: <LayoutDashboard size={18} /> },
-    { label: "All Cases", path: "/cases", icon: <ListTodo size={18} /> },
-    { label: "Workload View", path: "/workload", icon: <BarChart3 size={18} /> },
-    { label: "Master Entities", path: "/master-entities", icon: <Layers size={18} /> },
-    { label: "Programme Settings", path: "/programme-settings", icon: <Settings size={18} /> },
-    { label: "LIA Management", path: "/lia-library", icon: <Scale size={18} /> },
-    { label: "Partner Directory", path: "/partner-directory", icon: <Briefcase size={18} /> },
-    
-    { label: "Risk Model", path: "/risk-model", icon: <Shield size={18} /> },
-    { label: "Tier Matrix", path: "/tier-matrix", icon: <Shield size={18} /> },
-    { label: "Reports QA Queue", path: "/qa-queue", icon: <Eye size={18} /> },
-    { label: "Clients", path: "/clients", icon: <Building2 size={18} /> },
-    { label: "Feature Controls", path: "/feature-controls", icon: <Shield size={18} /> },
-    { label: "Upgrade Requests", path: "/upgrade-requests", icon: <ArrowUpCircle size={18} /> },
-    { label: "Market Lessons", path: "/admin/market-lessons", icon: <Newspaper size={18} /> },
-    { label: "Source Registry", path: "/source-registry", icon: <Database size={18} /> },
-    { label: "Ingestion Sources", path: "/ingestion-sources", icon: <Server size={18} /> },
-    { label: "Admin: Sources", path: "/admin/sources", icon: <Server size={18} /> },
-    { label: "Admin: Runs", path: "/admin/ingestion-runs", icon: <Server size={18} /> },
-    { label: "Sanctions Regimes", path: "/admin/sanctions-regimes", icon: <Shield size={18} /> },
-    { label: "Methodology Editor", path: "/admin/methodology", icon: <BookOpen size={18} /> },
-    { label: "Jurisdiction Library", path: "/jurisdiction-library", icon: <Globe size={18} /> },
-    { label: "Jurisdictions", path: "/jurisdictions", icon: <Globe size={18} /> },
-    { label: "Unit Economics", path: "/unit-economics", icon: <BarChart3 size={18} /> },
-    { label: "Commercial Dashboard", path: "/commercial-dashboard", icon: <TrendingUp size={18} /> },
-    { label: "Product Catalogue", path: "/product-catalogue", icon: <Package size={18} /> },
-    { label: "Budget Controls", path: "/budget-controls", icon: <Wallet size={18} /> },
-    { label: "Billing Handoff", path: "/billing-handoff", icon: <Receipt size={18} /> },
-    { label: "Entitlements", path: "/entitlement-settings", icon: <Package size={18} /> },
-    { label: "Audit Log", path: "/audit-log", icon: <ClipboardList size={18} /> },
-  ];
+  // Manager nav is now handled by ManagerNavGroups component
 
   // ── Officer nav: scoped visibility ──
   const officerNav: NavItem[] = [
