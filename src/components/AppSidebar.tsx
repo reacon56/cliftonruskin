@@ -1,15 +1,9 @@
 import { NavLink, useLocation } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
-import {
-  LayoutDashboard, Building2, FileCheck, FolderOpen, Activity,
-  Shield, Users, ClipboardList, HeadphonesIcon,
-  LogOut, ChevronLeft, ChevronRight, Moon, Sun,
-  ArrowLeftRight, CheckCircle2, Scale,
-  Briefcase, BookOpen, Wallet, Receipt,
-  DollarSign, Bell, Sparkles, Settings,
-} from "lucide-react";
+import { LogOut, ChevronLeft, ChevronRight, Moon, Sun, ArrowLeftRight } from "lucide-react";
 import ManagerNavGroups from "@/components/sidebar/ManagerNavGroups";
 import OfficerNavSections from "@/components/sidebar/OfficerNavSections";
+import ClientNavGroups from "@/components/sidebar/ClientNavGroups";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
@@ -17,12 +11,6 @@ import { Button } from "@/components/ui/button";
 import { useTheme } from "@/hooks/use-theme";
 import { useViewMode } from "@/contexts/ViewModeContext";
 import { useAlertNotifications } from "@/hooks/use-alert-notifications";
-
-interface NavItem {
-  label: string;
-  path: string;
-  icon: React.ReactNode;
-}
 
 export default function AppSidebar() {
   const { hasRole, isClient, isInternal, signOut, profile, canQuote, canWork } = useAuth();
@@ -35,6 +23,7 @@ export default function AppSidebar() {
 
   const isManager = hasRole("fvc_assurance_manager" as any) || hasRole("fvc_ops_admin" as any);
   const isOfficer = hasRole("fvc_assurance_officer" as any) || hasRole("fvc_analyst" as any);
+  const isAdmin = hasRole("client_admin" as any);
 
   // Dev-mode: allow switching between manager and officer views
   const [devRoleOverride, setDevRoleOverride] = useState<"manager" | "officer" | null>(null);
@@ -50,47 +39,10 @@ export default function AppSidebar() {
       .then(({ count }) => setPendingApprovals(count ?? 0));
   }, [profile?.org_id]);
 
-  const clientNav: NavItem[] = [
-    { label: "Dashboard", path: "/dashboard", icon: <LayoutDashboard size={18} /> },
-    { label: "Entities", path: "/entities", icon: <Building2 size={18} /> },
-    { label: "Commission", path: "/commission", icon: <FileCheck size={18} /> },
-    { label: "Service Request", path: "/service-request", icon: <Briefcase size={18} /> },
-    { label: "Deliverables", path: "/deliverables", icon: <FolderOpen size={18} /> },
-    { label: "Monitoring", path: "/monitoring", icon: <Activity size={18} /> },
-    { label: "Policies", path: "/policies", icon: <Shield size={18} /> },
-    { label: "Master LIA Templates", path: "/lia-library", icon: <Scale size={18} /> },
-  ];
-
-  if (hasRole("client_admin")) {
-    clientNav.splice(4, 0, { label: "Approvals", path: "/approvals", icon: <CheckCircle2 size={18} /> });
-  }
-
-  if (hasRole("client_admin")) {
-    clientNav.push({ label: "Onboarding Wizard", path: "/client/onboarding", icon: <Sparkles size={18} /> });
-    clientNav.push({ label: "Users & Roles", path: "/users", icon: <Users size={18} /> });
-    clientNav.push({ label: "Organisation Settings", path: "/org-settings", icon: <Building2 size={18} /> });
-    clientNav.push({ label: "Approval Settings", path: "/approval-settings", icon: <Settings size={18} /> });
-    clientNav.push({ label: "Budget & Spend", path: "/budget-controls", icon: <Wallet size={18} /> });
-    clientNav.push({ label: "Work Orders", path: "/work-orders", icon: <Receipt size={18} /> });
-    clientNav.push({ label: "Spend Summary", path: "/spend-summary", icon: <DollarSign size={18} /> });
-  }
-
-  clientNav.push(
-    { label: "Risk Methodology", path: "/methodology", icon: <BookOpen size={18} /> },
-    { label: "Jurisdiction Alerts", path: "/client/alerts", icon: <Bell size={18} /> },
-    { label: "Policy Mapping", path: "/client/policy", icon: <Shield size={18} /> },
-    { label: "Audit Log", path: "/audit-log", icon: <ClipboardList size={18} /> },
-    { label: "Support", path: "/support", icon: <HeadphonesIcon size={18} /> }
-  );
-
-  // Manager nav is now handled by ManagerNavGroups component
-
-  // Officer nav is now handled by OfficerNavSections component
-
-  // For client views, use flat nav; manager and officer use dedicated components
+  // Determine which nav component to render
   const showManagerGroups = activeView === "internal" && effectiveIsManager;
   const showOfficerSections = activeView === "internal" && !effectiveIsManager;
-  const navItems = (showManagerGroups || showOfficerSections) ? [] : clientNav;
+  const showClientGroups = activeView !== "internal";
 
   const handleToggleView = () => {
     toggleView();
