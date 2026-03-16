@@ -140,6 +140,7 @@ export default function AppSidebar() {
 
       {/* Navigation */}
       <nav className="flex-1 py-4 px-2 space-y-0.5 overflow-y-auto">
+        {showManagerGroups && <ManagerNavGroups collapsed={collapsed} />}
         {navItems.map((item) => {
           const isActive = location.pathname === item.path || location.pathname.startsWith(item.path + "/");
           return (
