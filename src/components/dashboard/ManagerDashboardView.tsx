@@ -464,10 +464,10 @@ export default function ManagerDashboardView({ selectedOrgId, onOrgChange }: Pro
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={officerWorkload} layout="vertical" margin={{ left: 0, right: 10 }}>
                   <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="hsl(var(--border))" />
-                  <XAxis type="number" tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }} />
-                  <YAxis type="category" dataKey="name" width={80} tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }} />
-                  <Tooltip contentStyle={{ background: "hsl(var(--popover))", border: "1px solid hsl(var(--border))", borderRadius: "8px", fontSize: "12px", color: "hsl(var(--popover-foreground))" }} />
-                  <Bar dataKey="count" fill="hsl(var(--accent))" radius={[0, 4, 4, 0]} animationDuration={800} />
+                  <XAxis type="number" domain={[0, 100]} tickFormatter={(v) => `${v}%`} tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }} />
+                  <YAxis type="category" dataKey="name" width={100} tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }} />
+                  <Tooltip formatter={(value: number) => [`${value}%`, "Capacity"]} contentStyle={{ background: "hsl(var(--popover))", border: "1px solid hsl(var(--border))", borderRadius: "8px", fontSize: "12px", color: "hsl(var(--popover-foreground))" }} />
+                  <Bar dataKey="capacity" fill="hsl(var(--accent))" radius={[0, 4, 4, 0]} animationDuration={800} />
                 </BarChart>
               </ResponsiveContainer>
             </div>
