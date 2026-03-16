@@ -25,6 +25,9 @@ import {
   SOURCE_OPTIONS, MITIGATION_OPTIONS,
 } from "@/components/lia/LiaFormTypes";
 import { SEED_TEMPLATES } from "@/lib/lia-seed-templates";
+import { RegChangeAlertBanner, RegChangeDot } from "@/components/insight/RegChangeAlertBanner";
+import { KnowledgePanelWidget, type KnowledgeSection } from "@/components/insight/KnowledgePanel";
+import { FieldTooltip } from "@/components/insight/FieldTooltip";
 
 interface MasterLiaTemplate {
   id: string;
