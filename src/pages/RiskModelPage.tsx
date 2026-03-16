@@ -223,6 +223,12 @@ export default function RiskModelPage() {
         )}
       </div>
 
+      <KnowledgePanelWidget
+        pageId="risk-model-juris-v1"
+        title="CR-JURIS-1.0 Risk Methodology"
+        sections={RISK_MODEL_KNOWLEDGE_SECTIONS}
+      />
+
       <Tabs value={activeTab} onValueChange={setActiveTab}>
         <TabsList className="bg-transparent p-0 gap-1">
           <TabsTrigger value="scores" className="text-xs gap-1.5 data-[state=active]:bg-primary/10">
