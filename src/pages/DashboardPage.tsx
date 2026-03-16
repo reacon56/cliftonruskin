@@ -360,7 +360,7 @@ export default function DashboardPage() {
   const mapExpanded = (
     <div style={{ height: "calc(85vh - 120px)", width: "100%" }}>
       {mapView === "map" ? (
-        <EntityWorldMap entities={allEntities} expanded />
+        <EntityWorldMap entities={allEntities} expanded onEntityClick={(id) => navigate(`/entities/${id}`)} />
       ) : (
         <RiskCoverageView entities={allEntities} />
       )}
@@ -548,7 +548,7 @@ export default function DashboardPage() {
           className="animate-fade-in"
         >
           {mapView === "map" ? (
-            <EntityWorldMap entities={allEntities} />
+            <EntityWorldMap entities={allEntities} onEntityClick={(id) => navigate(`/entities/${id}`)} />
           ) : (
             <RiskCoverageView entities={allEntities} />
           )}

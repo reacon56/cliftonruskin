@@ -91,11 +91,13 @@ interface Props {
   entities: Entity[];
   /** When true, map fills available height and calls invalidateSize */
   expanded?: boolean;
+  /** Called when a marker is clicked – receives the entity id */
+  onEntityClick?: (entityId: string) => void;
 }
 
 // tierMarkerColor now imported from map-pin-icons
 
-export default function EntityWorldMap({ entities, expanded }: Props) {
+export default function EntityWorldMap({ entities, expanded, onEntityClick }: Props) {
   const mapRef = useRef<HTMLDivElement>(null);
   const leafletMap = useRef<L.Map | null>(null);
   const tileLayerRef = useRef<L.TileLayer | null>(null);
@@ -157,7 +159,7 @@ export default function EntityWorldMap({ entities, expanded }: Props) {
       if (lat === undefined || lng === undefined) return;
 
       const icon = createEntityIcon(entity.risk_tier);
-      L.marker([lat, lng], { icon })
+      const marker = L.marker([lat, lng], { icon })
         .bindTooltip(
           buildEntityTooltipHtml({
             ...entity,
@@ -170,8 +172,13 @@ export default function EntityWorldMap({ entities, expanded }: Props) {
           { direction: "top", offset: [0, -14], className: "leaflet-tooltip-entity" }
         )
         .addTo(map);
+
+      if (onEntityClick) {
+        marker.on("click", () => onEntityClick(entity.id));
+        marker.getElement()?.style.setProperty("cursor", "pointer");
+      }
     });
-  }, [entities]);
+  }, [entities, onEntityClick]);
 
   // Swap tile layer on theme change
   useEffect(() => {
