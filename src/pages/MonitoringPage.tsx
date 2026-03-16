@@ -10,6 +10,41 @@ import { Activity } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import SavedViewsDropdown, { type FilterState } from "@/components/SavedViewsDropdown";
 import EventReviewButton from "@/components/monitoring/EventReviewButton";
+import { KnowledgePanelWidget } from "@/components/insight/KnowledgePanel";
+import type { KnowledgeSection } from "@/components/insight/KnowledgePanel";
+
+const MONITORING_KNOWLEDGE_SECTIONS: KnowledgeSection[] = [
+  {
+    title: "The Obligation",
+    content: "Article 5(1)(e) UK GDPR requires that personal data is not kept longer than necessary AND is kept accurate. For third-party risk, this means the risk assessment must reflect current reality, not the state at onboarding.",
+  },
+  {
+    title: "What Triggers a Review",
+    content: "Material changes in entity structure, jurisdiction risk changes (e.g. FATF grey listing), adverse media, sanctions hits, or elapsed review cadence per tier policy.",
+  },
+  {
+    title: "Tier Review Cadence",
+    type: "keyvalue",
+    pairs: [
+      { key: "Tier A", value: "6 months" },
+      { key: "Tier B", value: "12 months" },
+      { key: "Tier C", value: "24 months" },
+    ],
+  },
+  {
+    title: "Monitoring vs Re-screening",
+    content: "Monitoring tracks change signals continuously. Re-screening is a full due diligence repeat triggered by a monitoring alert. They are not the same thing.",
+  },
+  {
+    title: "Quick Reference",
+    type: "keyvalue",
+    pairs: [
+      { key: "Primary", value: "UK GDPR Article 5(1)(e)" },
+      { key: "Regulation", value: "MLR 2017 Regulation 28" },
+      { key: "Internal", value: "CR Monitoring Policy" },
+    ],
+  },
+];
 
 export default function MonitoringPage() {
   const { profile, isInternal } = useAuth();
@@ -70,7 +105,15 @@ export default function MonitoringPage() {
           onApplyFilters={handleApplyFilters}
         />
       </div>
-      <p className="text-sm text-muted-foreground mb-8">Continuous monitoring alerts and events</p>
+      <p className="text-sm text-muted-foreground mb-4">Continuous monitoring alerts and events</p>
+
+      <div className="mb-6">
+        <KnowledgePanelWidget
+          pageId="monitoring-legal-obligation"
+          title="Why Ongoing Monitoring is a Legal Obligation"
+          sections={MONITORING_KNOWLEDGE_SECTIONS}
+        />
+      </div>
 
       <div className="flex gap-3 mb-6">
         <Select value={filterSeverity} onValueChange={setFilterSeverity}>
