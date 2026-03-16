@@ -78,11 +78,17 @@ export default function ManagerDashboardView({ selectedOrgId, onOrgChange }: Pro
   };
 
   const loadOfficerWorkload = async () => {
-    const { data: cases } = await supabase
+    let query = supabase
       .from("cases")
       .select("assigned_to")
       .not("status", "in", '("delivered","closed","cancelled","complete")')
       .not("assigned_to", "is", null);
+
+    if (selectedOrgId && selectedOrgId !== "all") {
+      query = query.eq("org_id", selectedOrgId);
+    }
+
+    const { data: cases } = await query;
 
     if (!cases?.length) {
       setOfficerWorkload([]);
