@@ -10,7 +10,7 @@ import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
-import { ChevronRight, Check, AlertTriangle, Sparkles } from "lucide-react";
+import { ChevronRight, Check, AlertTriangle, Sparkles, Briefcase } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { requiresApproval } from "@/lib/approval-utils";
 import EnhancementSuggestionPanel from "@/components/EnhancementSuggestionPanel";
