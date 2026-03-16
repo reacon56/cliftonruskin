@@ -123,6 +123,44 @@ const PURPOSES = [
   "General assurance",
 ];
 
+const LIA_KNOWLEDGE_SECTIONS: KnowledgeSection[] = [
+  {
+    title: "What is a Master LIA?",
+    type: "text",
+    content:
+      "A Legitimate Interests Assessment (LIA) is a structured analysis required under Article 6(1)(f) UK GDPR whenever an organisation relies on legitimate interests as its lawful basis for processing personal data. Master LIA templates are organisation-level assessments that are completed once and referenced by individual cases.",
+  },
+  {
+    title: "DUAA 2025 — What Changed",
+    type: "quote",
+    content:
+      'The Data (Use and Access) Act 2025 introduced Article 6(1)(ea) — a new "Recognised Legitimate Interests" basis for processing that is specifically directed at crime prevention and detection. Where this basis applies, the traditional balancing test is not legally required, although documenting it remains best practice.',
+  },
+  {
+    title: "When to Use Each Template",
+    type: "keyvalue",
+    pairs: [
+      { key: "Standard DD", value: "Routine third-party checks — Tier B/C entities, low-risk jurisdictions" },
+      { key: "Enhanced CI", value: "High-risk entities, Tier A, EDD-triggered cases, PEP/sanctions hits" },
+      { key: "PEP & Sanctions", value: "Dedicated screening-only cases or ongoing monitoring programmes" },
+    ],
+  },
+  {
+    title: "Regulatory Context",
+    type: "text",
+    content:
+      "These templates are calibrated to UK GDPR as amended by the Data (Use and Access) Act 2025 (in force 5 February 2026). The UK adequacy decision was renewed on 19 December 2025 until 27 December 2031 — no additional transfer mechanism is required for EU data subjects.",
+  },
+  {
+    title: "Version Control",
+    type: "text",
+    content:
+      "Templates are versioned. When legislation changes or your programme evolves, create a new version rather than editing an active template. The previous version is automatically marked as superseded, maintaining a full audit trail.",
+  },
+];
+
+const DUAA_ALERT_ID = "duaa-2025-lia";
+
 export default function LiaLibraryPage() {
   const { profile, user, hasRole } = useAuth();
   const { toast } = useToast();
@@ -134,6 +172,7 @@ export default function LiaLibraryPage() {
   const [form, setForm] = useState<TemplateFormState>(INITIAL_FORM);
   const [saving, setSaving] = useState(false);
   const [seeding, setSeeding] = useState(false);
+  const [, setAlertKey] = useState(0);
 
   const isAdmin = hasRole("client_admin");
   const canEdit = isAdmin;
