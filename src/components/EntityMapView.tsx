@@ -191,31 +191,11 @@ export default function EntityMapView({ entities, highlightId }: Props) {
   const [tierFilter, setTierFilter] = useState<string>("All Tiers");
   const [typeFilter, setTypeFilter] = useState<string>("All Types");
 
-  /* ── Fetch jurisdiction risk data ── */
-  const { data: riskMap } = useQuery({
-    queryKey: ["jurisdiction-risk-map-overlay"],
-    enabled: riskOverlay,
-    staleTime: 1000 * 60 * 15,
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("jurisdiction_indicator")
-        .select("jurisdiction_id, indicator_type, value_json, jurisdiction:jurisdiction_id(country_code)");
-      if (error) throw error;
-      const byCountry = new Map<string, Array<{ indicator_type: string; value_json: any }>>();
-      for (const row of data ?? []) {
-        const cc = (row as any).jurisdiction?.country_code;
-        if (!cc) continue;
-        const key = cc.toUpperCase();
-        if (!byCountry.has(key)) byCountry.set(key, []);
-        byCountry.get(key)!.push({ indicator_type: row.indicator_type, value_json: row.value_json });
-      }
-      const scoreMap = new Map<string, number>();
-      byCountry.forEach((indicators, cc) => {
-        scoreMap.set(cc, computeJurisdictionScore(indicators));
-      });
-      return scoreMap;
-    },
-  });
+  /* ── Jurisdiction risk data (hardcoded canonical scores) ── */
+  const riskMap = useMemo(() => {
+    if (!riskOverlay) return null;
+    return JURISDICTION_RISK_SCORES;
+  }, [riskOverlay]);
 
   /* ── Fetch GeoJSON ── */
   const { data: geoData } = useQuery({
