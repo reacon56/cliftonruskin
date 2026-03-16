@@ -179,7 +179,7 @@ export default function EntityWorldMap({ entities }: Props) {
   return (
     <div className="relative">
       <div className="absolute top-2 right-2 z-[500]">
-        <MapThemeToggle theme={theme} onToggle={toggle} />
+        <BasemapCycleToggle basemap={basemap} onCycle={cycleBasemap} />
       </div>
       <div
         ref={mapRef}

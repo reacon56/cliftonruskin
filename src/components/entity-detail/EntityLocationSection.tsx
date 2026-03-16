@@ -92,7 +92,7 @@ export default function EntityLocationSection({ entity }: Props) {
           <MapPin size={16} className="text-accent" />
           <h3 className="fvc-heading-3 text-foreground">Location</h3>
         </div>
-        {hasMap && <MapThemeToggle theme={mapTheme} onToggle={toggleMapTheme} />}
+        {hasMap && <BasemapCycleToggle basemap={basemap} onCycle={cycleBasemap} />}
       </div>
 
       <div className="grid md:grid-cols-[1fr_1.5fr] gap-6">
