@@ -7,7 +7,7 @@ import { cn } from "@/lib/utils";
 
 export interface KnowledgeSection {
   title: string;
-  content: string;
+  content?: string;
   type?: "text" | "quote" | "keyvalue";
   /** For keyvalue type */
   pairs?: { key: string; value: string }[];
