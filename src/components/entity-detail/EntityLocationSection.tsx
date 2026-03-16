@@ -16,7 +16,7 @@ function formatAddress(line1?: string, line2?: string, city?: string, region?: s
 
 export default function EntityLocationSection({ entity }: Props) {
   const { toast } = useToast();
-  const { tileUrl, theme: mapTheme, toggle: toggleMapTheme } = useMapTheme();
+  const { tileUrl, basemap, cycleBasemap } = useMapTheme();
   const mapRef = useRef<HTMLDivElement>(null);
   const leafletMap = useRef<L.Map | null>(null);
   const tileLayerRef = useRef<L.TileLayer | null>(null);
