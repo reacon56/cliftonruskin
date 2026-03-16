@@ -121,9 +121,7 @@ export function KnowledgePanel({
                       {section.title}
                     </h4>
                     {section.type === "quote" ? (
-                      <div className="border-l-2 border-accent/50 pl-3 text-[12px] text-muted-foreground leading-relaxed italic">
-                        {section.content}
-                      </div>
+                      <RenderContent content={section.content} className="border-l-2 border-accent/50 pl-3 text-[12px] text-muted-foreground leading-relaxed italic" />
                     ) : section.type === "keyvalue" && section.pairs ? (
                       <div className="space-y-1.5">
                         {section.pairs.map((p, j) => (
@@ -135,10 +133,10 @@ export function KnowledgePanel({
                           </div>
                         ))}
                       </div>
+                    ) : section.title === "Disclaimer" ? (
+                      <RenderContent content={section.content} className="text-[11px] text-muted-foreground/70 leading-relaxed" />
                     ) : (
-                      <p className="text-[12px] text-muted-foreground leading-relaxed">
-                        {section.content}
-                      </p>
+                      <RenderContent content={section.content} className="text-[12px] text-muted-foreground leading-relaxed" />
                     )}
                   </div>
                 ))}
