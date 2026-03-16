@@ -40,7 +40,7 @@ export default function GanttView({ items, weekOffset }: Props) {
 
   return (
     <div className="overflow-x-auto">
-      <div className="min-w-[900px]">
+      <div className="min-w-[900px] relative">
         {/* Day headers */}
         <div className="flex border-b border-border">
           <div className="w-[180px] shrink-0 p-2 text-[10px] font-medium text-muted-foreground uppercase">Item</div>
