@@ -44,11 +44,16 @@ export default function ManagerDashboardView({ selectedOrgId, onOrgChange }: Pro
   }, [selectedOrgId, riskPeriod]);
 
   const loadSlaMetrics = async () => {
-    const { data: cases } = await supabase
+    let query = supabase
       .from("cases")
       .select("id, due_date, status, created_at, entities(name), product_type")
-      .eq("org_id", selectedOrgId)
       .in("status", ["delivered", "closed", "complete"]);
+
+    if (selectedOrgId && selectedOrgId !== "all") {
+      query = query.eq("org_id", selectedOrgId);
+    }
+
+    const { data: cases } = await query;
 
     if (!cases?.length) {
       setSlaMetrics({ onTime: 0, late: 0, avgDays: 0 });
