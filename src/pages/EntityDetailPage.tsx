@@ -256,6 +256,10 @@ export default function EntityDetailPage() {
           <DeliverablesTab deliverables={deliverables} changeLogs={changeLogs} cases={cases} />
         </TabsContent>
 
+        <TabsContent value="data-protection" className="mt-6">
+          <DataProtectionTab entity={entity} cases={cases} />
+        </TabsContent>
+
         <TabsContent value="activity" className="mt-6">
           <ActivityTab entityId={entity.id} />
         </TabsContent>
