@@ -252,6 +252,12 @@ export default function TierMatrixPage() {
         )}
       </div>
 
+      <KnowledgePanelWidget
+        pageId="tier-matrix-proportionality"
+        title="How Risk Tiers Connect to Policy & Regulatory Proportionality"
+        sections={TIER_KNOWLEDGE}
+      />
+
       <Tabs value={editedTier} onValueChange={setEditedTier}>
         <TabsList>
           {["standard", "enhanced", "dossier"].map((t) => (
