@@ -11,7 +11,8 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { toast } from "@/hooks/use-toast";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Settings, History, Shield, Save, Clock } from "lucide-react";
+import { Settings, History, Shield, Save, Clock, BarChart3 } from "lucide-react";
+import ProgrammeProfilePanel from "@/components/programme/ProgrammeProfilePanel";
 import { format } from "date-fns";
 
 const CADENCE_OPTIONS = [
@@ -322,6 +323,10 @@ export default function ProgrammeSettingsPage() {
             <Shield className="h-3.5 w-3.5" />
             Settings
           </TabsTrigger>
+          <TabsTrigger value="profile" className="gap-1.5">
+            <BarChart3 className="h-3.5 w-3.5" />
+            Programme Profile
+          </TabsTrigger>
           <TabsTrigger value="audit" className="gap-1.5">
             <History className="h-3.5 w-3.5" />
             Programme Audit Log
@@ -500,6 +505,10 @@ export default function ProgrammeSettingsPage() {
               </CardContent>
             </Card>
           )}
+        </TabsContent>
+
+        <TabsContent value="profile" className="mt-4">
+          <ProgrammeProfilePanel orgId={selectedOrgId} canEdit={canEdit} />
         </TabsContent>
 
         <TabsContent value="audit" className="mt-4">
