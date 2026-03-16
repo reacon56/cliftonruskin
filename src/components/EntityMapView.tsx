@@ -203,7 +203,7 @@ export default function EntityMapView({ entities, highlightId }: Props) {
   // Premises fly-to state
   const [premisesView, setPremisesView] = useState(false);
   const premisesLabelRef = useRef<L.Marker | null>(null);
-  const preFlyStateRef = useRef<{ center: L.LatLng; zoom: number; basemap: MapBasemap } | null>(null);
+  const preFlyStateRef = useRef<{ center: L.LatLng; zoom: number; basemap: MapBasemap; riskOverlayWasActive: boolean } | null>(null);
 
   // In-map filters
   const [tierFilter, setTierFilter] = useState<string>("All Tiers");
@@ -363,15 +363,22 @@ export default function EntityMapView({ entities, highlightId }: Props) {
     }
     if (!lat || !lng) return;
 
-    // Save pre-fly state
+    // Save pre-fly state including risk overlay status
+    const wasRiskActive = riskOverlay;
     preFlyStateRef.current = {
       center: map.getCenter(),
       zoom: map.getZoom(),
       basemap,
+      riskOverlayWasActive: wasRiskActive,
     };
 
     // Close popup
     setSelected(null);
+
+    // Deactivate jurisdiction risk overlay before fly-to for clean animation
+    if (wasRiskActive) {
+      setRiskOverlay(false);
+    }
 
     // Switch to satellite
     if (basemap !== "satellite") {
@@ -418,7 +425,7 @@ export default function EntityMapView({ entities, highlightId }: Props) {
     };
 
     map.once("moveend", onMoveEnd);
-  }, [pinType, basemap, setBasemap, isMobile, getFullAddress]);
+  }, [pinType, basemap, setBasemap, isMobile, getFullAddress, riskOverlay]);
 
   /** Return to programme view */
   const returnToProgrammeView = useCallback(() => {
@@ -439,6 +446,14 @@ export default function EntityMapView({ entities, highlightId }: Props) {
       }
       // Fly back
       map.flyTo(pre.center, pre.zoom, { animate: true, duration: 1.5 });
+
+      // Re-activate jurisdiction risk overlay after return animation if it was active before
+      if (pre.riskOverlayWasActive) {
+        map.once("moveend", () => {
+          setRiskOverlay(true);
+        });
+      }
+
       preFlyStateRef.current = null;
     }
 
