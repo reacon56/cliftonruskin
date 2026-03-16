@@ -1,4 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -22,7 +23,6 @@ function suggestCategory(title: string): string {
   return "Regulatory Enforcement";
 }
 
-// Simple country detection from title
 function detectCountry(title: string): string | null {
   const lower = title.toLowerCase();
   const map: Record<string, string> = {
@@ -38,13 +38,46 @@ function detectCountry(title: string): string | null {
   return null;
 }
 
+async function callAI(apiKey: string, systemPrompt: string, userPrompt: string): Promise<string> {
+  const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${apiKey}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      model: "google/gemini-3-flash-preview",
+      messages: [
+        { role: "system", content: systemPrompt },
+        { role: "user", content: userPrompt },
+      ],
+    }),
+  });
+
+  if (!response.ok) {
+    const t = await response.text();
+    throw { status: response.status, body: t };
+  }
+
+  const data = await response.json();
+  return data.choices?.[0]?.message?.content || "";
+}
+
+function cleanJson(raw: string): string {
+  let cleaned = raw.trim();
+  if (cleaned.startsWith("```")) {
+    cleaned = cleaned.replace(/^```(?:json)?\n?/, "").replace(/\n?```$/, "").trim();
+  }
+  return cleaned;
+}
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
-    const { title, source, link } = await req.json();
+    const { title, source, link, org_id } = await req.json();
     if (!title) throw new Error("title is required");
 
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
@@ -53,7 +86,8 @@ serve(async (req) => {
     const category = suggestCategory(title);
     const country = detectCountry(title);
 
-    const systemPrompt = `You are a senior governance analyst at a discreet British institutional advisory firm.
+    // Step 1: Generate summary & reflection
+    const summarySystem = `You are a senior governance analyst at a discreet British institutional advisory firm.
 Your task is to produce two pieces of text based on a headline from a public governance, regulatory or enforcement report.
 
 Rules:
@@ -68,61 +102,71 @@ Output EXACTLY this JSON (no markdown, no wrapping):
   "reflection": "<1-2 sentence board-level governance reflection, framed as a consideration>"
 }`;
 
-    const userPrompt = `Headline: "${title}"
-Source: ${source}
-URL: ${link}
+    const summaryUser = `Headline: "${title}"\nSource: ${source}\nURL: ${link}\n\nGenerate the summary and governance reflection.`;
 
-Generate the summary and governance reflection.`;
-
-    const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${LOVABLE_API_KEY}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        model: "google/gemini-3-flash-preview",
-        messages: [
-          { role: "system", content: systemPrompt },
-          { role: "user", content: userPrompt },
-        ],
-      }),
-    });
-
-    if (!response.ok) {
-      if (response.status === 429) {
-        return new Response(JSON.stringify({ error: "Rate limited. Please try again shortly." }), {
-          status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
-      }
-      if (response.status === 402) {
-        return new Response(JSON.stringify({ error: "AI credits exhausted. Please top up." }), {
-          status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
-      }
-      const t = await response.text();
-      console.error("AI gateway error:", response.status, t);
-      throw new Error(`AI gateway error: ${response.status}`);
-    }
-
-    const data = await response.json();
-    const raw = data.choices?.[0]?.message?.content || "";
-
-    // Parse JSON from response, stripping markdown fences if present
-    let cleaned = raw.trim();
-    if (cleaned.startsWith("```")) {
-      cleaned = cleaned.replace(/^```(?:json)?\n?/, "").replace(/\n?```$/, "").trim();
-    }
-
+    const summaryRaw = await callAI(LOVABLE_API_KEY, summarySystem, summaryUser);
     let parsed: { summary: string; reflection: string };
     try {
-      parsed = JSON.parse(cleaned);
+      parsed = JSON.parse(cleanJson(summaryRaw));
     } catch {
-      // Fallback
       parsed = {
         summary: "A governance-related matter has been publicly reported. Further details are available via the source link.",
         reflection: "Boards may wish to consider the relevance of this development to their own oversight arrangements.",
       };
+    }
+
+    // Step 2: Relevance scoring against PIP (if org_id provided)
+    let relevance_score: string | null = null;
+    let relevance_reasoning: string | null = null;
+
+    if (org_id) {
+      try {
+        const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+        const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+        const sb = createClient(supabaseUrl, supabaseKey);
+
+        const { data: pip } = await sb
+          .from("programme_intelligence_profile")
+          .select("sector_profile, jurisdiction_profile, risk_profile, manual_context")
+          .eq("org_id", org_id)
+          .maybeSingle();
+
+        if (pip) {
+          const sectors = (pip.sector_profile as string[]) || [];
+          const jurisdictions = (pip.jurisdiction_profile as any[]) || [];
+          const jurisdictionNames = jurisdictions.map((j: any) => j.name).filter(Boolean);
+          const riskProfile = pip.risk_profile || {};
+          const manualContext = pip.manual_context || "";
+
+          const relevanceSystem = `You are a relevance scoring engine for a due diligence platform. Score whether a regulatory intelligence item is relevant to a specific DD programme based on its sector and geographic profile. Return ONLY valid JSON, no markdown fences.`;
+
+          const relevanceUser = JSON.stringify({
+            article: { title, category, summary: parsed.summary },
+            programme_profile: {
+              sectors,
+              jurisdictions: jurisdictionNames,
+              risk_areas: riskProfile,
+              manual_context: manualContext,
+            },
+            instruction: "Return JSON: { relevance_score: 'high'|'moderate'|'low'|'not_relevant', sector_reasoning: 'one sentence', geographic_reasoning: 'one sentence', confidence: 0.0-1.0 }",
+          });
+
+          const relevanceRaw = await callAI(LOVABLE_API_KEY, relevanceSystem, relevanceUser);
+          try {
+            const rel = JSON.parse(cleanJson(relevanceRaw));
+            relevance_score = rel.relevance_score || "low";
+            const lines: string[] = [];
+            if (rel.sector_reasoning) lines.push(`Sector match: ${rel.sector_reasoning}`);
+            if (rel.geographic_reasoning) lines.push(`Geographic match: ${rel.geographic_reasoning}`);
+            relevance_reasoning = lines.join("\n");
+          } catch {
+            console.error("Failed to parse relevance response:", relevanceRaw);
+          }
+        }
+      } catch (pipErr) {
+        console.error("PIP lookup/relevance scoring failed:", pipErr);
+        // Non-fatal — proceed without relevance score
+      }
     }
 
     return new Response(
@@ -131,13 +175,25 @@ Generate the summary and governance reflection.`;
         reflection: parsed.reflection,
         category,
         country,
+        relevance_score,
+        relevance_reasoning,
       }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
-  } catch (e) {
+  } catch (e: any) {
+    if (e?.status === 429) {
+      return new Response(JSON.stringify({ error: "Rate limited. Please try again shortly." }), {
+        status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+    if (e?.status === 402) {
+      return new Response(JSON.stringify({ error: "AI credits exhausted. Please top up." }), {
+        status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
     console.error("generate-governance-summary error:", e);
     return new Response(
-      JSON.stringify({ error: e instanceof Error ? e.message : "Unknown error" }),
+      JSON.stringify({ error: e instanceof Error ? e.message : e?.body || "Unknown error" }),
       { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   }
