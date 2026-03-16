@@ -20,6 +20,8 @@ interface Entity {
   risk_tier: string;
   entity_type: string;
   next_review_date: string | null;
+  latitude: number | null;
+  longitude: number | null;
   registered_lat: number | null;
   registered_lng: number | null;
   registered_city: string | null;
@@ -269,7 +271,7 @@ export default function EntityMapView({ entities, highlightId }: Props) {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("entities")
-        .select("id, name, registered_lat, registered_lng, hq_lat, hq_lng")
+        .select("id, name, latitude, longitude, registered_lat, registered_lng, hq_lat, hq_lng")
         .in("id", relatedEntityIds);
       if (error) throw error;
       return data ?? [];
@@ -292,10 +294,13 @@ export default function EntityMapView({ entities, highlightId }: Props) {
   // Build entity lookup for coords
   const entityLookup = useMemo(() => {
     const map = new Map<string, { name: string; lat: number; lng: number }>();
-    const addEntity = (e: { id: string; name: string; registered_lat?: number | null; registered_lng?: number | null; hq_lat?: number | null; hq_lng?: number | null }) => {
+    const addEntity = (e: { id: string; name: string; latitude?: number | null; longitude?: number | null; registered_lat?: number | null; registered_lng?: number | null; hq_lat?: number | null; hq_lng?: number | null }) => {
       let lat: number | null = null;
       let lng: number | null = null;
-      if (pinType === "hq" && e.hq_lat && e.hq_lng) {
+      // Primary: precise latitude/longitude columns
+      if (e.latitude != null && e.longitude != null) {
+        lat = e.latitude; lng = e.longitude;
+      } else if (pinType === "hq" && e.hq_lat && e.hq_lng) {
         lat = e.hq_lat; lng = e.hq_lng;
       } else if (e.registered_lat && e.registered_lng) {
         lat = e.registered_lat; lng = e.registered_lng;
@@ -329,6 +334,8 @@ export default function EntityMapView({ entities, highlightId }: Props) {
 
   /** Check if coords have building-level precision (≥4 decimal places) */
   const hasPreciseCoords = useCallback((entity: Entity): boolean => {
+    // If precise latitude/longitude exist, they are building-level
+    if (entity.latitude != null && entity.longitude != null) return true;
     const lat = pinType === "hq" ? entity.hq_lat : entity.registered_lat;
     const lng = pinType === "hq" ? entity.hq_lng : entity.registered_lng;
     if (!lat || !lng) return false;
@@ -344,10 +351,12 @@ export default function EntityMapView({ entities, highlightId }: Props) {
     const map = leafletMap.current;
     if (!map) return;
 
-    // Determine coordinates
+    // Determine coordinates — prefer precise latitude/longitude
     let lat: number | null = null;
     let lng: number | null = null;
-    if (pinType === "hq" && entity.hq_lat && entity.hq_lng) {
+    if (entity.latitude != null && entity.longitude != null) {
+      lat = entity.latitude; lng = entity.longitude;
+    } else if (pinType === "hq" && entity.hq_lat && entity.hq_lng) {
       lat = entity.hq_lat; lng = entity.hq_lng;
     } else if (entity.registered_lat && entity.registered_lng) {
       lat = entity.registered_lat; lng = entity.registered_lng;
@@ -536,7 +545,11 @@ export default function EntityMapView({ entities, highlightId }: Props) {
       let lat: number | null = null;
       let lng: number | null = null;
 
-      if (pinType === "hq" && entity.hq_lat && entity.hq_lng) {
+      // Primary: precise latitude/longitude columns
+      if (entity.latitude != null && entity.longitude != null) {
+        lat = entity.latitude;
+        lng = entity.longitude;
+      } else if (pinType === "hq" && entity.hq_lat && entity.hq_lng) {
         lat = entity.hq_lat;
         lng = entity.hq_lng;
       } else if (entity.registered_lat && entity.registered_lng) {
