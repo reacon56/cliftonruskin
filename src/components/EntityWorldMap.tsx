@@ -97,7 +97,7 @@ interface Props {
 
 // tierMarkerColor now imported from map-pin-icons
 
-export default function EntityWorldMap({ entities, expanded }: Props) {
+export default function EntityWorldMap({ entities, expanded, onEntityClick }: Props) {
   const mapRef = useRef<HTMLDivElement>(null);
   const leafletMap = useRef<L.Map | null>(null);
   const tileLayerRef = useRef<L.TileLayer | null>(null);
