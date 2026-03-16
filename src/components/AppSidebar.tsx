@@ -98,10 +98,9 @@ export default function AppSidebar() {
     { label: "Submitted to QA", path: "/qa-queue", icon: <Eye size={18} /> },
   ];
 
-  // Determine which internal nav to show
-  const internalNav: NavItem[] = effectiveIsManager ? managerNav : officerNav;
-
-  const navItems = activeView === "internal" ? internalNav : clientNav;
+  // For officer and client views, use flat nav
+  const showManagerGroups = activeView === "internal" && effectiveIsManager;
+  const navItems = showManagerGroups ? [] : (activeView === "internal" ? officerNav : clientNav);
 
   const handleToggleView = () => {
     toggleView();
