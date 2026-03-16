@@ -88,11 +88,13 @@ interface Entity {
 
 interface Props {
   entities: Entity[];
+  /** When true, map fills available height and calls invalidateSize */
+  expanded?: boolean;
 }
 
 // tierMarkerColor now imported from map-pin-icons
 
-export default function EntityWorldMap({ entities }: Props) {
+export default function EntityWorldMap({ entities, expanded }: Props) {
   const mapRef = useRef<HTMLDivElement>(null);
   const leafletMap = useRef<L.Map | null>(null);
   const tileLayerRef = useRef<L.TileLayer | null>(null);
