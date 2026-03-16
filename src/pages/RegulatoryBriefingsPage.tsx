@@ -118,6 +118,18 @@ export default function RegulatoryBriefingsPage() {
         </p>
       </div>
 
+      <RegChangeAlertBanner
+        alertId="duaa-2025-rli"
+        text="DUAA 2025 — Recognised Legitimate Interests Now Active: The Data (Use and Access) Act 2025 introduced a new seventh lawful basis: Recognised Legitimate Interests (Art 6(1)(ea) UK GDPR). Crime prevention qualifies without a balancing test. This affects how regulatory intelligence gathering is documented."
+        dateText="In force: 5 Feb 2026"
+      />
+
+      <KnowledgePanelWidget
+        pageId="reg-intel-pip"
+        title="How Regulatory Intelligence is Filtered to Your Programme"
+        sections={REG_INTEL_KNOWLEDGE}
+      />
+
       {/* Filter toggles */}
       {briefings.length > 0 && (
         <div className="flex items-center gap-2">
