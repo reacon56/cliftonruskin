@@ -286,6 +286,13 @@
   }
 }
 
+/* Expandable tile — show expand icon on touch devices */
+@media (hover: none) and (pointer: coarse) {
+  .group\/tile button[aria-label^="Expand"] {
+    opacity: 1 !important;
+  }
+}
+
 /* Scroll reveal */
 .scroll-reveal {
   opacity: 0;
