@@ -86,22 +86,12 @@ export default function AppSidebar() {
 
   // Manager nav is now handled by ManagerNavGroups component
 
-  // ── Officer nav: scoped visibility ──
-  const officerNav: NavItem[] = [
-    { label: "My Cases", path: "/cases", icon: <ListTodo size={18} /> },
-    { label: "My Tasks", path: "/my-tasks", icon: <ClipboardList size={18} /> },
-    { label: "Entity Lookup", path: "/entities", icon: <Search size={18} /> },
-    { label: "Partner Requests", path: "/partner-requests", icon: <Send size={18} /> },
-    { label: "Knowledge Base", path: "/knowledge-base", icon: <BookOpen size={18} /> },
-    { label: "Research Console", path: "/research-console", icon: <FlaskConical size={18} /> },
-    { label: "Jurisdiction Library", path: "/jurisdiction-library", icon: <Globe size={18} /> },
-    { label: "Jurisdictions", path: "/jurisdictions", icon: <Globe size={18} /> },
-    { label: "Submitted to QA", path: "/qa-queue", icon: <Eye size={18} /> },
-  ];
+  // Officer nav is now handled by OfficerNavSections component
 
-  // For officer and client views, use flat nav
+  // For client views, use flat nav; manager and officer use dedicated components
   const showManagerGroups = activeView === "internal" && effectiveIsManager;
-  const navItems = showManagerGroups ? [] : (activeView === "internal" ? officerNav : clientNav);
+  const showOfficerSections = activeView === "internal" && !effectiveIsManager;
+  const navItems = (showManagerGroups || showOfficerSections) ? [] : clientNav;
 
   const handleToggleView = () => {
     toggleView();
