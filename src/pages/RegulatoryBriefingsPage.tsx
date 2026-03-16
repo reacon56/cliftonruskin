@@ -1,9 +1,12 @@
+import { useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { ExternalLink, Loader2, Newspaper } from "lucide-react";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { ExternalLink, Loader2, Newspaper, ChevronDown, HelpCircle } from "lucide-react";
 import { countryCodeToFlag } from "@/lib/country-flag";
 
 interface MarketLesson {
@@ -18,22 +21,58 @@ interface MarketLesson {
   jurisdiction_country_code: string | null;
   published: boolean;
   created_at: string;
+  relevance_score: string | null;
+  relevance_reasoning: string | null;
 }
+
+type RelevanceLevel = "high" | "moderate" | "low";
+
+const RELEVANCE_CONFIG: Record<RelevanceLevel, { label: string; className: string }> = {
+  high: { label: "HIGH RELEVANCE", className: "bg-destructive/15 text-destructive border-destructive/30" },
+  moderate: { label: "MODERATE", className: "bg-amber-100 text-amber-800 border-amber-300 dark:bg-amber-900/30 dark:text-amber-400 dark:border-amber-700" },
+  low: { label: "LOW RELEVANCE", className: "text-muted-foreground border-muted-foreground/30 bg-muted/50" },
+};
+
+function RelevanceBadge({ score }: { score: string | null }) {
+  if (!score || !(score in RELEVANCE_CONFIG)) return null;
+  const cfg = RELEVANCE_CONFIG[score as RelevanceLevel];
+  return <Badge variant="outline" className={`text-[10px] shrink-0 ${cfg.className}`}>{cfg.label}</Badge>;
+}
+
+type FilterOption = "all" | "high" | "all_levels";
 
 export default function RegulatoryBriefingsPage() {
   const { profile } = useAuth();
+  const [filter, setFilter] = useState<FilterOption>("all");
 
   const { data: briefings = [], isLoading } = useQuery({
-    queryKey: ["regulatory-briefings"],
+    queryKey: ["regulatory-briefings", profile?.org_id],
     queryFn: async () => {
+      // Fetch published briefings
       const { data, error } = await supabase
         .from("market_lessons" as any)
         .select("*")
         .eq("published", true)
         .order("publication_date", { ascending: false });
       if (error) throw error;
-      return (data || []) as unknown as MarketLesson[];
+      const all = (data || []) as unknown as MarketLesson[];
+
+      // Fetch suppressions for this org
+      if (profile?.org_id) {
+        const { data: suppressions } = await supabase
+          .from("market_lesson_suppressions" as any)
+          .select("market_lesson_id")
+          .eq("org_id", profile.org_id);
+        const suppressedIds = new Set((suppressions || []).map((s: any) => s.market_lesson_id));
+        return all.filter((b) => !suppressedIds.has(b.id));
+      }
+      return all;
     },
+  });
+
+  const filtered = briefings.filter((b) => {
+    if (filter === "high") return b.relevance_score === "high";
+    return true;
   });
 
   return (
@@ -48,22 +87,47 @@ export default function RegulatoryBriefingsPage() {
         </p>
       </div>
 
+      {/* Filter toggles */}
+      {briefings.length > 0 && (
+        <div className="flex items-center gap-2">
+          {(
+            [
+              { key: "all", label: "All briefings" },
+              { key: "high", label: "High relevance" },
+              { key: "all_levels", label: "All relevance levels" },
+            ] as const
+          ).map((opt) => (
+            <Button
+              key={opt.key}
+              variant={filter === opt.key ? "default" : "outline"}
+              size="sm"
+              className="text-xs h-7"
+              onClick={() => setFilter(opt.key)}
+            >
+              {opt.label}
+            </Button>
+          ))}
+        </div>
+      )}
+
       {isLoading ? (
         <div className="flex items-center justify-center py-16">
           <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
         </div>
-      ) : briefings.length === 0 ? (
+      ) : filtered.length === 0 ? (
         <Card>
           <CardContent className="flex flex-col items-center justify-center py-16 text-center">
             <Newspaper className="h-10 w-10 text-muted-foreground/40 mb-4" />
             <p className="text-sm text-muted-foreground max-w-sm">
-              No regulatory briefings published yet. Your CR team will publish relevant updates here.
+              {briefings.length > 0
+                ? "No briefings match the selected filter."
+                : "No regulatory briefings published yet. Your CR team will publish relevant updates here."}
             </p>
           </CardContent>
         </Card>
       ) : (
         <div className="space-y-4">
-          {briefings.map((b) => (
+          {filtered.map((b) => (
             <Card key={b.id} className="hover:border-primary/20 transition-colors duration-200">
               <CardContent className="p-5">
                 <div className="flex items-start justify-between gap-4">
@@ -75,6 +139,7 @@ export default function RegulatoryBriefingsPage() {
                       {b.jurisdiction_country_code && (
                         <span className="text-sm">{countryCodeToFlag(b.jurisdiction_country_code)}</span>
                       )}
+                      <RelevanceBadge score={b.relevance_score} />
                     </div>
 
                     <div className="flex items-center gap-3 text-[11px] text-muted-foreground">
@@ -103,6 +168,24 @@ export default function RegulatoryBriefingsPage() {
                       <p className="text-xs text-muted-foreground leading-relaxed">
                         {b.summary_text}
                       </p>
+                    )}
+
+                    {/* Why relevant expandable */}
+                    {b.relevance_reasoning && (
+                      <Collapsible>
+                        <CollapsibleTrigger className="flex items-center gap-1 text-[11px] text-primary hover:underline mt-1">
+                          <HelpCircle className="h-3 w-3" />
+                          Why relevant to you?
+                          <ChevronDown className="h-3 w-3" />
+                        </CollapsibleTrigger>
+                        <CollapsibleContent>
+                          <div className="mt-2 p-2.5 rounded-md bg-muted/50 border border-border space-y-1">
+                            {b.relevance_reasoning.split("\n").filter(Boolean).map((line, i) => (
+                              <p key={i} className="text-xs text-muted-foreground leading-relaxed">{line}</p>
+                            ))}
+                          </div>
+                        </CollapsibleContent>
+                      </Collapsible>
                     )}
                   </div>
 

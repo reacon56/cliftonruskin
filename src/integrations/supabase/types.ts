@@ -2667,6 +2667,45 @@ export type Database = {
           },
         ]
       }
+      market_lesson_suppressions: {
+        Row: {
+          created_at: string
+          id: string
+          market_lesson_id: string
+          org_id: string
+          suppressed_by: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          market_lesson_id: string
+          org_id: string
+          suppressed_by: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          market_lesson_id?: string
+          org_id?: string
+          suppressed_by?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "market_lesson_suppressions_market_lesson_id_fkey"
+            columns: ["market_lesson_id"]
+            isOneToOne: false
+            referencedRelation: "market_lessons"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "market_lesson_suppressions_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organisations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       market_lessons: {
         Row: {
           category: string
@@ -2679,6 +2718,8 @@ export type Database = {
           publication_name: string
           publication_url: string
           published: boolean
+          relevance_reasoning: string | null
+          relevance_score: string | null
           summary_text: string | null
           title: string
           updated_at: string
@@ -2694,6 +2735,8 @@ export type Database = {
           publication_name?: string
           publication_url?: string
           published?: boolean
+          relevance_reasoning?: string | null
+          relevance_score?: string | null
           summary_text?: string | null
           title: string
           updated_at?: string
@@ -2709,6 +2752,8 @@ export type Database = {
           publication_name?: string
           publication_url?: string
           published?: boolean
+          relevance_reasoning?: string | null
+          relevance_score?: string | null
           summary_text?: string | null
           title?: string
           updated_at?: string
