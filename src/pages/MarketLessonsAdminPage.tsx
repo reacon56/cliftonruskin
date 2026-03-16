@@ -19,6 +19,33 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { ExternalLink, Loader2, Newspaper, Eye, EyeOff, RefreshCw, AlertTriangle, Ban, ChevronDown, ChevronRight } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { countryCodeToFlag } from "@/lib/country-flag";
+import { RegChangeAlertBanner } from "@/components/insight/RegChangeAlertBanner";
+import { KnowledgePanelWidget } from "@/components/insight/KnowledgePanel";
+import type { KnowledgeSection } from "@/components/insight/KnowledgePanel";
+
+const REG_INTEL_ADMIN_KNOWLEDGE: KnowledgeSection[] = [
+  {
+    title: "What Article 22 Requires",
+    content: "Automated decisions affecting data subjects require a documented human review step before the decision is recorded.",
+  },
+  {
+    title: "How CR Complies",
+    content: "The CR platform routes all AI agent outputs through an analyst approval step before case record entry. No AI finding is recorded without human sign-off.",
+  },
+  {
+    title: "What to Document",
+    content: "Lawful basis selection, the nature of AI assistance used, and the name of the reviewing analyst must be recorded per case.",
+  },
+  {
+    title: "Quick Reference",
+    type: "keyvalue",
+    pairs: [
+      { key: "Primary", value: "DUAA 2025 Article 22" },
+      { key: "Related", value: "UK GDPR Article 22" },
+      { key: "Guidance", value: "ICO Automated Decision-Making" },
+    ],
+  },
+];
 
 interface RssItem {
   title: string;
@@ -275,6 +302,18 @@ export default function MarketLessonsAdmin() {
           Fetch Recent Public Governance Reporting
         </Button>
       </div>
+
+      <RegChangeAlertBanner
+        alertId="duaa-2025-art22-admin"
+        text="DUAA 2025 — Article 22 Now in Force: Automated decision-making in due diligence is now regulated under Article 22 of the Data (Use and Access) Act 2025 (in force 5 Feb 2026). AI-assisted processing is lawful where human review is documented before the case record is finalised."
+        dateText="In force: 5 Feb 2026"
+      />
+
+      <KnowledgePanelWidget
+        pageId="reg-intel-admin-art22"
+        title="AI-Assisted Processing & Article 22 Compliance"
+        sections={REG_INTEL_ADMIN_KNOWLEDGE}
+      />
 
       {/* Relevance context org selector */}
       {orgs.length > 0 && (
