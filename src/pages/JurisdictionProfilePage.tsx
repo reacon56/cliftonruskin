@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Globe, ExternalLink, Info, ArrowUp, ArrowDown, Minus, Clock, Shield, FileText } from "lucide-react";
+import { ArrowLeft, Globe, ExternalLink, Info, ArrowUp, ArrowDown, Minus, Clock, Shield, FileText, Building2, Eye, Database, Gavel, AlertTriangle, BookOpen } from "lucide-react";
 import { Link } from "react-router-dom";
 import { countryCodeToFlag } from "@/lib/country-flag";
 import { format } from "date-fns";
@@ -171,6 +171,58 @@ export default function JurisdictionProfilePage() {
           </Button>
         </Link>
       </div>
+
+      {/* Profile Sections */}
+      {jurisdiction.profile_sections && (jurisdiction.profile_sections as any[]).length > 0 && (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {(jurisdiction.profile_sections as any[]).map((section: any, i: number) => {
+            const icons: Record<string, any> = {
+              "Incorporation Regime": Building2,
+              "Beneficial Ownership Transparency": Eye,
+              "Public Registry Depth": Database,
+              "Enforcement Environment": Gavel,
+              "Sanctions Exposure": AlertTriangle,
+              "Source Availability": BookOpen,
+            };
+            const IconComp = icons[section.title] || Info;
+            const ratingColors: Record<string, string> = {
+              "excellent": "bg-success/15 text-success",
+              "very-good": "bg-success/15 text-success",
+              "very-high": "bg-success/15 text-success",
+              "high": "bg-success/15 text-success",
+              "good": "bg-info/15 text-info",
+              "moderate": "bg-warning/15 text-warning",
+              "medium": "bg-warning/15 text-warning",
+              "medium-low": "bg-warning/15 text-warning",
+              "low-medium": "bg-warning/15 text-warning",
+              "low": "bg-destructive/15 text-destructive",
+              "limited": "bg-destructive/15 text-destructive",
+              "very-limited": "bg-destructive/15 text-destructive",
+            };
+
+            return (
+              <Card key={i}>
+                <CardContent className="pt-4 pb-3 px-4">
+                  <div className="flex items-start gap-2.5">
+                    <IconComp className="h-4 w-4 text-accent mt-0.5 shrink-0" />
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 mb-1.5">
+                        <p className="text-sm font-semibold text-foreground">{section.title}</p>
+                        {section.rating && (
+                          <Badge variant="outline" className={`text-[9px] capitalize ${ratingColors[section.rating] || ""}`}>
+                            {section.rating.replace(/-/g, " ")}
+                          </Badge>
+                        )}
+                      </div>
+                      <p className="text-xs text-muted-foreground leading-relaxed">{section.content}</p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            );
+          })}
+        </div>
+      )}
 
       {/* Current Indicators */}
       <Card>

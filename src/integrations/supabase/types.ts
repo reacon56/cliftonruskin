@@ -2028,6 +2028,7 @@ export type Database = {
           created_at: string
           id: string
           last_refreshed_at: string | null
+          profile_sections: Json | null
           updated_at: string
         }
         Insert: {
@@ -2036,6 +2037,7 @@ export type Database = {
           created_at?: string
           id?: string
           last_refreshed_at?: string | null
+          profile_sections?: Json | null
           updated_at?: string
         }
         Update: {
@@ -2044,6 +2046,7 @@ export type Database = {
           created_at?: string
           id?: string
           last_refreshed_at?: string | null
+          profile_sections?: Json | null
           updated_at?: string
         }
         Relationships: []
