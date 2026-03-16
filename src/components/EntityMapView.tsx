@@ -541,7 +541,11 @@ export default function EntityMapView({ entities, highlightId }: Props) {
       let lat: number | null = null;
       let lng: number | null = null;
 
-      if (pinType === "hq" && entity.hq_lat && entity.hq_lng) {
+      // Primary: precise latitude/longitude columns
+      if (entity.latitude != null && entity.longitude != null) {
+        lat = entity.latitude;
+        lng = entity.longitude;
+      } else if (pinType === "hq" && entity.hq_lat && entity.hq_lng) {
         lat = entity.hq_lat;
         lng = entity.hq_lng;
       } else if (entity.registered_lat && entity.registered_lng) {
