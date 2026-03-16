@@ -17,7 +17,7 @@ export default function ManagerDashboardView({ selectedOrgId, onOrgChange }: Pro
   const [orgs, setOrgs] = useState<{ id: string; name: string }[]>([]);
   const [slaMetrics, setSlaMetrics] = useState({ onTime: 0, late: 0, avgDays: 0 });
   const [slaCases, setSlaCases] = useState<any[]>([]);
-  const [officerWorkload, setOfficerWorkload] = useState<{ name: string; count: number }[]>([]);
+  const [officerWorkload, setOfficerWorkload] = useState<{ name: string; capacity: number; caseCount: number }[]>([]);
   const [riskMovement, setRiskMovement] = useState<{ upgrades: number; downgrades: number; period: string }>({
     upgrades: 0, downgrades: 0, period: "30",
   });
