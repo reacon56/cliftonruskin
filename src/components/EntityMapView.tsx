@@ -425,7 +425,7 @@ export default function EntityMapView({ entities, highlightId }: Props) {
     };
 
     map.once("moveend", onMoveEnd);
-  }, [pinType, basemap, setBasemap, isMobile, getFullAddress]);
+  }, [pinType, basemap, setBasemap, isMobile, getFullAddress, riskOverlay]);
 
   /** Return to programme view */
   const returnToProgrammeView = useCallback(() => {
