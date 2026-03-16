@@ -19,6 +19,7 @@ import ActivityTab from "@/components/entity-detail/ActivityTab";
 import CommercialPostureTab from "@/components/entity-detail/CommercialPostureTab";
 import JurisdictionBenchmarkTab from "@/components/entity-detail/JurisdictionBenchmarkTab";
 import OwnershipStructureTab from "@/components/entity-detail/OwnershipStructureTab";
+import DataProtectionTab from "@/components/entity-detail/DataProtectionTab";
 import { useFeatureFlags } from "@/hooks/use-feature-flags";
 
 import { Lock } from "lucide-react";
@@ -171,6 +172,7 @@ export default function EntityDetailPage() {
           <TabsTrigger value="posture" className="gap-1">Commercial Posture</TabsTrigger>
           <TabsTrigger value="benchmark" className="gap-1">Jurisdiction Benchmark</TabsTrigger>
           <TabsTrigger value="deliverables">Deliverables ({deliverables.length + changeLogs.length})</TabsTrigger>
+          <TabsTrigger value="data-protection">Data Protection</TabsTrigger>
           <TabsTrigger value="activity">Activity</TabsTrigger>
         </TabsList>
 
@@ -252,6 +254,10 @@ export default function EntityDetailPage() {
 
         <TabsContent value="deliverables" className="mt-6">
           <DeliverablesTab deliverables={deliverables} changeLogs={changeLogs} cases={cases} />
+        </TabsContent>
+
+        <TabsContent value="data-protection" className="mt-6">
+          <DataProtectionTab entity={entity} cases={cases} />
         </TabsContent>
 
         <TabsContent value="activity" className="mt-6">
