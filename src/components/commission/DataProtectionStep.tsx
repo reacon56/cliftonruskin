@@ -71,6 +71,30 @@ const DATA_CATEGORIES = [
   { value: "special_category", label: "Special category data", warning: true, warningText: "Art. 9 — restricted processing" },
 ];
 
+const DP_KNOWLEDGE_SECTIONS: KnowledgeSection[] = [
+  {
+    title: "What Article 22 Requires",
+    content: "Automated decisions affecting data subjects require a documented human review step before the decision is recorded. This applies to any AI-assisted screening, risk scoring, or narrative generation used during the due diligence process.",
+  },
+  {
+    title: "How CR Complies",
+    content: "The CR platform routes all AI agent outputs through an analyst approval step before case record entry. No AI finding is recorded without human sign-off. Every AI-generated output is logged with the model used, guardrail checks applied, and the reviewing analyst's identity.",
+  },
+  {
+    title: "What to Document",
+    content: "Lawful basis selection, the nature of AI assistance used, and the name of the reviewing analyst must be recorded per case. The platform captures this automatically through the commission and case workflow.",
+  },
+  {
+    title: "Quick Reference",
+    type: "keyvalue",
+    pairs: [
+      { key: "Primary", value: "DUAA 2025 Article 22" },
+      { key: "Related", value: "UK GDPR Article 22" },
+      { key: "Guidance", value: "ICO Guidance on Automated Decision-Making" },
+    ],
+  },
+];
+
 interface Props {
   form: DpFormState;
   onChange: (form: DpFormState) => void;
