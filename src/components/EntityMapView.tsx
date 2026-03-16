@@ -271,7 +271,7 @@ export default function EntityMapView({ entities, highlightId }: Props) {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("entities")
-        .select("id, name, registered_lat, registered_lng, hq_lat, hq_lng")
+        .select("id, name, latitude, longitude, registered_lat, registered_lng, hq_lat, hq_lng")
         .in("id", relatedEntityIds);
       if (error) throw error;
       return data ?? [];

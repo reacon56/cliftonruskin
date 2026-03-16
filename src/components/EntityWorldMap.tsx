@@ -132,7 +132,11 @@ export default function EntityWorldMap({ entities }: Props) {
       let lat: number | undefined;
       let lng: number | undefined;
 
-      if (entity.registered_lat && entity.registered_lng) {
+      // Primary: precise latitude/longitude columns
+      if (entity.latitude != null && entity.longitude != null) {
+        lat = entity.latitude;
+        lng = entity.longitude;
+      } else if (entity.registered_lat && entity.registered_lng) {
         lat = entity.registered_lat;
         lng = entity.registered_lng;
       } else if (entity.hq_lat && entity.hq_lng) {
