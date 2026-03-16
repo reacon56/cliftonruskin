@@ -311,7 +311,142 @@ export default function EntityMapView({ entities, highlightId }: Props) {
     return map;
   }, [entities, relatedEntities, pinType]);
 
+  /** Check if entity has a street-level address (not just city/country) */
+  const hasStreetAddress = useCallback((entity: Entity): boolean => {
+    if (pinType === "hq") {
+      return !!(entity.head_office_address_line1 && entity.head_office_address_line1.trim());
+    }
+    return !!(entity.registered_address_line1 && entity.registered_address_line1.trim());
+  }, [pinType]);
+
+  /** Get the full formatted address for an entity based on pinType */
+  const getFullAddress = useCallback((entity: Entity): string => {
+    if (pinType === "hq") {
+      return [entity.head_office_address_line1, entity.head_office_address_line2, entity.head_office_city, entity.head_office_region, entity.head_office_postcode, entity.head_office_country].filter(Boolean).join(", ");
+    }
+    return [entity.registered_address_line1, entity.registered_address_line2, entity.registered_city, entity.registered_region, entity.registered_postcode, entity.registered_country].filter(Boolean).join(", ");
+  }, [pinType]);
+
+  /** Check if coords have building-level precision (≥4 decimal places) */
+  const hasPreciseCoords = useCallback((entity: Entity): boolean => {
+    const lat = pinType === "hq" ? entity.hq_lat : entity.registered_lat;
+    const lng = pinType === "hq" ? entity.hq_lng : entity.registered_lng;
+    if (!lat || !lng) return false;
+    const latStr = lat.toString();
+    const lngStr = lng.toString();
+    const latDecimals = latStr.includes('.') ? latStr.split('.')[1].length : 0;
+    const lngDecimals = lngStr.includes('.') ? lngStr.split('.')[1].length : 0;
+    return latDecimals >= 4 && lngDecimals >= 4;
+  }, [pinType]);
+
+  /** Fly to entity premises */
+  const flyToPremises = useCallback((entity: Entity) => {
+    const map = leafletMap.current;
+    if (!map) return;
+
+    // Determine coordinates
+    let lat: number | null = null;
+    let lng: number | null = null;
+    if (pinType === "hq" && entity.hq_lat && entity.hq_lng) {
+      lat = entity.hq_lat; lng = entity.hq_lng;
+    } else if (entity.registered_lat && entity.registered_lng) {
+      lat = entity.registered_lat; lng = entity.registered_lng;
+    }
+    if (!lat || !lng) return;
+
+    // Save pre-fly state
+    preFlyStateRef.current = {
+      center: map.getCenter(),
+      zoom: map.getZoom(),
+      basemap,
+    };
+
+    // Close popup
+    setSelected(null);
+
+    // Switch to satellite
+    if (basemap !== "satellite") {
+      setBasemap("satellite");
+    }
+
+    const targetZoom = isMobile ? 16 : 18;
+
+    // Fly to
+    map.flyTo([lat, lng], targetZoom, {
+      animate: true,
+      duration: 1.8,
+      easeLinearity: 0.4,
+    });
+
+    // Show address label after animation
+    const onMoveEnd = () => {
+      map.off("moveend", onMoveEnd);
+      // Remove existing label
+      if (premisesLabelRef.current) {
+        map.removeLayer(premisesLabelRef.current);
+      }
+
+      const address = getFullAddress(entity);
+      const labelHtml = `<div class="premises-label">
+        <div class="premises-label-dot"></div>
+        <div class="premises-label-name">${entity.name}</div>
+        <div class="premises-label-address">${address}</div>
+      </div>`;
+
+      const label = L.marker([lat!, lng!], {
+        icon: L.divIcon({
+          className: "premises-label-container",
+          html: labelHtml,
+          iconSize: [240, 0],
+          iconAnchor: [120, 50],
+        }),
+        interactive: false,
+        pane: "tooltipPane",
+      });
+      label.addTo(map);
+      premisesLabelRef.current = label;
+      setPremisesView(true);
+    };
+
+    map.once("moveend", onMoveEnd);
+  }, [pinType, basemap, setBasemap, isMobile, getFullAddress]);
+
+  /** Return to programme view */
+  const returnToProgrammeView = useCallback(() => {
+    const map = leafletMap.current;
+    if (!map) return;
+
+    // Remove address label
+    if (premisesLabelRef.current) {
+      map.removeLayer(premisesLabelRef.current);
+      premisesLabelRef.current = null;
+    }
+
+    const pre = preFlyStateRef.current;
+    if (pre) {
+      // Restore basemap
+      if (pre.basemap !== "satellite") {
+        setBasemap(pre.basemap);
+      }
+      // Fly back
+      map.flyTo(pre.center, pre.zoom, { animate: true, duration: 1.5 });
+      preFlyStateRef.current = null;
+    }
+
+    setPremisesView(false);
+  }, [setBasemap]);
+
+  // Escape key handler for premises view
   useEffect(() => {
+    if (!premisesView) return;
+    const handler = (e: KeyboardEvent) => {
+      if (e.key === "Escape") returnToProgrammeView();
+    };
+    window.addEventListener("keydown", handler);
+    return () => window.removeEventListener("keydown", handler);
+  }, [premisesView, returnToProgrammeView]);
+
+
     if (!mapRef.current || leafletMap.current) return;
     const map = L.map(mapRef.current, {
       center: [30, 0],
