@@ -705,16 +705,19 @@ export default function CommissionPage() {
           </div>
         )}
 
-        <div className="flex justify-between mt-8 pt-6 border-t border-border/50">
-          {step > 0 ? (
-            <Button variant="outline" onClick={() => setStep(step - 1)} className="px-6">Back</Button>
-          ) : <div />}
-          {step < STEPS.length - 1 ? (
-            <Button onClick={() => setStep(step + 1)} disabled={!canNext()} className="px-6">Continue</Button>
-          ) : (
-            <Button onClick={handleSubmit} className="px-8">Submit Commission</Button>
-          )}
-        </div>
+        {/* Hide footer nav on step 0 when entity is selected (cards handle it) */}
+        {!(step === 0 && form.entity_id) && (
+          <div className="flex justify-between mt-8 pt-6 border-t border-border/50">
+            {step > 0 ? (
+              <Button variant="outline" onClick={() => setStep(step - 1)} className="px-6">Back</Button>
+            ) : <div />}
+            {step < STEPS.length - 1 ? (
+              <Button onClick={() => setStep(step + 1)} disabled={!canNext()} className="px-6">Continue</Button>
+            ) : (
+              <Button onClick={handleSubmit} className="px-8">Submit Commission</Button>
+            )}
+          </div>
+        )}
       </div>
     </div>
   );
