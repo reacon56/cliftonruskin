@@ -141,6 +141,22 @@ export default function DpDeclarationStep({ form, onChange, orgId }: Props) {
 
   return (
     <div className="space-y-6 animate-fade-in">
+      {/* DUAA 2025 RegChange Alert Banner */}
+      <RegChangeAlertBanner
+        alertId="duaa-2025-art22"
+        text="DUAA 2025 — Article 22 Now in Force: Automated decision-making in due diligence is now regulated under Article 22 of the Data (Use and Access) Act 2025 (in force 5 Feb 2026). AI-assisted processing is lawful where human review is documented before the case record is finalised."
+        dateText="In force: 5 Feb 2026"
+      />
+
+      {/* CR Knowledge Panel trigger */}
+      <div className="flex items-center justify-between">
+        <KnowledgePanelWidget
+          pageId="dp-declaration-art22"
+          title="AI-Assisted Processing & Article 22 Compliance"
+          sections={DP_KNOWLEDGE_SECTIONS}
+        />
+      </div>
+
       {/* Disclaimer */}
       <div className="flex items-start gap-3 p-3.5 rounded-lg border border-border bg-muted/30">
         <Info size={14} className="text-muted-foreground shrink-0 mt-0.5" />
