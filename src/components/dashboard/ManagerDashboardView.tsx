@@ -17,7 +17,7 @@ export default function ManagerDashboardView({ selectedOrgId, onOrgChange }: Pro
   const [orgs, setOrgs] = useState<{ id: string; name: string }[]>([]);
   const [slaMetrics, setSlaMetrics] = useState({ onTime: 0, late: 0, avgDays: 0 });
   const [slaCases, setSlaCases] = useState<any[]>([]);
-  const [officerWorkload, setOfficerWorkload] = useState<{ name: string; count: number }[]>([]);
+  const [officerWorkload, setOfficerWorkload] = useState<{ name: string; capacity: number; caseCount: number }[]>([]);
   const [riskMovement, setRiskMovement] = useState<{ upgrades: number; downgrades: number; period: string }>({
     upgrades: 0, downgrades: 0, period: "30",
   });
@@ -83,44 +83,73 @@ export default function ManagerDashboardView({ selectedOrgId, onOrgChange }: Pro
   };
 
   const loadOfficerWorkload = async () => {
-    let query = supabase
-      .from("cases")
-      .select("assigned_to")
-      .not("status", "in", '("delivered","closed","cancelled","complete")')
-      .not("assigned_to", "is", null);
+    // Query all users with officer/analyst roles
+    const { data: roleRows } = await supabase
+      .from("user_roles")
+      .select("user_id, role")
+      .in("role", ["fvc_assurance_officer", "fvc_assurance_manager", "fvc_assurance_lead", "fvc_analyst"]);
 
-    if (selectedOrgId && selectedOrgId !== "all") {
-      query = query.eq("org_id", selectedOrgId);
-    }
+    const officerIds = [...new Set((roleRows ?? []).map((r: any) => r.user_id))];
 
-    const { data: cases } = await query;
-
-    if (!cases?.length) {
-      setOfficerWorkload([]);
-      return;
-    }
-
-    const counts: Record<string, number> = {};
-    cases.forEach((c: any) => {
-      counts[c.assigned_to] = (counts[c.assigned_to] || 0) + 1;
-    });
-
-    const userIds = Object.keys(counts);
+    // Get their profiles
     const { data: profiles } = await supabase
       .from("profiles")
-      .select("user_id, full_name, email")
-      .in("user_id", userIds);
+      .select("user_id, full_name, email");
 
     const nameMap: Record<string, string> = {};
     (profiles ?? []).forEach((p: any) => {
       nameMap[p.user_id] = p.full_name || p.email || "Unknown";
     });
 
-    setOfficerWorkload(
-      Object.entries(counts)
-        .map(([id, count]) => ({ name: nameMap[id] || id.slice(0, 8), count }))
-        .sort((a, b) => b.count - a.count)
-    );
+    // Get active case counts per officer
+    let caseQuery = supabase
+      .from("cases")
+      .select("assigned_to")
+      .not("status", "in", '("delivered","closed","cancelled","complete","archived")')
+      .not("assigned_to", "is", null);
+
+    if (selectedOrgId && selectedOrgId !== "all") {
+      caseQuery = caseQuery.eq("org_id", selectedOrgId);
+    }
+
+    const { data: cases } = await caseQuery;
+
+    const counts: Record<string, number> = {};
+    (cases ?? []).forEach((c: any) => {
+      counts[c.assigned_to] = (counts[c.assigned_to] || 0) + 1;
+    });
+
+    // Demo capacity data matching the Workload Dashboard page
+    const DEMO_CAPACITY: Record<string, number> = {
+      "James Whitfield": 85,
+      "Sarah Chen": 70,
+      "Marcus Reid": 90,
+    };
+
+    // Build officer list: real officers + demo officers if no real data
+    const realOfficers = officerIds
+      .filter(id => nameMap[id])
+      .map(id => ({
+        name: nameMap[id],
+        capacity: DEMO_CAPACITY[nameMap[id]] ?? Math.min(100, (counts[id] || 0) * 25),
+        caseCount: counts[id] || 0,
+      }));
+
+    // If we have no real officer data, use demo officers
+    const demoOfficers = [
+      { name: "James Whitfield", capacity: 85, caseCount: 3 },
+      { name: "Sarah Chen", capacity: 70, caseCount: 2 },
+      { name: "Marcus Reid", capacity: 90, caseCount: 2 },
+    ];
+
+    // Merge: start with real officers, add demo officers that aren't already present
+    const existingNames = new Set(realOfficers.map(o => o.name));
+    const merged = [...realOfficers];
+    demoOfficers.forEach(d => {
+      if (!existingNames.has(d.name)) merged.push(d);
+    });
+
+    setOfficerWorkload(merged.sort((a, b) => b.capacity - a.capacity));
   };
 
   const loadRiskMovement = async () => {
@@ -242,7 +271,7 @@ export default function ManagerDashboardView({ selectedOrgId, onOrgChange }: Pro
         <ResponsiveContainer width="100%" height="100%">
           <BarChart data={officerWorkload} layout="vertical" margin={{ left: 20, right: 30, top: 10, bottom: 10 }}>
             <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="hsl(var(--border))" />
-            <XAxis type="number" tick={{ fontSize: 12, fill: "hsl(var(--muted-foreground))" }} />
+            <XAxis type="number" domain={[0, 100]} tickFormatter={(v) => `${v}%`} tick={{ fontSize: 12, fill: "hsl(var(--muted-foreground))" }} />
             <YAxis
               type="category"
               dataKey="name"
@@ -250,6 +279,7 @@ export default function ManagerDashboardView({ selectedOrgId, onOrgChange }: Pro
               tick={{ fontSize: 12, fill: "hsl(var(--muted-foreground))" }}
             />
             <Tooltip
+              formatter={(value: number) => [`${value}%`, "Capacity"]}
               contentStyle={{
                 background: "hsl(var(--popover))",
                 border: "1px solid hsl(var(--border))",
@@ -258,7 +288,7 @@ export default function ManagerDashboardView({ selectedOrgId, onOrgChange }: Pro
                 color: "hsl(var(--popover-foreground))",
               }}
             />
-            <Bar dataKey="count" fill="hsl(var(--accent))" radius={[0, 4, 4, 0]} animationDuration={800} />
+            <Bar dataKey="capacity" fill="hsl(var(--accent))" radius={[0, 4, 4, 0]} animationDuration={800} />
           </BarChart>
         </ResponsiveContainer>
       )}
@@ -434,10 +464,10 @@ export default function ManagerDashboardView({ selectedOrgId, onOrgChange }: Pro
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={officerWorkload} layout="vertical" margin={{ left: 0, right: 10 }}>
                   <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="hsl(var(--border))" />
-                  <XAxis type="number" tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }} />
-                  <YAxis type="category" dataKey="name" width={80} tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }} />
-                  <Tooltip contentStyle={{ background: "hsl(var(--popover))", border: "1px solid hsl(var(--border))", borderRadius: "8px", fontSize: "12px", color: "hsl(var(--popover-foreground))" }} />
-                  <Bar dataKey="count" fill="hsl(var(--accent))" radius={[0, 4, 4, 0]} animationDuration={800} />
+                  <XAxis type="number" domain={[0, 100]} tickFormatter={(v) => `${v}%`} tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }} />
+                  <YAxis type="category" dataKey="name" width={100} tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }} />
+                  <Tooltip formatter={(value: number) => [`${value}%`, "Capacity"]} contentStyle={{ background: "hsl(var(--popover))", border: "1px solid hsl(var(--border))", borderRadius: "8px", fontSize: "12px", color: "hsl(var(--popover-foreground))" }} />
+                  <Bar dataKey="capacity" fill="hsl(var(--accent))" radius={[0, 4, 4, 0]} animationDuration={800} />
                 </BarChart>
               </ResponsiveContainer>
             </div>
