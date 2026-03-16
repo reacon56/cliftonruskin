@@ -24,10 +24,18 @@ interface Entity {
   registered_lng: number | null;
   registered_city: string | null;
   registered_country: string | null;
+  registered_address_line1: string | null;
+  registered_address_line2: string | null;
+  registered_region: string | null;
+  registered_postcode: string | null;
   hq_lat: number | null;
   hq_lng: number | null;
   head_office_city: string | null;
   head_office_country: string | null;
+  head_office_address_line1: string | null;
+  head_office_address_line2: string | null;
+  head_office_region: string | null;
+  head_office_postcode: string | null;
 }
 
 interface Props {
