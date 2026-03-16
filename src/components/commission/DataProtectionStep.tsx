@@ -6,6 +6,9 @@ import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
 import { AlertTriangle, Shield, Info } from "lucide-react";
+import { RegChangeAlertBanner } from "@/components/insight/RegChangeAlertBanner";
+import { KnowledgePanelWidget } from "@/components/insight/KnowledgePanel";
+import type { KnowledgeSection } from "@/components/insight/KnowledgePanel";
 import MiniLiaForm from "@/components/lia/MiniLiaForm";
 import { LIA_INITIAL, type LiaFormState } from "@/components/lia/LiaFormTypes";
 
@@ -68,6 +71,30 @@ const DATA_CATEGORIES = [
   { value: "special_category", label: "Special category data", warning: true, warningText: "Art. 9 — restricted processing" },
 ];
 
+const DP_KNOWLEDGE_SECTIONS: KnowledgeSection[] = [
+  {
+    title: "What Article 22 Requires",
+    content: "Automated decisions affecting data subjects require a documented human review step before the decision is recorded. This applies to any AI-assisted screening, risk scoring, or narrative generation used during the due diligence process.",
+  },
+  {
+    title: "How CR Complies",
+    content: "The CR platform routes all AI agent outputs through an analyst approval step before case record entry. No AI finding is recorded without human sign-off. Every AI-generated output is logged with the model used, guardrail checks applied, and the reviewing analyst's identity.",
+  },
+  {
+    title: "What to Document",
+    content: "Lawful basis selection, the nature of AI assistance used, and the name of the reviewing analyst must be recorded per case. The platform captures this automatically through the commission and case workflow.",
+  },
+  {
+    title: "Quick Reference",
+    type: "keyvalue",
+    pairs: [
+      { key: "Primary", value: "DUAA 2025 Article 22" },
+      { key: "Related", value: "UK GDPR Article 22" },
+      { key: "Guidance", value: "ICO Guidance on Automated Decision-Making" },
+    ],
+  },
+];
+
 interface Props {
   form: DpFormState;
   onChange: (form: DpFormState) => void;
@@ -102,6 +129,22 @@ export default function DataProtectionStep({ form, onChange }: Props) {
 
   return (
     <div className="space-y-6 animate-fade-in">
+      {/* DUAA 2025 RegChange Alert Banner */}
+      <RegChangeAlertBanner
+        alertId="duaa-2025-art22"
+        text="DUAA 2025 — Article 22 Now in Force: Automated decision-making in due diligence is now regulated under Article 22 of the Data (Use and Access) Act 2025 (in force 5 Feb 2026). AI-assisted processing is lawful where human review is documented before the case record is finalised."
+        dateText="In force: 5 Feb 2026"
+      />
+
+      {/* CR Knowledge Panel trigger */}
+      <div className="flex items-center justify-between">
+        <KnowledgePanelWidget
+          pageId="dp-step-art22"
+          title="AI-Assisted Processing & Article 22 Compliance"
+          sections={DP_KNOWLEDGE_SECTIONS}
+        />
+      </div>
+
       {/* Disclaimer */}
       <div className="flex items-start gap-3 p-3.5 rounded-lg border border-border bg-muted/30">
         <Info size={14} className="text-muted-foreground shrink-0 mt-0.5" />
