@@ -84,52 +84,14 @@ export default function AppSidebar() {
       <nav className="flex-1 py-4 px-2 space-y-0.5 overflow-y-auto">
         {showManagerGroups && <ManagerNavGroups collapsed={collapsed} />}
         {showOfficerSections && <OfficerNavSections collapsed={collapsed} />}
-        {navItems.map((item) => {
-          const isActive = location.pathname === item.path || location.pathname.startsWith(item.path + "/");
-          return (
-            <NavLink
-              key={item.path}
-              to={item.path}
-              className={`group flex items-center gap-3 rounded-md px-3 py-2 text-[13px] transition-all duration-200 relative ${
-                isActive
-                  ? "bg-sidebar-accent text-sidebar-accent-foreground"
-                  : "text-sidebar-foreground/60 hover:bg-sidebar-accent/40 hover:text-sidebar-foreground"
-              }`}
-              title={collapsed ? item.label : undefined}
-            >
-              {/* Active indicator */}
-              {isActive && (
-                <span className="absolute left-0 top-1/2 -translate-y-1/2 w-[2px] h-4 rounded-r bg-sidebar-primary" />
-              )}
-              <span className={`transition-transform duration-200 ${isActive ? "" : "group-hover:translate-x-0.5"}`}>
-                {item.icon}
-              </span>
-              {!collapsed && (
-                <span className="font-medium flex-1">{item.label}</span>
-              )}
-              {!collapsed && item.label === "Approvals" && pendingApprovals > 0 && (
-                <span className="ml-auto inline-flex items-center justify-center min-w-[18px] h-[18px] rounded-full bg-sidebar-primary text-sidebar-primary-foreground text-[10px] font-semibold px-1">
-                  {pendingApprovals}
-                </span>
-              )}
-              {collapsed && item.label === "Approvals" && pendingApprovals > 0 && (
-                <span className="absolute -top-0.5 -right-0.5 inline-flex items-center justify-center min-w-[14px] h-[14px] rounded-full bg-sidebar-primary text-sidebar-primary-foreground text-[8px] font-bold px-0.5">
-                  {pendingApprovals}
-                </span>
-              )}
-              {!collapsed && item.label === "Jurisdiction Alerts" && alertCount > 0 && (
-                <span className="ml-auto inline-flex items-center justify-center min-w-[18px] h-[18px] rounded-full bg-destructive text-destructive-foreground text-[10px] font-semibold px-1">
-                  {alertCount}
-                </span>
-              )}
-              {collapsed && item.label === "Jurisdiction Alerts" && alertCount > 0 && (
-                <span className="absolute -top-0.5 -right-0.5 inline-flex items-center justify-center min-w-[14px] h-[14px] rounded-full bg-destructive text-destructive-foreground text-[8px] font-bold px-0.5">
-                  {alertCount}
-                </span>
-              )}
-            </NavLink>
-          );
-        })}
+        {showClientGroups && (
+          <ClientNavGroups
+            collapsed={collapsed}
+            pendingApprovals={pendingApprovals}
+            alertCount={alertCount}
+            isAdmin={isAdmin}
+          />
+        )}
       </nav>
 
       {/* Theme Toggle & User / Sign Out */}
