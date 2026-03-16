@@ -10,8 +10,9 @@ import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
-import { ChevronRight, Check, AlertTriangle, Sparkles, Briefcase } from "lucide-react";
+import { ChevronRight, Check, AlertTriangle, Sparkles, Briefcase, Zap, Settings2, Clock, FileText } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { Card, CardContent } from "@/components/ui/card";
 import { requiresApproval } from "@/lib/approval-utils";
 import EnhancementSuggestionPanel from "@/components/EnhancementSuggestionPanel";
 import { useEntitlements } from "@/hooks/use-entitlements";
@@ -39,6 +40,7 @@ export default function CommissionPage() {
   const { canAccessReportTier, canUseAddon, canUsePartnerEscalation, canExportAiBrief } = useEntitlements();
   const [searchParams] = useSearchParams();
   const [step, setStep] = useState(0);
+  const [quickCommissioning, setQuickCommissioning] = useState(false);
   const [entities, setEntities] = useState<any[]>([]);
   const [moduleTypes, setModuleTypes] = useState<any[]>([]);
   const [form, setForm] = useState({
@@ -225,6 +227,77 @@ export default function CommissionPage() {
     }
   };
 
+  const getDefaultProduct = (riskTier: string) => {
+    if (riskTier === "a") return "Assurance Dossier";
+    return "Assurance Note";
+  };
+
+  const getDefaultProductLabel = (riskTier: string) => {
+    if (riskTier === "a") return "Assurance Dossier (Enhanced)";
+    if (riskTier === "b") return "Assurance Note (Standard)";
+    return "Assurance Note (Basic)";
+  };
+
+  const handleQuickCommission = async () => {
+    if (!profile?.org_id || !user || !form.entity_id) return;
+    setQuickCommissioning(true);
+
+    const selectedEntity = entities.find((e: any) => e.id === form.entity_id);
+    if (!selectedEntity) { setQuickCommissioning(false); return; }
+
+    const product = getDefaultProduct(selectedEntity.risk_tier);
+    const price = PRICING[product]?.standard ?? 1500;
+
+    const { data: insertedCase, error } = await supabase.from("cases").insert({
+      org_id: profile.org_id,
+      entity_id: form.entity_id,
+      requested_by: user.id,
+      product_type: product,
+      priority: "standard",
+      scope_notes: "Quick commission — standard policy defaults applied.",
+      status: "scheduled",
+      price_estimate: price,
+      sla_days: 10,
+      requires_personal_data: true,
+      processing_purpose: "Due diligence screening under organisational policy",
+      minimisation_confirmed: true,
+      dp_risk_level: "low",
+      dp_review_required: false,
+    } as any).select("id").single();
+
+    if (error) {
+      toast({ title: "Error", description: error.message, variant: "destructive" });
+      setQuickCommissioning(false);
+      return;
+    }
+
+    await supabase.from("audit_events").insert({
+      user_id: user.id,
+      org_id: profile.org_id,
+      action_type: "CASE_SCHEDULED",
+      object_type: "case",
+      object_id: insertedCase?.id,
+      metadata: {
+        product_type: product,
+        priority: "standard",
+        entity_name: selectedEntity.name,
+        price_estimate: price,
+        quick_commission: true,
+      },
+    });
+
+    toast({
+      title: "✓ Case commissioned successfully",
+      description: "Your CR team will be in touch within 24 hours.",
+    });
+
+    if (insertedCase?.id) {
+      navigate(`/cases/${insertedCase.id}`);
+    } else {
+      navigate("/dashboard");
+    }
+  };
+
   const canNext = () => {
     if (step === 0) return !!form.entity_id;
     if (step === 1) return !!form.product_type;
@@ -285,16 +358,93 @@ export default function CommissionPage() {
         <h2 className="fvc-heading-3 text-foreground mb-5">{STEPS[step]}</h2>
 
         {step === 0 && (
-          <div className="space-y-3 animate-fade-in">
-            <Label>Select entity</Label>
-            <Select value={form.entity_id} onValueChange={(v) => setForm({ ...form, entity_id: v })}>
-              <SelectTrigger><SelectValue placeholder="Choose an entity…" /></SelectTrigger>
-              <SelectContent>
-                {entities.map((e) => (
-                  <SelectItem key={e.id} value={e.id}>{e.name}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+          <div className="space-y-5 animate-fade-in">
+            <div className="space-y-3">
+              <Label>Select entity</Label>
+              <Select value={form.entity_id} onValueChange={(v) => setForm({ ...form, entity_id: v })}>
+                <SelectTrigger><SelectValue placeholder="Choose an entity…" /></SelectTrigger>
+                <SelectContent>
+                  {entities.map((e) => (
+                    <SelectItem key={e.id} value={e.id}>{e.name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Two-path choice — only for existing entities */}
+            {form.entity_id && (() => {
+              const selectedEntity = entities.find((e: any) => e.id === form.entity_id);
+              if (!selectedEntity) return null;
+              return (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
+                  {/* Path A — Quick Commission */}
+                  <Card className="border-accent/40 bg-accent/[0.03] relative overflow-hidden" style={{ boxShadow: "var(--shadow-gold-glow)" }}>
+                    <div className="absolute top-0 left-0 right-0 h-0.5 bg-accent" />
+                    <CardContent className="pt-5 pb-4 px-5">
+                      <div className="flex items-center gap-2 mb-2">
+                        <Zap size={16} className="text-accent" />
+                        <h3 className="text-sm font-semibold text-foreground">Quick Commission</h3>
+                        <Badge className="bg-accent/15 text-accent border-accent/30 text-[9px]">Recommended</Badge>
+                      </div>
+                      <p className="text-xs text-muted-foreground mb-4 leading-relaxed">
+                        Commission a standard review using your policy defaults for this entity. No additional configuration required.
+                      </p>
+                      <div className="space-y-2 mb-5 bg-muted/30 rounded-md p-3">
+                        <div className="flex justify-between text-xs">
+                          <span className="text-muted-foreground">Entity</span>
+                          <span className="text-foreground font-medium">{selectedEntity.name}</span>
+                        </div>
+                        <div className="flex justify-between text-xs">
+                          <span className="text-muted-foreground">Product</span>
+                          <span className="text-foreground font-medium">{getDefaultProductLabel(selectedEntity.risk_tier)}</span>
+                        </div>
+                        <div className="flex justify-between text-xs">
+                          <span className="text-muted-foreground">Scope</span>
+                          <span className="text-foreground font-medium">Standard (per programme policy)</span>
+                        </div>
+                        <div className="flex justify-between text-xs">
+                          <span className="text-muted-foreground flex items-center gap-1"><Clock size={10} /> Turnaround</span>
+                          <span className="text-foreground font-medium">5–7 business days</span>
+                        </div>
+                      </div>
+                      <Button
+                        onClick={handleQuickCommission}
+                        disabled={quickCommissioning}
+                        className="w-full bg-accent hover:bg-accent/90 text-accent-foreground gap-1.5"
+                      >
+                        <Zap size={14} />
+                        {quickCommissioning ? "Commissioning…" : "Quick Commission"}
+                      </Button>
+                    </CardContent>
+                  </Card>
+
+                  {/* Path B — Full Wizard */}
+                  <Card className="border-border hover:border-border/80 transition-colors">
+                    <CardContent className="pt-5 pb-4 px-5">
+                      <div className="flex items-center gap-2 mb-2">
+                        <Settings2 size={16} className="text-muted-foreground" />
+                        <h3 className="text-sm font-semibold text-foreground">Custom Commission</h3>
+                      </div>
+                      <p className="text-xs text-muted-foreground mb-4 leading-relaxed">
+                        Customise the scope, product type, and requirements for this engagement.
+                      </p>
+                      <div className="space-y-1.5 mb-5 text-xs text-muted-foreground">
+                        <div className="flex items-center gap-1.5"><FileText size={10} /> Choose product &amp; priority</div>
+                        <div className="flex items-center gap-1.5"><Sparkles size={10} /> Add EDD+ enhancement modules</div>
+                        <div className="flex items-center gap-1.5"><AlertTriangle size={10} /> Configure DP declaration</div>
+                      </div>
+                      <Button
+                        variant="outline"
+                        onClick={() => setStep(1)}
+                        className="w-full gap-1.5"
+                      >
+                        Continue <ChevronRight size={14} />
+                      </Button>
+                    </CardContent>
+                  </Card>
+                </div>
+              );
+            })()}
           </div>
         )}
 
@@ -555,16 +705,19 @@ export default function CommissionPage() {
           </div>
         )}
 
-        <div className="flex justify-between mt-8 pt-6 border-t border-border/50">
-          {step > 0 ? (
-            <Button variant="outline" onClick={() => setStep(step - 1)} className="px-6">Back</Button>
-          ) : <div />}
-          {step < STEPS.length - 1 ? (
-            <Button onClick={() => setStep(step + 1)} disabled={!canNext()} className="px-6">Continue</Button>
-          ) : (
-            <Button onClick={handleSubmit} className="px-8">Submit Commission</Button>
-          )}
-        </div>
+        {/* Hide footer nav on step 0 when entity is selected (cards handle it) */}
+        {!(step === 0 && form.entity_id) && (
+          <div className="flex justify-between mt-8 pt-6 border-t border-border/50">
+            {step > 0 ? (
+              <Button variant="outline" onClick={() => setStep(step - 1)} className="px-6">Back</Button>
+            ) : <div />}
+            {step < STEPS.length - 1 ? (
+              <Button onClick={() => setStep(step + 1)} disabled={!canNext()} className="px-6">Continue</Button>
+            ) : (
+              <Button onClick={handleSubmit} className="px-8">Submit Commission</Button>
+            )}
+          </div>
+        )}
       </div>
     </div>
   );
