@@ -6,6 +6,37 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Slider } from "@/components/ui/slider";
 import { Globe, Search } from "lucide-react";
 import CountryCard from "@/components/CountryCard";
+import { RegChangeAlertBanner } from "@/components/insight/RegChangeAlertBanner";
+import { KnowledgePanelWidget } from "@/components/insight/KnowledgePanel";
+import type { KnowledgeSection } from "@/components/insight/KnowledgePanel";
+
+const JURISDICTION_KNOWLEDGE_SECTIONS: KnowledgeSection[] = [
+  {
+    title: "What the Score Means",
+    content: "The CR-JURIS-1.0 composite score is a starting point, not a conclusion. A High score means enhanced scrutiny is required, not that you cannot engage.",
+  },
+  {
+    title: "FATF Grey List",
+    content: "Jurisdictions under increased monitoring have identified strategic deficiencies. Engagement is not prohibited but requires documented enhanced due diligence.",
+  },
+  {
+    title: "FATF Black List (High-Risk Third Countries)",
+    content: "UK regulators treat these as requiring the highest level of EDD. For most regulated firms, business with these jurisdictions requires senior sign-off.",
+  },
+  {
+    title: "What Changes When a Jurisdiction is Listed",
+    content: "Existing entities in that jurisdiction are flagged for immediate review. New commissions trigger the Enhanced DD pathway automatically.",
+  },
+  {
+    title: "Quick Reference",
+    type: "keyvalue",
+    pairs: [
+      { key: "Lists", value: "FATF Grey List | FATF Black List" },
+      { key: "Regulation", value: "MLR 2017 Regulation 33" },
+      { key: "Engine", value: "CR-JURIS-1.0 Spec" },
+    ],
+  },
+];
 
 type Jurisdiction = {
   id: string;
@@ -107,6 +138,18 @@ export default function JurisdictionsListPage() {
         </h1>
         <p className="text-sm text-muted-foreground mt-1">Explore jurisdiction risk indicators and intelligence profiles</p>
       </div>
+
+      <RegChangeAlertBanner
+        alertId="fatf-grey-feb-2025"
+        text="FATF Grey List — February 2025 Update: FATF updated its list of jurisdictions under increased monitoring in February 2025. Review your entity register for exposure to newly listed jurisdictions. Grey list status triggers a risk floor of High in CR-JURIS-1.0."
+        dateText="Updated: Feb 2025"
+      />
+
+      <KnowledgePanelWidget
+        pageId="jurisdiction-library-profiles"
+        title="How to Read a Jurisdiction Profile"
+        sections={JURISDICTION_KNOWLEDGE_SECTIONS}
+      />
 
       {/* Filters */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
