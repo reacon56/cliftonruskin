@@ -479,41 +479,76 @@ export default function EntityMapView({ entities, highlightId }: Props) {
     const group = L.layerGroup();
 
     for (const rel of ownershipRels) {
+      const relType = (rel.relationship_type || "ownership").toLowerCase();
+      // Skip operational relationships
+      if (relType === "operational") continue;
+
       const src = entityLookup.get(rel.source_entity_id);
       const tgt = entityLookup.get(rel.target_entity_id);
       if (!src || !tgt) continue;
+
+      // Entity filter: dim unrelated lines
+      const isFiltered = ownershipFilterEntity !== "all";
+      const isRelevant = !isFiltered ||
+        rel.source_entity_id === ownershipFilterEntity ||
+        rel.target_entity_id === ownershipFilterEntity;
 
       const from: L.LatLngTuple = [src.lat, src.lng];
       const to: L.LatLngTuple = [tgt.lat, tgt.lng];
       const arcPoints = buildArc(from, to);
 
-      const relType = (rel.relationship_type || "ownership").toLowerCase();
       const style = REL_STYLES[relType] || REL_STYLES.ownership;
+      const dimOpacity = isRelevant ? style.opacity : 0.12;
 
       const polyline = L.polyline(arcPoints, {
         color: style.color,
-        opacity: style.opacity,
-        weight: style.weight,
+        opacity: dimOpacity,
+        weight: isRelevant ? style.weight : 1,
         dashArray: style.dashArray,
-        interactive: true,
+        interactive: isRelevant,
       });
 
-      // Popup on click
-      const pctText = rel.percentage != null ? `${rel.percentage}%` : "—";
-      polyline.bindPopup(
-        `<div style="font-size:12px;line-height:1.5;">
-          <strong>${src.name}</strong><br/>
-          <span style="color:${style.color};font-weight:600;">↕ ${relType.charAt(0).toUpperCase() + relType.slice(1)}</span>
-          ${rel.percentage != null ? ` · <strong>${pctText}</strong>` : ""}<br/>
-          <strong>${tgt.name}</strong>
+      // Tooltip on hover showing relationship type + percentage
+      const pctText = rel.percentage != null ? ` — ${rel.percentage}%` : "";
+      const tooltipLabel = relType.charAt(0).toUpperCase() + relType.slice(1) + (rel.percentage != null ? pctText : " link");
+      polyline.bindTooltip(
+        `<div style="font-family:'DM Sans',sans-serif;font-size:11px;line-height:1.4;">
+          <strong>${tooltipLabel}</strong><br/>
+          <span style="opacity:0.7;">${src.name} → ${tgt.name}</span>
         </div>`,
-        { maxWidth: 260, className: "leaflet-popup-ownership" }
+        { sticky: true, className: "leaflet-tooltip-entity" }
       );
 
       group.addLayer(polyline);
 
+      // Arrowhead at the end of the arc
+      if (isRelevant && arcPoints.length >= 2) {
+        const last = arcPoints[arcPoints.length - 1];
+        const prev = arcPoints[arcPoints.length - 2];
+        const angle = Math.atan2(last[0] - prev[0], last[1] - prev[1]);
+        // Place arrow slightly before the endpoint
+        const arrowLat = last[0] - Math.cos(angle) * 0.3;
+        const arrowLng = last[1] - Math.sin(angle) * 0.3;
+        const angleDeg = -(angle * 180) / Math.PI;
+
+        const arrowIcon = L.divIcon({
+          className: "ownership-arrow",
+          html: `<svg width="12" height="12" viewBox="0 0 12 12" style="transform:rotate(${angleDeg}deg);">
+            <path d="M6 0 L12 12 L6 9 L0 12 Z" fill="${style.color}" opacity="${dimOpacity}" />
+          </svg>`,
+          iconSize: L.point(12, 12),
+          iconAnchor: L.point(6, 6),
+        });
+        const arrowMarker = L.marker([arrowLat, arrowLng], {
+          icon: arrowIcon,
+          interactive: false,
+          pane: "markerPane",
+        });
+        group.addLayer(arrowMarker);
+      }
+
       // Ownership percentage label at midpoint
-      if (rel.percentage != null && relType === "ownership") {
+      if (rel.percentage != null && relType === "ownership" && isRelevant) {
         const mid = arcPoints[Math.floor(arcPoints.length / 2)];
         const label = L.marker(mid, {
           icon: L.divIcon({
@@ -541,7 +576,7 @@ export default function EntityMapView({ entities, highlightId }: Props) {
 
     group.addTo(map);
     ownershipLayerRef.current = group;
-  }, [ownershipOverlay, ownershipRels, entityLookup]);
+  }, [ownershipOverlay, ownershipRels, entityLookup, ownershipFilterEntity]);
 
   const getDueStatus = (e: Entity) => {
     if (!e.next_review_date) return { label: "No date", color: "bg-muted text-muted-foreground" };
