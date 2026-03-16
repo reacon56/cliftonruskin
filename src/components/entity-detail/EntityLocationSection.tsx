@@ -4,7 +4,7 @@ import "leaflet/dist/leaflet.css";
 import { MapPin, Copy, ExternalLink } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
-import { useMapTheme, MapThemeToggle } from "@/hooks/use-map-theme";
+import { useMapTheme, BasemapCycleToggle } from "@/hooks/use-map-theme";
 
 interface Props {
   entity: any;
@@ -16,7 +16,7 @@ function formatAddress(line1?: string, line2?: string, city?: string, region?: s
 
 export default function EntityLocationSection({ entity }: Props) {
   const { toast } = useToast();
-  const { tileUrl, theme: mapTheme, toggle: toggleMapTheme } = useMapTheme();
+  const { tileUrl, basemap, cycleBasemap } = useMapTheme();
   const mapRef = useRef<HTMLDivElement>(null);
   const leafletMap = useRef<L.Map | null>(null);
   const tileLayerRef = useRef<L.TileLayer | null>(null);
@@ -92,7 +92,7 @@ export default function EntityLocationSection({ entity }: Props) {
           <MapPin size={16} className="text-accent" />
           <h3 className="fvc-heading-3 text-foreground">Location</h3>
         </div>
-        {hasMap && <MapThemeToggle theme={mapTheme} onToggle={toggleMapTheme} />}
+        {hasMap && <BasemapCycleToggle basemap={basemap} onCycle={cycleBasemap} />}
       </div>
 
       <div className="grid md:grid-cols-[1fr_1.5fr] gap-6">
@@ -133,7 +133,7 @@ export default function EntityLocationSection({ entity }: Props) {
 
         {hasMap && (
           <div className="relative">
-            <div ref={mapRef} className="aspect-square rounded-lg overflow-hidden border border-border" style={{ background: mapTheme === "light" ? "hsl(0 0% 96%)" : "hsl(220 30% 8%)" }} />
+            <div ref={mapRef} className="aspect-square rounded-lg overflow-hidden border border-border" style={{ background: basemap === "classic" ? "hsl(0 0% 96%)" : "hsl(220 30% 8%)" }} />
             <div className="absolute bottom-3 left-3 flex flex-col gap-1.5 bg-background/90 backdrop-blur-sm rounded-md border border-border px-2.5 py-2 text-[11px]">
               {hasReg && (
                 <div className="flex items-center gap-2">

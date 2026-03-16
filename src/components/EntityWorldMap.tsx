@@ -1,7 +1,7 @@
 import { useEffect, useRef } from "react";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
-import { useMapTheme, MapThemeToggle } from "@/hooks/use-map-theme";
+import { useMapTheme, BasemapCycleToggle } from "@/hooks/use-map-theme";
 
 // Country → approximate lat/lng for common countries
 const COUNTRY_COORDS: Record<string, [number, number]> = {
@@ -97,7 +97,7 @@ export default function EntityWorldMap({ entities }: Props) {
   const mapRef = useRef<HTMLDivElement>(null);
   const leafletMap = useRef<L.Map | null>(null);
   const tileLayerRef = useRef<L.TileLayer | null>(null);
-  const { theme, toggle, tileUrl } = useMapTheme();
+  const { basemap, cycleBasemap, tileUrl } = useMapTheme();
 
   useEffect(() => {
     if (!mapRef.current || leafletMap.current) return;
@@ -179,12 +179,12 @@ export default function EntityWorldMap({ entities }: Props) {
   return (
     <div className="relative">
       <div className="absolute top-2 right-2 z-[500]">
-        <MapThemeToggle theme={theme} onToggle={toggle} />
+        <BasemapCycleToggle basemap={basemap} onCycle={cycleBasemap} />
       </div>
       <div
         ref={mapRef}
         className="w-full h-[360px] rounded-lg overflow-hidden border border-border"
-        style={{ background: theme === "light" ? "hsl(0 0% 96%)" : "hsl(220 30% 8%)" }}
+        style={{ background: basemap === "classic" ? "hsl(0 0% 96%)" : "hsl(220 30% 8%)" }}
       />
     </div>
   );

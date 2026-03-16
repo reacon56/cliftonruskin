@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState, useMemo, useCallback } from "react";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
-import { useMapTheme, MapThemeToggle, BasemapToggle } from "@/hooks/use-map-theme";
+import { useMapTheme, BasemapCycleToggle } from "@/hooks/use-map-theme";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
@@ -162,7 +162,7 @@ export default function EntityMapView({ entities, highlightId }: Props) {
   const navigate = useNavigate();
   const [pinType, setPinType] = useState<"registered" | "hq">("registered");
   const [selected, setSelected] = useState<Entity | null>(null);
-  const { theme, basemap, toggle, toggleBasemap, tileUrl } = useMapTheme();
+  const { basemap, cycleBasemap, tileUrl } = useMapTheme();
   const [riskOverlay, setRiskOverlay] = useState(false);
   const [ownershipOverlay, setOwnershipOverlay] = useState(false);
 
@@ -377,7 +377,7 @@ export default function EntityMapView({ entities, highlightId }: Props) {
         const iso2 = ISO3_TO_ISO2[iso3] || iso3;
         const score = riskMap.get(iso2.toUpperCase()) ?? null;
         const rc = riskColor(score);
-        return { fillColor: rc.color, fillOpacity: rc.opacity, color: "rgba(255,255,255,0.3)", weight: 0.5 };
+        return { fillColor: rc.color, fillOpacity: 0.55, color: "rgba(255,255,255,0.2)", weight: 0.5 };
       },
       onEachFeature: (feature, layer) => {
         const name = feature?.properties?.ADMIN || feature?.properties?.name || "";
@@ -533,8 +533,7 @@ export default function EntityMapView({ entities, highlightId }: Props) {
             <Layers className="h-3 w-3" />
             Jurisdiction Risk
           </button>
-          <BasemapToggle basemap={basemap} onToggle={toggleBasemap} />
-          <MapThemeToggle theme={theme} onToggle={toggle} />
+          <BasemapCycleToggle basemap={basemap} onCycle={cycleBasemap} />
         </div>
       </div>
 
@@ -582,7 +581,7 @@ export default function EntityMapView({ entities, highlightId }: Props) {
         <div
           ref={mapRef}
           className="w-full h-[500px] rounded-lg overflow-hidden border border-border"
-          style={{ background: theme === "light" ? "hsl(0 0% 96%)" : "hsl(220 30% 8%)" }}
+          style={{ background: basemap === "classic" ? "hsl(0 0% 96%)" : "hsl(220 30% 8%)" }}
         />
 
         {/* Map Legend — bottom-left */}
