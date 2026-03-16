@@ -7,6 +7,9 @@ import {
 import { AlertTriangle, Shield, Info, FileCheck } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
+import { RegChangeAlertBanner } from "@/components/insight/RegChangeAlertBanner";
+import { KnowledgePanelWidget } from "@/components/insight/KnowledgePanel";
+import type { KnowledgeSection } from "@/components/insight/KnowledgePanel";
 
 const DEFAULT_DATA_CATEGORIES = [
   { value: "identity", label: "Identity details" },
