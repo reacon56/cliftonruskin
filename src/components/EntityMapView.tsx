@@ -186,6 +186,7 @@ export default function EntityMapView({ entities, highlightId }: Props) {
   const { basemap, cycleBasemap, tileUrl } = useMapTheme();
   const [riskOverlay, setRiskOverlay] = useState(false);
   const [ownershipOverlay, setOwnershipOverlay] = useState(false);
+  const [ownershipFilterEntity, setOwnershipFilterEntity] = useState<string>("all");
 
   // In-map filters
   const [tierFilter, setTierFilter] = useState<string>("All Tiers");
