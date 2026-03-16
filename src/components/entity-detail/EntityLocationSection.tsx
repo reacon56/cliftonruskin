@@ -45,14 +45,14 @@ export default function EntityLocationSection({ entity }: Props) {
     tileLayerRef.current = L.tileLayer(tileUrl, { maxZoom: 18 }).addTo(map);
 
     if (hasReg) {
-      L.circleMarker([entity.registered_lat, entity.registered_lng], {
-        radius: 7, fillColor: "#d4a843", fillOpacity: 0.9, color: "#d4a843", weight: 1, opacity: 0.5,
-      }).bindTooltip("Registered Office", { direction: "top", offset: [0, -8] }).addTo(map);
+      const regIcon = createEntityIcon(entity.risk_tier || "C");
+      L.marker([entity.registered_lat, entity.registered_lng], { icon: regIcon })
+        .bindTooltip("Registered Office", { direction: "top", offset: [0, -14] }).addTo(map);
     }
     if (hasHq) {
-      L.circleMarker([entity.hq_lat, entity.hq_lng], {
-        radius: 7, fillColor: "#4a90d9", fillOpacity: 0.9, color: "#4a90d9", weight: 1, opacity: 0.5,
-      }).bindTooltip("Head Office", { direction: "top", offset: [0, -8] }).addTo(map);
+      const hqIcon = createEntityIcon(entity.risk_tier || "C");
+      L.marker([entity.hq_lat, entity.hq_lng], { icon: hqIcon })
+        .bindTooltip("Head Office", { direction: "top", offset: [0, -14] }).addTo(map);
     }
 
     // Fit bounds if both exist

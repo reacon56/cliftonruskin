@@ -34,8 +34,7 @@ interface Props {
   highlightId?: string | null;
 }
 
-const TIER_COLORS: Record<string, string> = { A: "#ef4444", B: "#d97706", C: "#22c55e" };
-const tierMarkerColor = (tier: string) => TIER_COLORS[tier] || "#22c55e";
+import { tierMarkerColor, createEntityIcon, buildEntityTooltipHtml, createClusterIcon } from "@/lib/map-pin-icons";
 
 const tierBg = (tier: string) => {
   if (tier === "A") return "bg-destructive/10 text-destructive";
