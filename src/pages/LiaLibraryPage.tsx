@@ -473,7 +473,7 @@ export default function LiaLibraryPage() {
               </Select>
             </div>
             <div className="space-y-2">
-              <Label className="text-xs">What legitimate interest are you pursuing?</Label>
+              <Label className="text-xs flex items-center gap-1.5">What legitimate interest are you pursuing? <FieldTooltip text="The legal justification under UK GDPR for processing personal data about individuals connected to this entity. Required under Article 5(1)(a)." /></Label>
               <div className="flex flex-wrap gap-1.5 mb-2">
                 {INTEREST_CHIPS.map((chip) => {
                   const selected = form.legitimate_interest_chips.includes(chip);
