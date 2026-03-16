@@ -658,15 +658,15 @@ export default function EntityMapView({ entities, highlightId }: Props) {
           <p className="text-[9px] uppercase tracking-[0.1em] text-muted-foreground font-semibold mb-1.5">Entity Pins</p>
           <div className="space-y-1">
             <div className="flex items-center gap-2">
-              <span className="inline-block w-2.5 h-2.5 rounded-full border border-white/50" style={{ backgroundColor: TIER_COLORS.A }} />
+              <span className="inline-block w-2.5 h-2.5 rounded-full border border-white/50" style={{ backgroundColor: "#ef4444" }} />
               <span className="text-[10px] text-foreground">Tier A — High Risk</span>
             </div>
             <div className="flex items-center gap-2">
-              <span className="inline-block w-2.5 h-2.5 rounded-full border border-white/50" style={{ backgroundColor: TIER_COLORS.B }} />
+              <span className="inline-block w-2.5 h-2.5 rounded-full border border-white/50" style={{ backgroundColor: "#d97706" }} />
               <span className="text-[10px] text-foreground">Tier B — Medium Risk</span>
             </div>
             <div className="flex items-center gap-2">
-              <span className="inline-block w-2.5 h-2.5 rounded-full border border-white/50" style={{ backgroundColor: TIER_COLORS.C }} />
+              <span className="inline-block w-2.5 h-2.5 rounded-full border border-white/50" style={{ backgroundColor: "#22c55e" }} />
               <span className="text-[10px] text-foreground">Tier C — Low Risk</span>
             </div>
           </div>
