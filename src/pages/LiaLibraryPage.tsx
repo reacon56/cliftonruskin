@@ -617,7 +617,7 @@ export default function LiaLibraryPage() {
               </label>
             </div>
             <div className="space-y-2">
-              <Label className="text-xs">Safeguards summary</Label>
+              <Label className="text-xs flex items-center gap-1.5">Safeguards summary <FieldTooltip text="Data requiring higher protection: health, biometric, racial origin, political opinions (includes PEP status), criminal records. Requires an additional condition under Article 9 UK GDPR." /></Label>
               <Textarea rows={2} value={form.safeguards} onChange={(e) => set({ safeguards: e.target.value })} placeholder="Describe additional safeguards…" disabled={readOnly} />
             </div>
             <div className="space-y-2">
