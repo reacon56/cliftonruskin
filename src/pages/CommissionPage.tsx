@@ -240,11 +240,24 @@ export default function CommissionPage() {
 
   return (
     <div className="max-w-2xl mx-auto">
-      <h1 className="fvc-heading-1 text-foreground mb-1">Commission a Check</h1>
-      <div className="fvc-gold-rule mt-3 mb-2" />
-      <p className="text-sm text-muted-foreground mb-10">
-        Request a new due diligence engagement
-      </p>
+      <div className="flex items-start justify-between">
+        <div>
+          <h1 className="fvc-heading-1 text-foreground mb-1">Commission a Check</h1>
+          <div className="fvc-gold-rule mt-3 mb-2" />
+          <p className="text-sm text-muted-foreground mb-10">
+            Request a new due diligence engagement
+          </p>
+        </div>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => navigate("/service-request")}
+          className="shrink-0 gap-1.5 text-xs"
+        >
+          <Briefcase size={14} />
+          Request additional services
+        </Button>
+      </div>
 
       {/* Step indicator */}
       <div className="flex items-center gap-1.5 mb-8">
