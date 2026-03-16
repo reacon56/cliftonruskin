@@ -18,12 +18,13 @@ import {
 import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/hooks/use-toast";
 import {
-  Shield, Plus, Search, CheckCircle2, Scale, Eye, Lock, Info,
+  Shield, Plus, Search, CheckCircle2, Scale, Eye, Lock, Info, BookTemplate,
 } from "lucide-react";
 import {
   INTEREST_CHIPS, DATA_SUBJECT_OPTIONS, DATA_CATEGORY_OPTIONS,
   SOURCE_OPTIONS, MITIGATION_OPTIONS,
 } from "@/components/lia/LiaFormTypes";
+import { SEED_TEMPLATES } from "@/lib/lia-seed-templates";
 
 interface MasterLiaTemplate {
   id: string;
@@ -129,6 +130,7 @@ export default function LiaLibraryPage() {
   const [editTemplate, setEditTemplate] = useState<MasterLiaTemplate | null>(null);
   const [form, setForm] = useState<TemplateFormState>(INITIAL_FORM);
   const [saving, setSaving] = useState(false);
+  const [seeding, setSeeding] = useState(false);
 
   const isAdmin = hasRole("client_admin");
   const canEdit = isAdmin;
@@ -144,6 +146,48 @@ export default function LiaLibraryPage() {
       .eq("org_id", profile!.org_id!)
       .order("created_at", { ascending: false });
     setTemplates((data as any[]) ?? []);
+  };
+
+  const seedPrebuiltTemplates = async () => {
+    if (!profile?.org_id || !user) return;
+    setSeeding(true);
+    const now = new Date().toISOString();
+    const records = SEED_TEMPLATES.map((t) => ({
+      org_id: profile.org_id!,
+      name: t.name,
+      purpose_category: t.purpose_category,
+      lawful_basis: t.lawful_basis,
+      legitimate_interest: t.legitimate_interest,
+      necessity: t.necessity,
+      less_intrusive: t.less_intrusive,
+      balancing_fields: t.balancing_fields,
+      safeguards: t.safeguards,
+      retention_months: t.retention_months,
+      outcome: t.outcome,
+      conditions: t.conditions || null,
+      scope_summary: t.scope_summary,
+      effective_date: t.effective_date,
+      approved_by_name: t.approved_by_name,
+      status: t.status,
+      version_number: t.version_number,
+      approved_by: user.id,
+      approved_at: now,
+      updated_at: now,
+    }));
+    const { error } = await supabase.from("master_lia_templates" as any).insert(records as any);
+    if (error) {
+      toast({ title: "Error seeding templates", description: error.message, variant: "destructive" });
+    } else {
+      await supabase.from("audit_events").insert({
+        user_id: user.id, org_id: profile.org_id,
+        action_type: "MASTER_LIA_SEED_TEMPLATES",
+        object_type: "master_lia_template",
+        metadata: { count: records.length },
+      });
+      toast({ title: "Pre-built templates loaded", description: "3 DUAA 2025-compliant templates have been added to your library." });
+      loadTemplates();
+    }
+    setSeeding(false);
   };
 
   const formToDb = (f: TemplateFormState) => ({
@@ -626,9 +670,14 @@ export default function LiaLibraryPage() {
         <div className="fvc-card text-center py-12">
           <Shield size={32} className="mx-auto text-muted-foreground/30 mb-3" />
           <h3 className="fvc-heading-3 text-foreground mb-1">No templates yet</h3>
-          <p className="text-sm text-muted-foreground">
-            {canEdit ? "Create your first Master LIA template to get started." : "No Master LIA templates have been created."}
+          <p className="text-sm text-muted-foreground mb-4">
+            {canEdit ? "Create your first Master LIA template or load our pre-built DUAA 2025-compliant templates." : "No Master LIA templates have been created."}
           </p>
+          {canEdit && (
+            <Button variant="outline" className="gap-1.5" onClick={seedPrebuiltTemplates} disabled={seeding}>
+              <BookTemplate size={14} /> {seeding ? "Loading…" : "Load Pre-built Templates (DUAA 2025)"}
+            </Button>
+          )}
         </div>
       ) : (
         <div className="space-y-2">
