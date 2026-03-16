@@ -6,6 +6,9 @@ import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
 import { AlertTriangle, Shield, Info } from "lucide-react";
+import { RegChangeAlertBanner } from "@/components/insight/RegChangeAlertBanner";
+import { KnowledgePanelWidget } from "@/components/insight/KnowledgePanel";
+import type { KnowledgeSection } from "@/components/insight/KnowledgePanel";
 import MiniLiaForm from "@/components/lia/MiniLiaForm";
 import { LIA_INITIAL, type LiaFormState } from "@/components/lia/LiaFormTypes";
 
