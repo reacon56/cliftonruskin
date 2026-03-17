@@ -70,15 +70,18 @@ export default function HomePage() {
             "Reassuringly thorough. Decisively useful."
           </p>
           <p className="mt-6 max-w-2xl mx-auto text-lg text-white/70 leading-relaxed animate-fade-in" style={{ animationDelay: "200ms" }}>
-            Analyst-led due diligence and third-party assurance on companies, owners, and suppliers — written for boards, counsel, and procurement teams.
+            The intelligence behind decisions that cannot afford to be wrong.
+          </p>
+          <p className="mt-4 max-w-2xl mx-auto text-sm text-white/55 leading-relaxed animate-fade-in" style={{ animationDelay: "220ms" }}>
+            Third-party due diligence and assurance for financial institutions, law firms, and procurement teams — where AI-accelerated research meets analyst accountability. Every conclusion is owned. Every finding is defensible.
           </p>
 
           {/* Bullets */}
           <ul className="mt-8 max-w-xl mx-auto space-y-3 text-left animate-fade-in" style={{ animationDelay: "250ms" }}>
             {[
-              "Decision-grade conclusions — ranked risks, clear recommendations, practical mitigations",
-              "Evidence discipline — sourced, dated, and audit-ready by design",
-              "Monitoring that matters — refresh cycles and material-change alerts (not noise)",
+              "Decision-grade output — not raw data. Ranked risks, clear recommendations, and the reasoning behind them",
+              "Evidence discipline — sourced, dated, and structured for board papers, regulatory files, and legal disclosure",
+              "Continuous assurance — material-change monitoring built around risk appetite, not alert volume",
             ].map((b) => (
               <li key={b} className="flex items-start gap-3">
                 <span className="mt-2 h-1.5 w-1.5 rounded-full bg-[#c9a962] shrink-0" />
