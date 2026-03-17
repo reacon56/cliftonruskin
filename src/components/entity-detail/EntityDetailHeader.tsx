@@ -1,11 +1,12 @@
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
-  DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,
+  DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuLabel, DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
 import { ArrowLeft, FileCheck, RefreshCw, Zap, ShieldAlert, Pencil, ChevronDown } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { CountryFlagBadge, FlagBadgesInfo } from "@/components/CountryFlagBadge";
+import { SCHEDULED_REASONS, EVENT_REASONS, useTriggerReviewFlow } from "./TriggerReviewFlow";
 
 interface Props {
   entity: any;
@@ -15,24 +16,18 @@ interface Props {
   onChangeTier: () => void;
 }
 
-const REFRESH_REASONS = [
-  "Contract renewal",
-  "Event-driven",
-  "New jurisdiction",
-  "Escalation request",
-  "Allegation / whistleblowing",
-  "Other",
-];
-
 export default function EntityDetailHeader({ entity, canEdit, canAdmin, onEditEntity, onChangeTier }: Props) {
   const navigate = useNavigate();
+  const { handleReasonSelect, modals } = useTriggerReviewFlow(entity.id);
 
   const todayStr = new Date().toISOString().split("T")[0];
   const in30 = new Date(Date.now() + 30 * 86400000).toISOString().split("T")[0];
 
+  const isOverdue = entity.next_review_date && entity.next_review_date < todayStr;
+
   const assuranceStatus = !entity.next_review_date
     ? { label: "No date set", color: "bg-muted text-muted-foreground" }
-    : entity.next_review_date < todayStr
+    : isOverdue
     ? { label: "Overdue", color: "bg-destructive/10 text-destructive" }
     : entity.next_review_date <= in30
     ? { label: "Due soon", color: "bg-warning/10 text-warning" }
@@ -68,7 +63,6 @@ export default function EntityDetailHeader({ entity, canEdit, canAdmin, onEditEn
             </div>
           </div>
           <div className="fvc-gold-rule mt-3 mb-3" />
-          {/* Read-only jurisdiction rows */}
           <div className="flex flex-wrap gap-x-6 gap-y-1 text-xs text-muted-foreground mb-2 ml-0.5">
             <span>
               <span className="text-[10px] font-semibold uppercase tracking-[0.08em] text-muted-foreground/60 mr-1.5">Jurisdiction of incorporation:</span>
@@ -98,21 +92,37 @@ export default function EntityDetailHeader({ entity, canEdit, canAdmin, onEditEn
 
         <div className="flex items-center gap-2 shrink-0 ml-4">
           <Button size="sm" onClick={() => navigate(`/commission?entity=${entity.id}`)}>
-            <FileCheck size={14} className="mr-1.5" /> Commission Check
+            <FileCheck size={14} className="mr-1.5" /> New Case
           </Button>
 
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button size="sm" variant="outline">
-                <RefreshCw size={14} className="mr-1.5" /> Refresh
+                <RefreshCw size={14} className="mr-1.5" /> Trigger Review
                 <ChevronDown size={12} className="ml-1" />
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-56 z-50 bg-card border border-border shadow-lg">
-              {REFRESH_REASONS.map((r) => (
+            <DropdownMenuContent align="end" className="w-64 z-50 bg-card border border-border shadow-lg">
+              <DropdownMenuLabel className="text-[10px] uppercase tracking-[0.08em] text-muted-foreground font-semibold">
+                Scheduled review
+              </DropdownMenuLabel>
+              {SCHEDULED_REASONS.map((r) => (
                 <DropdownMenuItem
                   key={r}
-                  onClick={() => navigate(`/commission?entity=${entity.id}&reason=${encodeURIComponent(r)}`)}
+                  onClick={() => handleReasonSelect(r)}
+                  className="cursor-pointer text-sm"
+                >
+                  {r}
+                </DropdownMenuItem>
+              ))}
+              <DropdownMenuSeparator />
+              <DropdownMenuLabel className="text-[10px] uppercase tracking-[0.08em] text-muted-foreground font-semibold">
+                Event-triggered review
+              </DropdownMenuLabel>
+              {EVENT_REASONS.map((r) => (
+                <DropdownMenuItem
+                  key={r}
+                  onClick={() => handleReasonSelect(r)}
                   className="cursor-pointer text-sm"
                 >
                   {r}
@@ -152,6 +162,45 @@ export default function EntityDetailHeader({ entity, canEdit, canAdmin, onEditEn
         <SummaryItem label="Onboarded" value={entity.onboarded_date ? new Date(entity.onboarded_date).toLocaleDateString() : entity.created_at ? new Date(entity.created_at).toLocaleDateString() : "—"} />
         <SummaryItem label="Status" value={entity.status} />
       </div>
+
+      {/* Overdue banner */}
+      {isOverdue && (
+        <div className="flex items-center gap-3 mt-4 px-4 py-3 rounded-md border border-warning/30 bg-warning/5">
+          <span className="text-sm text-warning leading-relaxed flex-1">
+            ⚠ Review overdue — this entity was due for review on{" "}
+            <strong>{new Date(entity.next_review_date).toLocaleDateString()}</strong>.
+            Each day without a completed review is a gap in your documented compliance programme.
+          </span>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button size="sm" className="bg-accent text-accent-foreground hover:bg-accent/90 shrink-0">
+                Trigger review now →
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-64 z-50 bg-card border border-border shadow-lg">
+              <DropdownMenuLabel className="text-[10px] uppercase tracking-[0.08em] text-muted-foreground font-semibold">
+                Scheduled review
+              </DropdownMenuLabel>
+              {SCHEDULED_REASONS.map((r) => (
+                <DropdownMenuItem key={r} onClick={() => handleReasonSelect(r)} className="cursor-pointer text-sm">
+                  {r}
+                </DropdownMenuItem>
+              ))}
+              <DropdownMenuSeparator />
+              <DropdownMenuLabel className="text-[10px] uppercase tracking-[0.08em] text-muted-foreground font-semibold">
+                Event-triggered review
+              </DropdownMenuLabel>
+              {EVENT_REASONS.map((r) => (
+                <DropdownMenuItem key={r} onClick={() => handleReasonSelect(r)} className="cursor-pointer text-sm">
+                  {r}
+                </DropdownMenuItem>
+              ))}
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
+      )}
+
+      {modals}
     </div>
   );
 }
