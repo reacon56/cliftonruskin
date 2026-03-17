@@ -120,6 +120,7 @@ function AppRoutes() {
       <Route element={<ProtectedRoute><PartnerLayout /></ProtectedRoute>}>
         <Route path="/partner/tasks" element={<PartnerTaskListPage />} />
         <Route path="/partner/tasks/:taskId" element={<PartnerTaskDetailPage />} />
+        <Route path="/help" element={<HelpCentrePage />} />
       </Route>
 
       {/* Main app layout (clients + internal) */}

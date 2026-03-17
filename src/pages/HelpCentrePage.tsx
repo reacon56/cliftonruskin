@@ -233,18 +233,20 @@ const PARTNER_HELP: PortalHelp = {
 
 /* ────── Component ────── */
 
-export default function HelpCentrePage() {
+function usePortalContext(): "internal" | "client" | "partner" {
   const { isPartner, isInternal } = useAuth();
-
-  // Determine portal context — try viewMode for internal/client, fall back for partner
-  let portalContext: "internal" | "client" | "partner" = "client";
   try {
+    // ViewModeContext is only available inside AppLayout
     // eslint-disable-next-line react-hooks/rules-of-hooks
     const { activeView } = useViewMode();
-    portalContext = isPartner ? "partner" : activeView;
+    return isPartner ? "partner" : activeView;
   } catch {
-    portalContext = isPartner ? "partner" : isInternal ? "internal" : "client";
+    return isPartner ? "partner" : isInternal ? "internal" : "client";
   }
+}
+
+export default function HelpCentrePage() {
+  const portalContext = usePortalContext();
 
   const helpContent = portalContext === "internal" ? INTERNAL_HELP : portalContext === "partner" ? PARTNER_HELP : CLIENT_HELP;
 

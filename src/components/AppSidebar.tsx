@@ -176,6 +176,15 @@ export default function AppSidebar() {
         <Button
           variant="ghost"
           size="sm"
+          onClick={() => navigate("/help")}
+          className="w-full justify-start gap-2 text-sidebar-foreground/40 hover:text-sidebar-foreground hover:bg-sidebar-accent/40 transition-colors duration-200"
+        >
+          <HelpCircle size={15} />
+          {!collapsed && <span className="text-[13px]">Help Centre</span>}
+        </Button>
+        <Button
+          variant="ghost"
+          size="sm"
           onClick={signOut}
           className="w-full justify-start gap-2 text-sidebar-foreground/40 hover:text-sidebar-foreground hover:bg-sidebar-accent/40 transition-colors duration-200"
         >
