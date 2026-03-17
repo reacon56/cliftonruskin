@@ -163,7 +163,36 @@ serve(async (req) => {
         status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
 
-    const { case_id } = await req.json();
+    const body = await req.json();
+    const { case_id, help_centre, portalContext, systemPromptOverride, question } = body;
+
+    // ── Help Centre mode ──
+    if (help_centre && question) {
+      const helpSystemPrompt = systemPromptOverride || "You are a helpful assistant for the Clifton Ruskin Assurance Portal.";
+      const helpResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+        method: "POST",
+        headers: { Authorization: `Bearer ${LOVABLE_API_KEY}`, "Content-Type": "application/json" },
+        body: JSON.stringify({
+          model: "google/gemini-3-flash-preview",
+          messages: [
+            { role: "system", content: helpSystemPrompt },
+            { role: "user", content: question },
+          ],
+        }),
+      });
+      if (!helpResponse.ok) {
+        const status = helpResponse.status;
+        return new Response(JSON.stringify({ error: "AI assistant unavailable" }), {
+          status, headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+      const helpResult = await helpResponse.json();
+      const answer = helpResult.choices?.[0]?.message?.content || "I could not generate a response.";
+      return new Response(JSON.stringify({ answer }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
     if (!case_id)
       return new Response(JSON.stringify({ error: "case_id is required" }), {
         status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
