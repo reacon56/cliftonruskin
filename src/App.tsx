@@ -188,6 +188,7 @@ function AppRoutes() {
         <Route path="/ingestion-sources" element={<InternalRouteGuard managerOnly><IngestionSourcesPage /></InternalRouteGuard>} />
         <Route path="/research-console" element={<InternalRouteGuard><ResearchConsolePage /></InternalRouteGuard>} />
 
+        <Route path="/help" element={<HelpCentrePage />} />
         <Route path="/users" element={<StubPage title="Users & Roles" description="Manage team members and role assignments" />} />
         <Route path="/clients" element={<StubPage title="Clients" description="Manage client organisations" />} />
         <Route path="/templates" element={<StubPage title="Templates" description="Report and deliverable templates" />} />
