@@ -2,7 +2,7 @@ import { Outlet } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { LogOut, Moon, Sun, ListTodo } from "lucide-react";
+import { LogOut, Moon, Sun, ListTodo, HelpCircle } from "lucide-react";
 import { useTheme } from "@/hooks/use-theme";
 
 export default function PartnerLayout() {
