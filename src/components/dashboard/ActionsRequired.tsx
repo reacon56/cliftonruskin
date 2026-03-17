@@ -37,7 +37,7 @@ export default function ActionsRequired({ stats, onViewAll }: Props) {
       colorClass: "text-accent",
       bgClass: "bg-accent/10",
       cta: "Review approvals",
-      onClick: () => navigate("/commission?filter=pending_approval"),
+      onClick: () => navigate("/approvals"),
     },
     {
       key: "awaiting",
