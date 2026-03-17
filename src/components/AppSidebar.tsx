@@ -1,6 +1,6 @@
 import { NavLink, useLocation } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
-import { LogOut, ChevronLeft, ChevronRight, Moon, Sun, ArrowLeftRight } from "lucide-react";
+import { LogOut, ChevronLeft, ChevronRight, Moon, Sun, ArrowLeftRight, HelpCircle } from "lucide-react";
 import ManagerNavGroups from "@/components/sidebar/ManagerNavGroups";
 import OfficerNavSections from "@/components/sidebar/OfficerNavSections";
 import ClientNavGroups from "@/components/sidebar/ClientNavGroups";
@@ -173,6 +173,15 @@ export default function AppSidebar() {
             {theme === "dark" ? <Sun size={14} /> : <Moon size={14} />}
           </Button>
         )}
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => navigate("/help")}
+          className="w-full justify-start gap-2 text-sidebar-foreground/40 hover:text-sidebar-foreground hover:bg-sidebar-accent/40 transition-colors duration-200"
+        >
+          <HelpCircle size={15} />
+          {!collapsed && <span className="text-[13px]">Help Centre</span>}
+        </Button>
         <Button
           variant="ghost"
           size="sm"

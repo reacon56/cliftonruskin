@@ -72,6 +72,7 @@ import MethodologyAdminPage from "@/pages/admin/MethodologyAdminPage";
 import ClientOnboardingPage from "@/pages/ClientOnboardingPage";
 import ResetPasswordPage from "@/pages/ResetPasswordPage";
 import RegulatoryBriefingsPage from "@/pages/RegulatoryBriefingsPage";
+import HelpCentrePage from "@/pages/HelpCentrePage";
 
 // Website pages
 import WebsiteLayout from "@/components/website/WebsiteLayout";
@@ -119,6 +120,7 @@ function AppRoutes() {
       <Route element={<ProtectedRoute><PartnerLayout /></ProtectedRoute>}>
         <Route path="/partner/tasks" element={<PartnerTaskListPage />} />
         <Route path="/partner/tasks/:taskId" element={<PartnerTaskDetailPage />} />
+        <Route path="/help" element={<HelpCentrePage />} />
       </Route>
 
       {/* Main app layout (clients + internal) */}
@@ -187,6 +189,7 @@ function AppRoutes() {
         <Route path="/ingestion-sources" element={<InternalRouteGuard managerOnly><IngestionSourcesPage /></InternalRouteGuard>} />
         <Route path="/research-console" element={<InternalRouteGuard><ResearchConsolePage /></InternalRouteGuard>} />
 
+        <Route path="/help" element={<HelpCentrePage />} />
         <Route path="/users" element={<StubPage title="Users & Roles" description="Manage team members and role assignments" />} />
         <Route path="/clients" element={<StubPage title="Clients" description="Manage client organisations" />} />
         <Route path="/templates" element={<StubPage title="Templates" description="Report and deliverable templates" />} />

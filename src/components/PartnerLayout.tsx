@@ -2,7 +2,7 @@ import { Outlet } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { LogOut, Moon, Sun, ListTodo } from "lucide-react";
+import { LogOut, Moon, Sun, ListTodo, HelpCircle } from "lucide-react";
 import { useTheme } from "@/hooks/use-theme";
 
 export default function PartnerLayout() {
@@ -52,6 +52,15 @@ export default function PartnerLayout() {
               </div>
             </div>
           )}
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => navigate("/help")}
+            className="w-full justify-start gap-2 text-sidebar-foreground/40 hover:text-sidebar-foreground hover:bg-sidebar-accent/40 transition-colors duration-200"
+          >
+            <HelpCircle size={15} />
+            <span className="text-[13px]">Help Centre</span>
+          </Button>
           <Button
             variant="ghost"
             size="sm"
