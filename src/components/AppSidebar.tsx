@@ -1,6 +1,6 @@
 import { NavLink, useLocation } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
-import { LogOut, ChevronLeft, ChevronRight, Moon, Sun, ArrowLeftRight } from "lucide-react";
+import { LogOut, ChevronLeft, ChevronRight, Moon, Sun, ArrowLeftRight, HelpCircle } from "lucide-react";
 import ManagerNavGroups from "@/components/sidebar/ManagerNavGroups";
 import OfficerNavSections from "@/components/sidebar/OfficerNavSections";
 import ClientNavGroups from "@/components/sidebar/ClientNavGroups";
