@@ -3,11 +3,11 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { supabase } from "@/integrations/supabase/client";
-import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import { CalendarDays, RefreshCw } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { SCHEDULED_REASONS, EVENT_REASONS, useTriggerReviewFlow } from "./TriggerReviewFlow";
 
 interface Props {
   entity: any;
@@ -18,16 +18,12 @@ interface Props {
   userId: string;
 }
 
-const REFRESH_REASONS = [
-  "Contract renewal", "Event-driven", "New jurisdiction",
-  "Escalation request", "Allegation / whistleblowing", "Other",
-];
-
 export default function ReviewCycleTab({ entity, cases, policyRule, canEdit, onRefresh, userId }: Props) {
   const navigate = useNavigate();
   const { toast } = useToast();
   const [nextDate, setNextDate] = useState(entity.next_review_date || "");
   const [saving, setSaving] = useState(false);
+  const { handleReasonSelect, modals } = useTriggerReviewFlow(entity.id);
 
   const completedCases = cases
     .filter((c) => c.status === "delivered" || c.status === "closed")
@@ -94,24 +90,43 @@ export default function ReviewCycleTab({ entity, cases, policyRule, canEdit, onR
         </div>
       )}
 
-      {/* Commission Refresh */}
+      {/* Trigger Review (Out of Cycle) */}
       <div className="fvc-card">
         <h3 className="fvc-heading-3 text-foreground mb-3 flex items-center gap-2">
-          <RefreshCw size={16} className="text-accent" /> Commission Refresh (Out of Cycle)
+          <RefreshCw size={16} className="text-accent" /> Trigger Review (Out of Cycle)
         </h3>
-        <p className="text-xs text-muted-foreground mb-4">Select a reason to commission an out-of-cycle review.</p>
-        <div className="flex flex-wrap gap-2">
-          {REFRESH_REASONS.map((r) => (
+        <p className="text-xs text-muted-foreground mb-4">Select a reason to trigger an out-of-cycle review.</p>
+
+        {/* Scheduled review group */}
+        <p className="text-[10px] uppercase tracking-[0.08em] text-muted-foreground font-semibold mb-2">Scheduled review</p>
+        <div className="flex flex-wrap gap-2 mb-4">
+          {SCHEDULED_REASONS.map((r) => (
             <Button
               key={r}
               size="sm"
               variant="outline"
-              onClick={() => navigate(`/commission?entity=${entity.id}&reason=${encodeURIComponent(r)}`)}
+              onClick={() => handleReasonSelect(r)}
             >
               {r}
             </Button>
           ))}
         </div>
+
+        {/* Event-triggered review group */}
+        <p className="text-[10px] uppercase tracking-[0.08em] text-muted-foreground font-semibold mb-2">Event-triggered review</p>
+        <div className="flex flex-wrap gap-2">
+          {EVENT_REASONS.map((r) => (
+            <Button
+              key={r}
+              size="sm"
+              variant="outline"
+              onClick={() => handleReasonSelect(r)}
+            >
+              {r}
+            </Button>
+          ))}
+        </div>
+
         {policyRule?.approval_required && (
           <p className="text-[10px] text-warning mt-3">
             ⚠ This tier requires approval — refreshes will enter the approvals flow.
@@ -142,6 +157,8 @@ export default function ReviewCycleTab({ entity, cases, policyRule, canEdit, onR
           </div>
         )}
       </div>
+
+      {modals}
     </div>
   );
 }
